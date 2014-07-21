@@ -7,13 +7,13 @@
 	[
 		{
 			"type"				: "azure",
-			"subscription_name"	: "Snesha-PuppetLabs",
-			"storage_account" 	: "packervhds",
+			"subscription_name"	: "Contoso-subscription",
+			"storage_account" 	: "Contoso-storage-account",
 			"os_type"			: "Linux",
-			"os_image_label"	: "openSUSE 13.1",
+			"os_image_label"	: "Ubuntu Server 14.04 LTS",
 			"location"			: "West US",
 			"instance_size"		: "Small",
-			"user_image_label"	: "PackerMade_OpenSUSEImage"
+			"user_image_label"	: "PackerMade_UbuntuImage"
 		}
 	]
 	
@@ -21,9 +21,9 @@
         {
             "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
             "inline": [
-                "sudo zypper update -y",
-                "sudo zypper install -y mc",
-                "sudo zypper install -y java"
+                "sudo apt-get update",
+                "sudo apt-get install -y mc",
+                "sudo apt-get install -y default-jre"
             ],
             "inline_shebang": "/bin/sh -x",
             "type": "shell"
