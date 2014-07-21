@@ -1,0 +1,32 @@
+{
+	"variables": 
+	{
+	},
+  
+	"builders": 
+	[
+		{
+			"type"				: "azure",
+			"subscription_name"	: "Snesha-PuppetLabs",
+			"storage_account" 	: "packervhds",
+			"os_type"			: "Linux",
+			"os_image_label"	: "Ubuntu Server 14.04 LTS",
+			"location"			: "West US",
+			"instance_size"		: "Small",
+			"user_image_label"	: "PackerMade_UbuntuImage"
+		}
+	]
+	
+	,"provisioners": [
+        {
+            "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "inline": [
+                "sudo apt-get update",
+                "sudo apt-get install -y mc",
+                "sudo apt-get install -y default-jre"
+            ],
+            "inline_shebang": "/bin/sh -x",
+            "type": "shell"
+        }
+    ]
+}
