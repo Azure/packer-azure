@@ -13,6 +13,7 @@ import (
 )
 
 type StepGetEndpoint struct {
+	osType string
 	tmpVmName string
 	tmpServiceName string
 }
@@ -29,14 +30,24 @@ func (s *StepGetEndpoint) Run(state multistep.StateBag) multistep.StepAction {
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
 	blockBuffer.WriteString("$tmpVmName = '" + s.tmpVmName + "';")
 	blockBuffer.WriteString("$tmpServiceName = '" + s.tmpServiceName + "';")
-	blockBuffer.WriteString("$endpoint = Get-AzureVM –ServiceName $tmpServiceName –Name $tmpVmName | Get-AzureEndpoint;")
-	blockBuffer.WriteString("$endpoint.Port;")
+	if s.osType == Linux {
+		blockBuffer.WriteString("$ep = Get-AzureVM –ServiceName $tmpServiceName –Name $tmpVmName | Get-AzureEndpoint;")
+		blockBuffer.WriteString("[string]::Format(\"{0}:{1}\", $ep.Vip, $ep.Port)")
+	} else if  s.osType == Windows {
+		blockBuffer.WriteString("$uri = Get-AzureWinRMUri -ServiceName $tmpServiceName -Name $tmpVmName;")
+		blockBuffer.WriteString("$uri.AbsoluteUri;")
+	} else {
+		err := fmt.Errorf(errorMsg, "Unknown osType")
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
 	blockBuffer.WriteString("}")
 
-	var port string
+	var res string
 	var err error
 
-	port, err = driver.ExecRet( blockBuffer.String() )
+	res, err = driver.ExecRet( blockBuffer.String() )
 
 	if err != nil {
 		err := fmt.Errorf(errorMsg, err)
@@ -45,7 +56,15 @@ func (s *StepGetEndpoint) Run(state multistep.StateBag) multistep.StepAction {
 		return multistep.ActionHalt
 	}
 
-	state.Put("port", port)
+	if(len(res) == 0 ){
+		err := fmt.Errorf(errorMsg, "stdout is empty")
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+
+	}
+
+	state.Put("azureVmAddr", res)
 
 	return multistep.ActionContinue
 }

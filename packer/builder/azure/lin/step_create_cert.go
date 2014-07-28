@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package azure
+package lin
 
 import (
 	"crypto/rand"
@@ -24,10 +24,10 @@ import (
 )
 
 type StepCreateCert struct {
-	certFileName string
-	keyFileName string
+	CertFileName string
+	KeyFileName string
 	tempDir string
-	tmpServiceName string
+	TmpServiceName string
 }
 
 func (s *StepCreateCert) Run(state multistep.StateBag) multistep.StepAction {
@@ -80,8 +80,7 @@ func (s *StepCreateCert) Cleanup(state multistep.StateBag) {
 }
 
 func (s *StepCreateCert)createCert(state multistep.StateBag) error {
-	host  := fmt.Sprintf("%s.cloudapp.net", s.tmpServiceName)
-//	validFrom := time.Now()
+	host  := fmt.Sprintf("%s.cloudapp.net", s.TmpServiceName)
 	validFor  := 365*24*time.Hour
 	isCA      := false
 	rsaBits   := 2048
@@ -103,18 +102,6 @@ func (s *StepCreateCert)createCert(state multistep.StateBag) error {
 
 	// Set the private key in the statebag for later
 	state.Put("privateKey", string(pem.EncodeToMemory(&priv_blk)))
-
-
-	//	var notBefore time.Time
-//	if len(*validFrom) == 0 {
-//		notBefore = time.Now()
-//	} else {
-//		notBefore, err = time.Parse("Jan 2 15:04:05 2006", *validFrom)
-//		if err != nil {
-//			fmt.Fprintf(os.Stderr, "Failed to parse creation date: %s\n", err)
-//			os.Exit(1)
-//		}
-//	}
 
 	notBefore := time.Now()
 
@@ -161,7 +148,7 @@ func (s *StepCreateCert)createCert(state multistep.StateBag) error {
 		return err
 	}
 
-	certOut, err := os.Create(filepath.Join(s.tempDir, s.certFileName))
+	certOut, err := os.Create(filepath.Join(s.tempDir, s.CertFileName))
 	if err != nil {
 		err := fmt.Errorf("Failed to Open cert.pem for Writing: %s: %s", err)
 		return err
@@ -169,16 +156,16 @@ func (s *StepCreateCert)createCert(state multistep.StateBag) error {
 
 	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	certOut.Close()
-	log.Printf("Written %s", s.certFileName)
+	log.Printf("Written %s", s.CertFileName)
 
-	keyOut, err := os.OpenFile(filepath.Join(s.tempDir, s.keyFileName), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	keyOut, err := os.OpenFile(filepath.Join(s.tempDir, s.KeyFileName), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		err := fmt.Errorf("Failed to Open key.pem for Writing: %s", err)
 		return err
 	}
 	pem.Encode(keyOut, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
 	keyOut.Close()
-	log.Printf("Written %s", s.keyFileName)
+	log.Printf("Written %s", s.KeyFileName)
 
 	return nil
 }

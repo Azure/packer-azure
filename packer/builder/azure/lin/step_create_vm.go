@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package azure
+package lin
 
 import (
 	"fmt"
@@ -13,15 +13,13 @@ import (
 )
 
 type StepCreateVm struct {
-	osType string
-	storageAccount string
-	osImageLabel string
-//	location string
-	tmpVmName string
-	tmpServiceName string
-	instanceSize string
-	username string
-//	password string
+	OsType string
+	StorageAccount string
+	OsImageLabel string
+	TmpVmName string
+	TmpServiceName string
+	InstanceSize string
+	Username string
 }
 
 func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
@@ -43,20 +41,19 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 
 	var blockBuffer bytes.Buffer
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
-	blockBuffer.WriteString("$storageAccount = '" + s.storageAccount + "';")
-	blockBuffer.WriteString("$osImageLabel = '" + s.osImageLabel + "';")
+	blockBuffer.WriteString("$storageAccount = '" + s.StorageAccount + "';")
+	blockBuffer.WriteString("$osImageLabel = '" + s.OsImageLabel + "';")
 //	blockBuffer.WriteString("$location = '" + s.location + "';")
-	blockBuffer.WriteString("$tmpVmName = '" + s.tmpVmName + "';")
-	blockBuffer.WriteString("$tmpServiceName = '" + s.tmpServiceName + "';")
-	blockBuffer.WriteString("$instanceSize = '" + s.instanceSize + "';")
-	blockBuffer.WriteString("$username = '" + s.username + "';")
-//	blockBuffer.WriteString("$password = '" + s.password + "';")
+	blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
+	blockBuffer.WriteString("$tmpServiceName = '" + s.TmpServiceName + "';")
+	blockBuffer.WriteString("$instanceSize = '" + s.InstanceSize + "';")
+	blockBuffer.WriteString("$username = '" + s.Username + "';")
 
 	blockBuffer.WriteString("$containerUrl = \"https://$storageAccount.blob.core.windows.net/vhds\";")
 	blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")
 
 //	blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.Label -eq $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
-	blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.Label -eq $osImageLabel } | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
+	blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.ImageFamily -like $osImageLabel } | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
 
 	blockBuffer.WriteString("$certThumbprint = '" + certThumbprint + "';")
 	blockBuffer.WriteString("$sshkey = New-AzureSSHKey -PublicKey -Fingerprint $certThumbprint -Path \"/home/$username/.ssh/authorized_keys\";")
@@ -99,8 +96,8 @@ func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 
 		var blockBuffer bytes.Buffer
 		blockBuffer.WriteString("Invoke-Command -scriptblock {")
-		blockBuffer.WriteString("$tmpVmName = '" + s.tmpVmName + "';")
-		blockBuffer.WriteString("$tmpServiceName = '" + s.tmpServiceName + "';")
+		blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
+		blockBuffer.WriteString("$tmpServiceName = '" + s.TmpServiceName + "';")
 		blockBuffer.WriteString("Stop-AzureVM -ServiceName $tmpServiceName -Name $tmpVmName -Force;")
 		blockBuffer.WriteString("}")
 
@@ -119,8 +116,8 @@ func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 
 		var blockBuffer bytes.Buffer
 		blockBuffer.WriteString("Invoke-Command -scriptblock {")
-		blockBuffer.WriteString("$tmpVmName = '" + s.tmpVmName + "';")
-		blockBuffer.WriteString("$tmpServiceName = '" + s.tmpServiceName + "';")
+		blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
+		blockBuffer.WriteString("$tmpServiceName = '" + s.TmpServiceName + "';")
 		blockBuffer.WriteString("Remove-AzureVM -ServiceName $tmpServiceName -Name $tmpVmName;")
 		blockBuffer.WriteString("}")
 
@@ -137,7 +134,7 @@ func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 //
 //		var blockBuffer bytes.Buffer
 //		blockBuffer.WriteString("Invoke-Command -scriptblock {")
-//		blockBuffer.WriteString("$tmpServiceName = '" + s.tmpServiceName + "';")
+//		blockBuffer.WriteString("$tmpServiceName = '" + s.TmpServiceName + "';")
 //		blockBuffer.WriteString("Remove-AzureService -ServiceName $tmpServiceName -Force;")
 //		blockBuffer.WriteString("}")
 //
@@ -156,8 +153,8 @@ func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 //
 //		var blockBuffer bytes.Buffer
 //		blockBuffer.WriteString("Invoke-Command -scriptblock {")
-//		blockBuffer.WriteString("$storageAccount = '" + s.storageAccount + "';")
-//		blockBuffer.WriteString("$tmpVmName = '" + s.tmpVmName + "';")
+//		blockBuffer.WriteString("$storageAccount = '" + s.StorageAccount + "';")
+//		blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
 //
 //		blockBuffer.WriteString("$containerUrl = \"https://$storageAccount.blob.core.windows.net/vhds\";")
 //		blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")

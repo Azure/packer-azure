@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strconv"
 	"bytes"
+	"github.com/mitchellh/packer/packer"
 )
 
 type PS4Driver struct {
@@ -193,13 +194,13 @@ func (d *PS4Driver) Exec(block string) error {
 	}
 
 	if len(stderrString) > 0 {
-		err = fmt.Errorf("Exec error: %s", stderrString)
+		err = fmt.Errorf("%s", stderrString)
 	}
 
 	stdoutString := strings.TrimSpace(stdout.String())
 
-	log.Printf("stdout: %s", stdoutString)
-	log.Printf("stderr: %s", stderrString)
+	log.Printf("Exec stdout: %s", stdoutString)
+	log.Printf("Exec stderr: %s", stderrString)
 
 	return err
 }
@@ -223,13 +224,31 @@ func (d *PS4Driver) ExecRet(block string) (string, error) {
 	}
 
 	if len(stderrString) > 0 {
-		err = fmt.Errorf("ExecRet error: %s", stderrString)
+		err = fmt.Errorf("%s", stderrString)
 	}
 
 	stdoutString := strings.TrimSpace(stdout.String())
 
-	log.Printf("stdout: %s", stdoutString)
-	log.Printf("stderr: %s", stderrString)
+	log.Printf("ExecRet stdout: %s", stdoutString)
+	log.Printf("ExecRet stderr: %s", stderrString)
 
 	return stdoutString, err
 }
+
+func (d *PS4Driver) ExecRemote(cmd *packer.RemoteCmd) error {
+
+	log.Printf("Executing ExecRemote: %#v", cmd.Command)
+
+	script := exec.Command(d.ExecPath, cmd.Command)
+	script.Stdout = cmd.Stdout
+	script.Stderr = cmd.Stderr
+
+	err := script.Run()
+
+	if _, ok := err.(*exec.ExitError); ok {
+		err = fmt.Errorf("ExecRemote error: %s", err)
+	}
+
+	return err
+}
+

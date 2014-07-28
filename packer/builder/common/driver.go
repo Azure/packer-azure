@@ -4,6 +4,8 @@
 // See License.txt in the project root for license information.
 package common
 
+import "github.com/mitchellh/packer/packer"
+
 // A driver is able to talk to HyperV and perform certain
 // operations with it. Some of the operations on here may seem overly
 // specific, but they were built specifically in mind to handle features
@@ -17,6 +19,8 @@ type Driver interface {
 
 	// ExecRet executes the given PowerShell command and returns a value
 	ExecRet(string) (string, error)
+
+	ExecRemote(cmd *packer.RemoteCmd) error
 
 
 	// Verify checks to make sure that this driver should function

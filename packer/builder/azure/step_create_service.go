@@ -75,7 +75,7 @@ func (s *StepCreateService) Cleanup(state multistep.StateBag) {
 	}
 
 	if res = state.Get("diskExists").(int); res == 1 {
-		ui.Say("Removing Azure Disk...")
+		ui.Say("Removing Azure Temporary Disk...")
 		errorMsg := "Error Removing Temporary Azure Disk: %s"
 
 		var blockBuffer bytes.Buffer
@@ -98,5 +98,4 @@ func (s *StepCreateService) Cleanup(state multistep.StateBag) {
 			return
 		}
 	}
-
 }

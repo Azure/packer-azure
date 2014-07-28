@@ -12,13 +12,15 @@ import (
 
 	"github.com/mitchellh/multistep"
 	msbldcommon "github.com/MSOpenTech/packer-azure/packer/builder/common"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/win"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/lin"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
 	"math/rand"
 	"time"
 	"code.google.com/p/go-uuid/uuid"
-//	"os"
 	"path/filepath"
+	"regexp"
 )
 
 // Instance size
@@ -59,9 +61,7 @@ type azure_config struct {
 	common.PackerConfig           		`mapstructure:",squash"`
 	tpl *packer.ConfigTemplate
 
-//	password          		string		`mapstructure:"password"`
 	username          		string		`mapstructure:"username"`
-//	CertPath          		string		`mapstructure:"certificate_path"`
 	tmpVmName              	string
 	tmpServiceName          string
 	userImageName          	string
@@ -87,7 +87,6 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 	// Accumulate any errors and warnings
 	errs := common.CheckUnusedConfig(md)
-//	errs = packer.MultiErrorAppend(errs, b.config.OutputConfig.Prepare(b.config.tpl, &b.config.PackerConfig)...)
 	warnings := make([]string, 0)
 
 	if b.config.SubscriptionName == "" {
@@ -99,7 +98,6 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		errs = packer.MultiErrorAppend(errs, errors.New("storage_account: The option can't be missed."))
 	}
 	log.Println(fmt.Sprintf("%s: %v","storage_account", b.config.StorageAccount))
-
 
 	osTypeIsValid := false
 	osTypeArr := []string{
@@ -170,7 +168,6 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	// Errors
 	templates := map[string]*string{
 		"user_image_name":  &b.config.UserImageLabel,
-//		"certificate_path":  &b.config.CertPath,
 	}
 
 	for n, ptr := range templates {
@@ -183,40 +180,34 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 	log.Println(fmt.Sprintf("%s: %v","user_image_name", b.config.UserImageLabel))
 
-//	if b.config.CertPath == "" {
-//		warnings = appendWarnings( warnings, fmt.Sprintf("certificate_path: %s", "the value is either missing or empty. For some Linux distribution provision won't work without certificate."))
-//	}else if _, err := os.Stat(b.config.CertPath); err != nil {
-//		errs = packer.MultiErrorAppend(errs, fmt.Errorf("certificate_path: Check the path is correct"))
-//	}
-
-//	log.Println(fmt.Sprintf("%s: %v","certificate_path", b.config.CertPath))
-
-	// 8 random digits
-	var min int64 = 10000000
-	var max int64 = 99999999
+	// random symbols for vm name (should be unique)
+	// for Win  - the computer name cannot be more than 15 characters long
 	rand.Seed(time.Now().Unix())
-	rnd := rand.Int63n(max - min + 1) + min
+	availSymb := "0123456789abcdefghijklmnopqrstuvwxyz"
+	availSymbLen := len(availSymb)
+	const tmpServiceNamePrefix = "PkrSrv"
+	const tmpVmNamePrefix = "PkrVM"
+	const allowedVmNameLength = 15
+	genLen := allowedVmNameLength - len(tmpVmNamePrefix)
+	var rnd string
+	for i := 0; i < genLen; i++ {
+		rnd += string(availSymb[rand.Intn(availSymbLen)])
+	}
 
 	if b.config.tmpVmName == "" {
-		b.config.tmpVmName = fmt.Sprintf("PkrVM-%v", rnd)
+		b.config.tmpVmName = fmt.Sprintf("%s%s", tmpVmNamePrefix, rnd)
 	}
 	log.Println(fmt.Sprintf("%s: %v","tmpVmName", b.config.tmpVmName))
 
 	if b.config.tmpServiceName == "" {
-		b.config.tmpServiceName = fmt.Sprintf("PkrSrv-%v", rnd)
+		b.config.tmpServiceName = fmt.Sprintf("%s%s", tmpServiceNamePrefix, rnd)
 	}
 	log.Println(fmt.Sprintf("%s: %v","tmpServiceName", b.config.tmpServiceName))
-
-//	if b.config.password == "" {
-//		b.config.password = fmt.Sprintf("%s", "P@cker1234")
-//	}
-//	log.Println(fmt.Sprintf("%s: %v","password", b.config.password))
 
 	if b.config.username == "" {
 		b.config.username = fmt.Sprintf("%s", "packer")
 	}
 	log.Println(fmt.Sprintf("%s: %v","username", b.config.username))
-
 
 	if errs != nil && len(errs.Errors) > 0 {
 		return warnings, errs
@@ -253,7 +244,6 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put("tmpServiceName", b.config.tmpServiceName)
 	state.Put("certTempDir", "")
 
-
 	// complete flags
 	state.Put("srvExists", 0)
 	state.Put("certUploaded", 0)
@@ -262,80 +252,147 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put("vmRunning", 0)
 	state.Put("imageCreated", 0)
 
-	certFileName:= "cert.pem"
-	keyFileName := "key.pem"
+	var steps []multistep.Step
 
+	if b.config.OsType == "Linux" {
+		certFileName:= "cert.pem"
+		keyFileName := "key.pem"
 
-	steps := []multistep.Step{
-		&StepSelectSubscription{
-			SubscriptionName: b.config.SubscriptionName,
-			StorageAccount: b.config.StorageAccount,
+		steps = []multistep.Step{
+			&StepSelectSubscription {
+				SubscriptionName: b.config.SubscriptionName,
+				StorageAccount: b.config.StorageAccount,
 			},
-		&StepCreateCert{
-			certFileName: certFileName,
-			keyFileName: keyFileName,
-			tmpServiceName: b.config.tmpServiceName,
+			&lin.StepCreateCert {
+				CertFileName: certFileName,
+				KeyFileName: keyFileName,
+				TmpServiceName: b.config.tmpServiceName,
 			},
-		&StepCreateService{
-			location: b.config.Location,
-			tmpServiceName: b.config.tmpServiceName,
-			storageAccount: b.config.StorageAccount,
-			tmpVmName: b.config.tmpVmName,
+			&StepCreateService {
+				location: b.config.Location,
+				tmpServiceName: b.config.tmpServiceName,
+				storageAccount: b.config.StorageAccount,
+				tmpVmName: b.config.tmpVmName,
 			},
-		&StepUploadCertificate{
-			certFileName: filepath.Join(state.Get("certTempDir").(string), certFileName),
-			tmpServiceName: b.config.tmpServiceName,
-			username: b.config.username,
+			&StepUploadCertificate {
+				certFileName: filepath.Join(state.Get("certTempDir").(string), certFileName),
+				tmpServiceName: b.config.tmpServiceName,
+				username: b.config.username,
 			},
-		&StepCreateVm{
-			osType: b.config.OsType,
-			storageAccount: b.config.StorageAccount,
-			osImageLabel: b.config.OsImageLabel,
-//			location: b.config.Location,
-			tmpVmName: b.config.tmpVmName,
-			tmpServiceName: b.config.tmpServiceName,
-			instanceSize: b.config.InstanceSize,
-			username: b.config.username,
-//			password: b.config.password,
+			&lin.StepCreateVm {
+				OsType: b.config.OsType,
+				StorageAccount: b.config.StorageAccount,
+				OsImageLabel: b.config.OsImageLabel,
+				TmpVmName: b.config.tmpVmName,
+				TmpServiceName: b.config.tmpServiceName,
+				InstanceSize: b.config.InstanceSize,
+				Username: b.config.username,
 			},
-		&StepGetEndpoint{
-			tmpVmName: b.config.tmpVmName,
-			tmpServiceName: b.config.tmpServiceName,
+			&StepGetEndpoint {
+				osType: b.config.OsType,
+				tmpVmName: b.config.tmpVmName,
+				tmpServiceName: b.config.tmpServiceName,
 			},
-		&common.StepConnectSSH{
-			SSHAddress:     SSHAddress,
-//			SSHConfig:      SSHConfig(b.config.username, b.config.password),
-			SSHConfig:      SSHConfig(b.config.username),
-			SSHWaitTimeout: 20*time.Minute,
+			&common.StepConnectSSH {
+				SSHAddress:     lin.SSHAddress,
+				SSHConfig:      lin.SSHConfig(b.config.username),
+				SSHWaitTimeout: 20*time.Minute,
 			},
-		&common.StepProvision{},
-		&StepGeneralizeOs{
-			Command: "sudo /usr/sbin/waagent -force -deprovision && export HISTSIZE=0",
-		},
-
-		&StepStopVm{
-			tmpVmName: b.config.tmpVmName,
-			tmpServiceName: b.config.tmpServiceName,
+			&common.StepProvision {},
+			&lin.StepGeneralizeOs{
+				Command: "sudo /usr/sbin/waagent -force -deprovision && export HISTSIZE=0",
 			},
-		&StepRemoveVm{
-			tmpVmName: b.config.tmpVmName,
-			tmpServiceName: b.config.tmpServiceName,
+			&StepStopVm {
+				tmpVmName: b.config.tmpVmName,
+				tmpServiceName: b.config.tmpServiceName,
 			},
-		&StepRemoveService{
-			tmpServiceName: b.config.tmpServiceName,
+			&StepRemoveVm {
+				tmpVmName: b.config.tmpVmName,
+				tmpServiceName: b.config.tmpServiceName,
 			},
-		&StepRemoveDisk{
-			storageAccount: b.config.StorageAccount,
-			tmpVmName: b.config.tmpVmName,
+			&StepRemoveService {
+				tmpServiceName: b.config.tmpServiceName,
+			},
+			&StepRemoveDisk {
+				storageAccount: b.config.StorageAccount,
+				tmpVmName: b.config.tmpVmName,
 			},
 
-		&StepCreateImage{
-			storageAccount: b.config.StorageAccount,
-			tmpVmName: b.config.tmpVmName,
-			userImageLabel: b.config.UserImageLabel,
-			userImageName: b.config.userImageName,
-			osType: b.config.OsType,
+			&StepCreateImage {
+				storageAccount: b.config.StorageAccount,
+				tmpVmName: b.config.tmpVmName,
+				userImageLabel: b.config.UserImageLabel,
+				userImageName: b.config.userImageName,
+				osType: b.config.OsType,
 			},
+		}
+	} else if b.config.OsType == "Windows" {
+//		b.config.tmpVmName = "PkrVM-95129190"
+//		b.config.tmpServiceName = "PkrSrv-95129190"
+		password := "Zxcv1234"
+		steps = []multistep.Step {
+			&StepSelectSubscription {
+				SubscriptionName: b.config.SubscriptionName,
+				StorageAccount: b.config.StorageAccount,
+				},
+
+			&win.StepCreateVm {
+				OsType: b.config.OsType,
+				StorageAccount: b.config.StorageAccount,
+				OsImageLabel: b.config.OsImageLabel,
+				Location: b.config.Location,
+				TmpVmName: b.config.tmpVmName,
+				TmpServiceName: b.config.tmpServiceName,
+				InstanceSize: b.config.InstanceSize,
+				Username: b.config.username,
+				Password: password,
+				},
+
+			&win.StepInstallCert {
+				TmpVmName: b.config.tmpVmName,
+				TmpServiceName: b.config.tmpServiceName,
+				},
+			&StepGetEndpoint {
+				osType: b.config.OsType,
+				tmpVmName: b.config.tmpVmName,
+				tmpServiceName: b.config.tmpServiceName,
+				},
+			&win.StepSetRemoting {
+				Username: b.config.username,
+				Password: password,
+				},
+			new(win.StepCheckRemoting),
+			&common.StepProvision{},
+			&win.StepSysprep{
+				OsImageLabel: b.config.OsImageLabel,
+			},
+
+			&StepStopVm {
+				tmpVmName: b.config.tmpVmName,
+				tmpServiceName: b.config.tmpServiceName,
+				},
+			&StepRemoveVm {
+				tmpVmName: b.config.tmpVmName,
+				tmpServiceName: b.config.tmpServiceName,
+				},
+			&StepRemoveService {
+				tmpServiceName: b.config.tmpServiceName,
+				},
+			&StepRemoveDisk {
+				storageAccount: b.config.StorageAccount,
+				tmpVmName: b.config.tmpVmName,
+				},
+			&StepCreateImage {
+				storageAccount: b.config.StorageAccount,
+				tmpVmName: b.config.tmpVmName,
+				userImageLabel: b.config.UserImageLabel,
+				userImageName: b.config.userImageName,
+				osType: b.config.OsType,
+				},
+		}
+
+	} else {
+		return nil, fmt.Errorf("Unkonwn OS type: %s", b.config.OsType)
 	}
 
 	// Run the steps.
@@ -386,17 +443,6 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver msbldcommon.Driver) e
 	var res string
 
 	ui.Say("Validating Azure options...")
-
-//	blockBuffer.Reset()
-//	blockBuffer.WriteString("Invoke-Command -scriptblock {")
-//	blockBuffer.WriteString("Add-AzureAccount")
-//	blockBuffer.WriteString("}")
-//
-//	err = driver.Exec( blockBuffer.String() )
-//
-//	if err != nil {
-//		return err
-//	}
 
 	blockBuffer.Reset()
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
@@ -450,14 +496,45 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver msbldcommon.Driver) e
 	blockBuffer.WriteString("Test-AzureName -Storage -Name $storageAccount;")
 	blockBuffer.WriteString("}")
 
-	res, err = driver.ExecRet( blockBuffer.String() )
+	res, err = driver.ExecRet(blockBuffer.String())
 
 	if err != nil {
-		return err
+		// Sometimes Test-AzureName cmdlet returns this error (bellow)
+		pattern := "Your Windows Azure credential in the Windows PowerShell session has expired"
+		value := err.Error()
+
+		match, _ := regexp.MatchString(pattern, value)
+		if match {
+			// Renew subscription if so
+			blockBuffer.Reset()
+			blockBuffer.WriteString("Invoke-Command -scriptblock {")
+			blockBuffer.WriteString("Add-AzureAccount")
+			blockBuffer.WriteString("}")
+
+			err = driver.Exec( blockBuffer.String() )
+
+			if err != nil {
+				return err
+			}
+
+			blockBuffer.Reset()
+			blockBuffer.WriteString("Invoke-Command -scriptblock {")
+			blockBuffer.WriteString("$storageAccount = '" + b.config.StorageAccount + "';")
+			blockBuffer.WriteString("Test-AzureName -Storage -Name $storageAccount;")
+			blockBuffer.WriteString("}")
+
+			res, err = driver.ExecRet(blockBuffer.String())
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+
 	}
 
 	if(res == "False"){
-		err = fmt.Errorf("Can't find storage accoount '%s'", b.config.StorageAccount)
+		err = fmt.Errorf("Can't find storage account '%s'", b.config.StorageAccount)
 		return err
 	}
 
@@ -466,7 +543,15 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver msbldcommon.Driver) e
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
 	blockBuffer.WriteString("$osImageLabel = '" + b.config.OsImageLabel + "';")
 	blockBuffer.WriteString("$location = '" + b.config.Location + "';")
-	blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.Label -eq $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
+	if b.config.OsType == Linux {
+//		blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.Label -eq $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
+		blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.ImageFamily -like $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
+	} else if  b.config.OsType == Windows {
+		blockBuffer.WriteString("$image = Get-AzureVMImage | where {  $_.Label -Match $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
+	} else {
+		err := fmt.Errorf("Can't find OS image '%s' with OS type '%s'", b.config.OsImageLabel, b.config.OsType )
+		return err
+	}
 	blockBuffer.WriteString("$image -ne $null;")
 	blockBuffer.WriteString("}")
 

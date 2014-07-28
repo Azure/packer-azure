@@ -27,8 +27,10 @@ func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepActi
 	driver := state.Get("driver").(msbldcommon.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
-	errorMsg := "Error Uploading Certificate: %s"
+	errorMsg := "Error Uploading Temporary Certificate: %s"
 	certPath := filepath.Join(certTempDir, s.certFileName)
+
+	ui.Say("Uploading Temporary Certificate...")
 
 	var blockBuffer bytes.Buffer
 
