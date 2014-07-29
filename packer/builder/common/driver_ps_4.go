@@ -45,10 +45,6 @@ func (d *PS4Driver) Verify() error {
 		return err
 	}
 
-	if err := d.verifyPSHypervModule(); err != nil {
-		return err
-	}
-
 	if err := d.verifyElevatedMode(); err != nil {
 		return err
 	}
@@ -83,28 +79,6 @@ func (d *PS4Driver) verifyPSVersion() error {
 
 	if ver < 4 {
 		err := fmt.Errorf("%s", "Windows PowerShell version 4.0 or higher is expected")
-		return err
-	}
-
-	return nil
-}
-
-func (d *PS4Driver) verifyPSHypervModule() error {
-
-	log.Printf("Enter method: %s", "verifyPSHypervModule")
-
-	versionCmd := "Invoke-Command -scriptblock { function foo(){try{ $commands = Get-Command -Module Hyper-V;if($commands.Length -eq 0){return $false} }catch{return $false}; return $true} foo}"
-	cmd := exec.Command(d.ExecPath, versionCmd)
-
-	cmdOut, err := cmd.Output()
-	if err != nil {
-		return err
-	}
-
-	res := strings.TrimSpace(string(cmdOut))
-
-	if(res== "False"){
-		err := fmt.Errorf("%s", "PS Hyper-V module is not loaded. Make sure Hyper-V feature is on.")
 		return err
 	}
 
