@@ -32,7 +32,7 @@
 				"Start-Process '{{user `installers_destination_folder`}}/npp.6.6.3.Installer.exe' -NoNewWindow -Wait -Argument '/S'",
 				"Write-Host 'Inline script finished!'" 
 			],
-			"script_path": "{{user `example_dir`}}/probe.ps1"
+			"script_path": "{{user `example_dir`}}/ws2012-setup.ps1"
 		}
 	]
 	
