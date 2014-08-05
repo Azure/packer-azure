@@ -43,7 +43,7 @@ const (
 	Windows string = "Windows"
 )
 
-// Builder implements packer.Builder and builds the actual Hyperv
+// Builder implements packer.Builder and builds the actual Azure
 // images.
 type Builder struct {
 	config azure_config
@@ -217,12 +217,12 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 }
 
 // Run executes a Packer build and returns a packer.Artifact representing
-// a Hyperv appliance.
+// a PS Azure appliance.
 func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
-	// Create the driver that we'll use to communicate with Hyperv
+	// Create the driver that we'll use to communicate with PS Azure
 	driver, err := msbldcommon.NewPS4Driver()
 	if err != nil {
-		return nil, fmt.Errorf("Failed creating Hyper-V driver: %s", err)
+		return nil, fmt.Errorf("Failed creating PowerShell driver: %s", err)
 	}
 
 	err = driver.VerifyPSAzureModule()
