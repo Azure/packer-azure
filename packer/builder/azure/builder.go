@@ -544,8 +544,7 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver msbldcommon.Driver) e
 	blockBuffer.WriteString("$osImageLabel = '" + b.config.OsImageLabel + "';")
 	blockBuffer.WriteString("$location = '" + b.config.Location + "';")
 	if b.config.OsType == Linux {
-//		blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.Label -eq $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
-		blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.ImageFamily -like $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
+		blockBuffer.WriteString("$image = Get-AzureVMImage | where { ($_.Label -like $osImageLabel) -or ($_.ImageFamily -like $osImageLabel) } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
 	} else if  b.config.OsType == Windows {
 		blockBuffer.WriteString("$image = Get-AzureVMImage | where {  $_.Label -Match $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
 	} else {

@@ -53,7 +53,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 	blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")
 
 //	blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.Label -eq $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
-	blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.ImageFamily -like $osImageLabel } | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
+	blockBuffer.WriteString("$image = Get-AzureVMImage | where { ($_.Label -like $osImageLabel) -or ($_.ImageFamily -like $osImageLabel) } | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
 
 	blockBuffer.WriteString("$certThumbprint = '" + certThumbprint + "';")
 	blockBuffer.WriteString("$sshkey = New-AzureSSHKey -PublicKey -Fingerprint $certThumbprint -Path \"/home/$username/.ssh/authorized_keys\";")
