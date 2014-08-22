@@ -2,25 +2,25 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package azure
+package target
 
 import (
 	"fmt"
 	"bytes"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	msbldcommon "github.com/MSOpenTech/packer-azure/packer/builder/common"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepCreateService struct {
-	location string
-	tmpServiceName string
-	storageAccount string
-	tmpVmName string
+	Location string
+	TmpServiceName string
+	StorageAccount string
+	TmpVmName string
 }
 
 func (s *StepCreateService) Run(state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(msbldcommon.Driver)
+	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
 	errorMsg := "Error Creating Temporary Azure Service: %s"
@@ -29,8 +29,8 @@ func (s *StepCreateService) Run(state multistep.StateBag) multistep.StepAction {
 
 	var blockBuffer bytes.Buffer
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
-	blockBuffer.WriteString("$location = '" + s.location + "';")
-	blockBuffer.WriteString("$tmpServiceName = '" + s.tmpServiceName + "';")
+	blockBuffer.WriteString("$location = '" + s.Location + "';")
+	blockBuffer.WriteString("$tmpServiceName = '" + s.TmpServiceName + "';")
 	blockBuffer.WriteString("New-AzureService -ServiceName $tmpServiceName -Location $location;")
 	blockBuffer.WriteString("}")
 
@@ -49,7 +49,7 @@ func (s *StepCreateService) Run(state multistep.StateBag) multistep.StepAction {
 }
 
 func (s *StepCreateService) Cleanup(state multistep.StateBag) {
-	driver := state.Get("driver").(msbldcommon.Driver)
+	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
 	var err error
@@ -61,7 +61,7 @@ func (s *StepCreateService) Cleanup(state multistep.StateBag) {
 
 		var blockBuffer bytes.Buffer
 		blockBuffer.WriteString("Invoke-Command -scriptblock {")
-		blockBuffer.WriteString("$tmpServiceName = '" + s.tmpServiceName + "';")
+		blockBuffer.WriteString("$tmpServiceName = '" + s.TmpServiceName + "';")
 		blockBuffer.WriteString("Remove-AzureService -ServiceName $tmpServiceName -Force;")
 		blockBuffer.WriteString("}")
 
@@ -80,8 +80,8 @@ func (s *StepCreateService) Cleanup(state multistep.StateBag) {
 
 		var blockBuffer bytes.Buffer
 		blockBuffer.WriteString("Invoke-Command -scriptblock {")
-		blockBuffer.WriteString("$storageAccount = '" + s.storageAccount + "';")
-		blockBuffer.WriteString("$tmpVmName = '" + s.tmpVmName + "';")
+		blockBuffer.WriteString("$storageAccount = '" + s.StorageAccount + "';")
+		blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
 
 		blockBuffer.WriteString("$containerUrl = \"https://$storageAccount.blob.core.windows.net/vhds\";")
 		blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")

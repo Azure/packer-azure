@@ -2,11 +2,11 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package common
+package driver
 
 import "github.com/mitchellh/packer/packer"
 
-// A driver is able to talk to HyperV and perform certain
+// A driver is able to talk to PowerShell Azure and perform certain
 // operations with it. Some of the operations on here may seem overly
 // specific, but they were built specifically in mind to handle features
 // of the HyperV builder for Packer, and to abstract differences in

@@ -2,14 +2,14 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package azure
+package driver_powershell
 
 import "fmt"
 
 // This is the common builder ID to all of these artifacts.
 const BuilderId = "MSOpenTech.azure"
 
-// Artifact is the result of running the VirtualBox builder, namely a set
+// Artifact is the result of running the HyperV builder, namely a set
 // of files associated with the resulting machine.
 type artifact struct {
 	imageLabel string

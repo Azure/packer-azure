@@ -11,7 +11,7 @@ import (
 	"io"
 	"path/filepath"
 	"os"
-	"github.com/MSOpenTech/packer-azure/packer/builder/common"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 
@@ -20,7 +20,7 @@ type comm struct {
 }
 
 type Config struct {
-	Driver common.Driver
+	Driver ps.Driver
 	Username string
 	Password string
 	RemoteHostUrl string

@@ -10,7 +10,6 @@ import (
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
 	"log"
-//	"time"
 	"regexp"
 	"os"
 	"io/ioutil"
@@ -50,7 +49,6 @@ func (s *StepSysprep) Run(state multistep.StateBag) multistep.StepAction {
 			ui.Error(err.Error())
 			return multistep.ActionHalt
 		}
-
 
 		f, err := os.Create(filepath.Join(packerTempDir, "sysprep.ps1"))
 		if err != nil {

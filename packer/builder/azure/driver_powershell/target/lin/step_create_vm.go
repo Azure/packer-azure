@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	msbldcommon "github.com/MSOpenTech/packer-azure/packer/builder/common"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepCreateVm struct {
@@ -23,7 +23,7 @@ type StepCreateVm struct {
 }
 
 func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(msbldcommon.Driver)
+	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
 	errorMsg := "Error Creating Temporary Azure VM: %s"
@@ -82,7 +82,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 }
 
 func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
-	driver := state.Get("driver").(msbldcommon.Driver)
+	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
 	ui.Say("Cleanning up...")

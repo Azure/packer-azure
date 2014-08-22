@@ -2,23 +2,23 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package azure
+package target
 
 import (
 	"fmt"
 	"bytes"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	msbldcommon "github.com/MSOpenTech/packer-azure/packer/builder/common"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepRemoveVm struct {
-	tmpVmName string
-	tmpServiceName string
+	TmpVmName string
+	TmpServiceName string
 }
 
 func (s *StepRemoveVm) Run(state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(msbldcommon.Driver)
+	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
 	errorMsg := "Error Removig Temporary Azure VM: %s"
@@ -27,8 +27,8 @@ func (s *StepRemoveVm) Run(state multistep.StateBag) multistep.StepAction {
 
 	var blockBuffer bytes.Buffer
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
-	blockBuffer.WriteString("$tmpVmName = '" + s.tmpVmName + "';")
-	blockBuffer.WriteString("$tmpServiceName = '" + s.tmpServiceName + "';")
+	blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
+	blockBuffer.WriteString("$tmpServiceName = '" + s.TmpServiceName + "';")
 	blockBuffer.WriteString("Remove-AzureVM -ServiceName $tmpServiceName -Name $tmpVmName;")
 	blockBuffer.WriteString("}")
 

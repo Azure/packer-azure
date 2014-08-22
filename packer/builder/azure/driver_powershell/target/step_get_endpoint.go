@@ -2,24 +2,24 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package azure
+package target
 
 import (
 	"fmt"
 	"bytes"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	msbldcommon "github.com/MSOpenTech/packer-azure/packer/builder/common"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepGetEndpoint struct {
-	osType string
-	tmpVmName string
-	tmpServiceName string
+	OsType string
+	TmpVmName string
+	TmpServiceName string
 }
 
 func (s *StepGetEndpoint) Run(state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(msbldcommon.Driver)
+	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
 	errorMsg := "Error Getting Endpoint: %s"
@@ -28,16 +28,16 @@ func (s *StepGetEndpoint) Run(state multistep.StateBag) multistep.StepAction {
 
 	var blockBuffer bytes.Buffer
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
-	blockBuffer.WriteString("$tmpVmName = '" + s.tmpVmName + "';")
-	blockBuffer.WriteString("$tmpServiceName = '" + s.tmpServiceName + "';")
-	if s.osType == Linux {
+	blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
+	blockBuffer.WriteString("$tmpServiceName = '" + s.TmpServiceName + "';")
+	if s.OsType == Linux {
 		blockBuffer.WriteString("$ep = Get-AzureVM –ServiceName $tmpServiceName –Name $tmpVmName | Get-AzureEndpoint;")
 		blockBuffer.WriteString("[string]::Format(\"{0}:{1}\", $ep.Vip, $ep.Port)")
-	} else if  s.osType == Windows {
+	} else if  s.OsType == Windows {
 		blockBuffer.WriteString("$uri = Get-AzureWinRMUri -ServiceName $tmpServiceName -Name $tmpVmName;")
 		blockBuffer.WriteString("$uri.AbsoluteUri;")
 	} else {
-		err := fmt.Errorf(errorMsg, "Unknown osType")
+		err := fmt.Errorf(errorMsg, "Unknown OsType")
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

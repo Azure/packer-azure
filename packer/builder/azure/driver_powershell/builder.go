@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package azure
+package driver_powershell
 
 import (
 	"errors"
@@ -11,9 +11,10 @@ import (
 	"bytes"
 
 	"github.com/mitchellh/multistep"
-	msbldcommon "github.com/MSOpenTech/packer-azure/packer/builder/common"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/win"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/lin"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target/win"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target/lin"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
 	"math/rand"
@@ -21,26 +22,6 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 	"path/filepath"
 	"regexp"
-)
-
-// Instance size
-const (
-	ExtraSmall string 	= "ExtraSmall"
-	Small string 		= "Small"
-	Medium string 		= "Medium"
-	Large string 		= "Large"
-	ExtraLarge string 	= "ExtraLarge"
-	A5 string 			= "A5"
-	A6 string 			= "A6"
-	A7 string 			= "A7"
-	A8 string 			= "A8"
-	A9 string 			= "A9"
-)
-
-// Instance type
-const (
-	Linux string = "Linux"
-	Windows string = "Windows"
 )
 
 // Builder implements packer.Builder and builds the actual Azure
@@ -101,8 +82,8 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 	osTypeIsValid := false
 	osTypeArr := []string{
-		Linux,
-		Windows,
+		target.Linux,
+		target.Windows,
 	}
 
 	log.Println(fmt.Sprintf("%s: %v","instance_size", b.config.OsType))
@@ -131,16 +112,16 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 	sizeIsValid := false
 	instanceSizeArr := []string{
-		ExtraSmall,
-		Small,
-		Medium,
-		Large,
-		ExtraLarge,
-		A5,
-		A6,
-		A7,
-		A8,
-		A9,
+		target.ExtraSmall,
+		target.Small,
+		target.Medium,
+		target.Large,
+		target.ExtraLarge,
+		target.A5,
+		target.A6,
+		target.A7,
+		target.A8,
+		target.A9,
 	}
 
 	log.Println(fmt.Sprintf("%s: %v","instance_size", b.config.InstanceSize))
@@ -220,7 +201,7 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 // a PS Azure appliance.
 func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
 	// Create the driver that we'll use to communicate with PS Azure
-	driver, err := msbldcommon.NewPS4Driver()
+	driver, err := ps.NewPS4Driver()
 	if err != nil {
 		return nil, fmt.Errorf("Failed creating PowerShell driver: %s", err)
 	}
@@ -259,7 +240,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		keyFileName := "key.pem"
 
 		steps = []multistep.Step{
-			&StepSelectSubscription {
+			&target.StepSelectSubscription {
 				SubscriptionName: b.config.SubscriptionName,
 				StorageAccount: b.config.StorageAccount,
 			},
@@ -268,16 +249,16 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				KeyFileName: keyFileName,
 				TmpServiceName: b.config.tmpServiceName,
 			},
-			&StepCreateService {
-				location: b.config.Location,
-				tmpServiceName: b.config.tmpServiceName,
-				storageAccount: b.config.StorageAccount,
-				tmpVmName: b.config.tmpVmName,
+			&target.StepCreateService {
+				Location: b.config.Location,
+				TmpServiceName: b.config.tmpServiceName,
+				StorageAccount: b.config.StorageAccount,
+				TmpVmName: b.config.tmpVmName,
 			},
-			&StepUploadCertificate {
-				certFileName: filepath.Join(state.Get("certTempDir").(string), certFileName),
-				tmpServiceName: b.config.tmpServiceName,
-				username: b.config.username,
+			&target.StepUploadCertificate {
+				CertFileName: filepath.Join(state.Get("certTempDir").(string), certFileName),
+				TmpServiceName: b.config.tmpServiceName,
+				Username: b.config.username,
 			},
 			&lin.StepCreateVm {
 				OsType: b.config.OsType,
@@ -288,10 +269,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				InstanceSize: b.config.InstanceSize,
 				Username: b.config.username,
 			},
-			&StepGetEndpoint {
-				osType: b.config.OsType,
-				tmpVmName: b.config.tmpVmName,
-				tmpServiceName: b.config.tmpServiceName,
+			&target.StepGetEndpoint {
+				OsType: b.config.OsType,
+				TmpVmName: b.config.tmpVmName,
+				TmpServiceName: b.config.tmpServiceName,
 			},
 			&common.StepConnectSSH {
 				SSHAddress:     lin.SSHAddress,
@@ -302,28 +283,28 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&lin.StepGeneralizeOs{
 				Command: "sudo /usr/sbin/waagent -force -deprovision && export HISTSIZE=0",
 			},
-			&StepStopVm {
-				tmpVmName: b.config.tmpVmName,
-				tmpServiceName: b.config.tmpServiceName,
+			&target.StepStopVm {
+				TmpVmName: b.config.tmpVmName,
+				TmpServiceName: b.config.tmpServiceName,
 			},
-			&StepRemoveVm {
-				tmpVmName: b.config.tmpVmName,
-				tmpServiceName: b.config.tmpServiceName,
+			&target.StepRemoveVm {
+				TmpVmName: b.config.tmpVmName,
+				TmpServiceName: b.config.tmpServiceName,
 			},
-			&StepRemoveService {
-				tmpServiceName: b.config.tmpServiceName,
+			&target.StepRemoveService {
+				TmpServiceName: b.config.tmpServiceName,
 			},
-			&StepRemoveDisk {
-				storageAccount: b.config.StorageAccount,
-				tmpVmName: b.config.tmpVmName,
+			&target.StepRemoveDisk {
+				StorageAccount: b.config.StorageAccount,
+				TmpVmName: b.config.tmpVmName,
 			},
 
-			&StepCreateImage {
-				storageAccount: b.config.StorageAccount,
-				tmpVmName: b.config.tmpVmName,
-				userImageLabel: b.config.UserImageLabel,
-				userImageName: b.config.userImageName,
-				osType: b.config.OsType,
+			&target.StepCreateImage {
+				StorageAccount: b.config.StorageAccount,
+				TmpVmName: b.config.tmpVmName,
+				UserImageLabel: b.config.UserImageLabel,
+				UserImageName: b.config.userImageName,
+				OsType: b.config.OsType,
 			},
 		}
 	} else if b.config.OsType == "Windows" {
@@ -331,7 +312,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 //		b.config.tmpServiceName = "PkrSrv-95129190"
 		password := "Zxcv1234"
 		steps = []multistep.Step {
-			&StepSelectSubscription {
+			&target.StepSelectSubscription {
 				SubscriptionName: b.config.SubscriptionName,
 				StorageAccount: b.config.StorageAccount,
 				},
@@ -352,10 +333,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TmpVmName: b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
 				},
-			&StepGetEndpoint {
-				osType: b.config.OsType,
-				tmpVmName: b.config.tmpVmName,
-				tmpServiceName: b.config.tmpServiceName,
+			&target.StepGetEndpoint {
+				OsType: b.config.OsType,
+				TmpVmName: b.config.tmpVmName,
+				TmpServiceName: b.config.tmpServiceName,
 				},
 			&win.StepSetRemoting {
 				Username: b.config.username,
@@ -367,27 +348,27 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				OsImageLabel: b.config.OsImageLabel,
 			},
 
-			&StepStopVm {
-				tmpVmName: b.config.tmpVmName,
-				tmpServiceName: b.config.tmpServiceName,
+			&target.StepStopVm {
+				TmpVmName: b.config.tmpVmName,
+				TmpServiceName: b.config.tmpServiceName,
 				},
-			&StepRemoveVm {
-				tmpVmName: b.config.tmpVmName,
-				tmpServiceName: b.config.tmpServiceName,
+			&target.StepRemoveVm {
+				TmpVmName: b.config.tmpVmName,
+				TmpServiceName: b.config.tmpServiceName,
 				},
-			&StepRemoveService {
-				tmpServiceName: b.config.tmpServiceName,
+			&target.StepRemoveService {
+				TmpServiceName: b.config.tmpServiceName,
 				},
-			&StepRemoveDisk {
-				storageAccount: b.config.StorageAccount,
-				tmpVmName: b.config.tmpVmName,
+			&target.StepRemoveDisk {
+				StorageAccount: b.config.StorageAccount,
+				TmpVmName: b.config.tmpVmName,
 				},
-			&StepCreateImage {
-				storageAccount: b.config.StorageAccount,
-				tmpVmName: b.config.tmpVmName,
-				userImageLabel: b.config.UserImageLabel,
-				userImageName: b.config.userImageName,
-				osType: b.config.OsType,
+			&target.StepCreateImage {
+				StorageAccount: b.config.StorageAccount,
+				TmpVmName: b.config.tmpVmName,
+				UserImageLabel: b.config.UserImageLabel,
+				UserImageName: b.config.userImageName,
+				OsType: b.config.OsType,
 				},
 		}
 
@@ -435,7 +416,7 @@ func (b *Builder) Cancel() {
 	}
 }
 
-func (b *Builder)validateAzureOptions(ui packer.Ui, driver msbldcommon.Driver) error {
+func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 	// check Azure subscription
 
 	var blockBuffer bytes.Buffer
@@ -543,9 +524,9 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver msbldcommon.Driver) e
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
 	blockBuffer.WriteString("$osImageLabel = '" + b.config.OsImageLabel + "';")
 	blockBuffer.WriteString("$location = '" + b.config.Location + "';")
-	if b.config.OsType == Linux {
+	if b.config.OsType == target.Linux {
 		blockBuffer.WriteString("$image = Get-AzureVMImage | where { ($_.Label -like $osImageLabel) -or ($_.ImageFamily -like $osImageLabel) } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
-	} else if  b.config.OsType == Windows {
+	} else if  b.config.OsType ==  target.Windows {
 		blockBuffer.WriteString("$image = Get-AzureVMImage | where {  $_.Label -Match $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
 	} else {
 		err := fmt.Errorf("Can't find OS image '%s' with OS type '%s'", b.config.OsImageLabel, b.config.OsType )

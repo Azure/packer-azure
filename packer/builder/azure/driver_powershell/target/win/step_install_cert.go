@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	msbldcommon "github.com/MSOpenTech/packer-azure/packer/builder/common"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepInstallCert struct {
@@ -18,7 +18,7 @@ type StepInstallCert struct {
 }
 
 func (s *StepInstallCert) Run(state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(msbldcommon.Driver)
+	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
 	errorMsg := "Error Installing Temporary Certificate: %s"

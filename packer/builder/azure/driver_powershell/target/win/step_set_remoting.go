@@ -10,7 +10,7 @@ import (
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
 	"github.com/MSOpenTech/packer-azure/packer/communicator/powershell"
-	msbldcommon "github.com/MSOpenTech/packer-azure/packer/builder/common"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepSetRemoting struct {
@@ -20,30 +20,11 @@ type StepSetRemoting struct {
 }
 
 func (s *StepSetRemoting) Run(state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(msbldcommon.Driver)
+	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 	azureVmAddr := state.Get("azureVmAddr").(string)
 
 	errorMsg := "Error StepRemoteSession: %s"
-
-//	var blockBuffer bytes.Buffer
-//	blockBuffer.WriteString("Invoke-Command -scriptblock {")
-//	blockBuffer.WriteString("$uri = '" + azureVmAddr + "';")
-//	blockBuffer.WriteString("$username = '" + s.Username + "';")
-//	blockBuffer.WriteString("$password = '" + s.Password + "';")
-//	blockBuffer.WriteString("$secPassword = ConvertTo-SecureString $password -AsPlainText -Force;")
-//	blockBuffer.WriteString("$credential = New-Object -typename System.Management.Automation.PSCredential -argumentlist $username, $secPassword;")
-//	blockBuffer.WriteString("$sess = New-PSSession -ConnectionUri $uri -Credential $credential;")
-//	blockBuffer.WriteString("}")
-//
-//	err := driver.Exec( blockBuffer.String() )
-//
-//	if err != nil {
-//		err := fmt.Errorf(errorMsg, err)
-//		state.Put("error", err)
-//		ui.Error(err.Error())
-//		return multistep.ActionHalt
-//	}
 
 	comm, err := powershell.New(
 		&powershell.Config{

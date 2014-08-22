@@ -2,23 +2,23 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package azure
+package target
 
 import (
 	"fmt"
 	"bytes"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	msbldcommon "github.com/MSOpenTech/packer-azure/packer/builder/common"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepRemoveDisk struct {
-	storageAccount string
-	tmpVmName string
+	StorageAccount string
+	TmpVmName string
 }
 
 func (s *StepRemoveDisk) Run(state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(msbldcommon.Driver)
+	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
 	errorMsg := "Error Removing  Azure Temporary Disk: %s"
@@ -27,8 +27,8 @@ func (s *StepRemoveDisk) Run(state multistep.StateBag) multistep.StepAction {
 
 	var blockBuffer bytes.Buffer
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
-	blockBuffer.WriteString("$storageAccount = '" + s.storageAccount + "';")
-	blockBuffer.WriteString("$tmpVmName = '" + s.tmpVmName + "';")
+	blockBuffer.WriteString("$storageAccount = '" + s.StorageAccount + "';")
+	blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
 
 	blockBuffer.WriteString("$containerUrl = \"https://$storageAccount.blob.core.windows.net/vhds\";")
 	blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")

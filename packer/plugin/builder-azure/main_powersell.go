@@ -2,10 +2,13 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
+
+// +build powershell
+
 package main
 
 import (
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell"
 	"github.com/mitchellh/packer/packer/plugin"
 )
 
@@ -14,6 +17,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	server.RegisterBuilder(new(azure.Builder))
+	server.RegisterBuilder(new(driver_powershell.Builder))
 	server.Serve()
 }

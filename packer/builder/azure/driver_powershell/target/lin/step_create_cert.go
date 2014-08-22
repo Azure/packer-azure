@@ -26,7 +26,7 @@ import (
 type StepCreateCert struct {
 	CertFileName string
 	KeyFileName string
-	tempDir string
+	TempDir string
 	TmpServiceName string
 }
 
@@ -35,7 +35,7 @@ func (s *StepCreateCert) Run(state multistep.StateBag) multistep.StepAction {
 
 	ui.Say("Creating Temporary Certificate...")
 
-	if(len(s.tempDir) == 0){
+	if(len(s.TempDir) == 0){
 		//Creating temporary directory
 		tempDir := os.TempDir()
 		packerTempDir, err := ioutil.TempDir(tempDir, "packer_cert")
@@ -46,7 +46,7 @@ func (s *StepCreateCert) Run(state multistep.StateBag) multistep.StepAction {
 			return multistep.ActionHalt
 		}
 
-		s.tempDir = packerTempDir;
+		s.TempDir = packerTempDir;
 		state.Put("certTempDir", packerTempDir)
 		log.Printf("certTempDir: %s", packerTempDir)
 	}
@@ -64,7 +64,7 @@ func (s *StepCreateCert) Run(state multistep.StateBag) multistep.StepAction {
 }
 
 func (s *StepCreateCert) Cleanup(state multistep.StateBag) {
-	if s.tempDir == "" {
+	if s.TempDir == "" {
 		return
 	}
 
@@ -72,7 +72,7 @@ func (s *StepCreateCert) Cleanup(state multistep.StateBag) {
 
 	ui.Say("Deleting Temporary Certificate...")
 
-	err := os.RemoveAll(s.tempDir)
+	err := os.RemoveAll(s.TempDir)
 
 	if err != nil {
 		ui.Error(fmt.Sprintf("Error Deleting Temporary Directory: %s", err))
@@ -148,7 +148,7 @@ func (s *StepCreateCert)createCert(state multistep.StateBag) error {
 		return err
 	}
 
-	certOut, err := os.Create(filepath.Join(s.tempDir, s.CertFileName))
+	certOut, err := os.Create(filepath.Join(s.TempDir, s.CertFileName))
 	if err != nil {
 		err := fmt.Errorf("Failed to Open cert.pem for Writing: %s: %s", err)
 		return err
@@ -158,7 +158,7 @@ func (s *StepCreateCert)createCert(state multistep.StateBag) error {
 	certOut.Close()
 	log.Printf("Written %s", s.CertFileName)
 
-	keyOut, err := os.OpenFile(filepath.Join(s.tempDir, s.KeyFileName), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	keyOut, err := os.OpenFile(filepath.Join(s.TempDir, s.KeyFileName), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		err := fmt.Errorf("Failed to Open key.pem for Writing: %s", err)
 		return err

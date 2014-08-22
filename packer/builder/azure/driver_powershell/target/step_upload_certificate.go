@@ -2,21 +2,21 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package azure
+package target
 
 import (
 	"fmt"
 	"bytes"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	msbldcommon "github.com/MSOpenTech/packer-azure/packer/builder/common"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"path/filepath"
 )
 
 type StepUploadCertificate struct {
-	certFileName string
-	tmpServiceName string
-	username string
+	CertFileName string
+	TmpServiceName string
+	Username string
 }
 
 func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepAction {
@@ -24,11 +24,11 @@ func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepActi
 	if certTempDir == "" {
 		return multistep.ActionContinue
 	}
-	driver := state.Get("driver").(msbldcommon.Driver)
+	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
 	errorMsg := "Error Uploading Temporary Certificate: %s"
-	certPath := filepath.Join(certTempDir, s.certFileName)
+	certPath := filepath.Join(certTempDir, s.CertFileName)
 
 	ui.Say("Uploading Temporary Certificate...")
 
@@ -64,7 +64,7 @@ func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepActi
 	blockBuffer.Reset()
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
 	blockBuffer.WriteString("$certPath = '" + certPath + "';")
-	blockBuffer.WriteString("$tmpServiceName = '" + s.tmpServiceName + "';")
+	blockBuffer.WriteString("$tmpServiceName = '" + s.TmpServiceName + "';")
 	blockBuffer.WriteString("Add-AzureCertificate -serviceName $tmpServiceName -certToDeploy $certPath;")
 	blockBuffer.WriteString("}")
 
