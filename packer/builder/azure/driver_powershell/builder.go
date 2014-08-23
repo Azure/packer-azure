@@ -22,6 +22,7 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 	"path/filepath"
 	"regexp"
+	"os"
 )
 
 // Builder implements packer.Builder and builds the actual Azure
@@ -33,6 +34,7 @@ type Builder struct {
 
 type azure_config struct {
 	SubscriptionName        string     	`mapstructure:"subscription_name"`
+	PublishSettingsPath     string     	`mapstructure:"publish_settings_path"`
 	StorageAccount          string     	`mapstructure:"storage_account"`
 	OsType         			string   	`mapstructure:"os_type"`
 	OsImageLabel         	string   	`mapstructure:"os_image_label"`
@@ -73,11 +75,54 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	if b.config.SubscriptionName == "" {
 		errs = packer.MultiErrorAppend(errs, errors.New("subscription_name: The option can't be missed."))
 	}
-	log.Println(fmt.Sprintf("%s: %v","subscription_name", b.config.SubscriptionName))
 
 	if b.config.StorageAccount == "" {
 		errs = packer.MultiErrorAppend(errs, errors.New("storage_account: The option can't be missed."))
 	}
+
+	if b.config.OsImageLabel == "" {
+		errs = packer.MultiErrorAppend(errs, errors.New("os_image_label: The option can't be missed."))
+	}
+
+	if b.config.Location == "" {
+		errs = packer.MultiErrorAppend(errs, errors.New("location: The option can't be missed."))
+	}
+	log.Println(fmt.Sprintf("%s: %v","location", b.config.Location))
+
+
+	if b.config.UserImageLabel == "" {
+		errs = packer.MultiErrorAppend(errs, errors.New("user_image_label: The option can't be missed."))
+	}
+
+	templates := map[string]*string{
+		"subscription_name":  &b.config.SubscriptionName,
+		"publish_settings_path":  &b.config.PublishSettingsPath,
+		"storage_account":  &b.config.StorageAccount,
+		"os_type":  &b.config.OsType,
+		"os_image_label":  &b.config.OsImageLabel,
+		"location":  &b.config.Location,
+		"instance_size":  &b.config.InstanceSize,
+		"user_image_label":  &b.config.UserImageLabel,
+	}
+
+	for n, ptr := range templates {
+		var err error
+		*ptr, err = b.config.tpl.Process(*ptr, nil)
+		if err != nil {
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("Error processing %s: %s", n, err))
+		}
+	}
+
+	log.Println(fmt.Sprintf("%s: %v","subscription_name", b.config.SubscriptionName))
+
+	if len(b.config.PublishSettingsPath) > 0 {
+		if _, err := os.Stat(b.config.PublishSettingsPath); err != nil {
+			errs = packer.MultiErrorAppend(errs, errors.New("publish_settings_path: Check the path is correct."))
+		}
+
+		log.Println(fmt.Sprintf("%s: %v","publish_settings_path", b.config.PublishSettingsPath))
+	}
+
 	log.Println(fmt.Sprintf("%s: %v","storage_account", b.config.StorageAccount))
 
 	osTypeIsValid := false
@@ -85,8 +130,6 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		target.Linux,
 		target.Windows,
 	}
-
-	log.Println(fmt.Sprintf("%s: %v","instance_size", b.config.OsType))
 
 	for _, osType := range osTypeArr {
 		if b.config.OsType == osType {
@@ -100,15 +143,10 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 			fmt.Errorf("os_type: The value is invalid. Must be one of: %v", osTypeArr))
 	}
 
-	if b.config.OsImageLabel == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("os_image_label: The option can't be missed."))
-	}
-	log.Println(fmt.Sprintf("%s: %v","os_image_label", b.config.OsImageLabel))
+	log.Println(fmt.Sprintf("%s: %v","os_type", b.config.OsType))
 
-	if b.config.Location == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("location: The option can't be missed."))
-	}
-	log.Println(fmt.Sprintf("%s: %v","location", b.config.Location))
+
+	log.Println(fmt.Sprintf("%s: %v","os_image_label", b.config.OsImageLabel))
 
 	sizeIsValid := false
 	instanceSizeArr := []string{
@@ -124,7 +162,6 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		target.A9,
 	}
 
-	log.Println(fmt.Sprintf("%s: %v","instance_size", b.config.InstanceSize))
 
 	for _, instanceSize := range instanceSizeArr {
 		if b.config.InstanceSize == instanceSize {
@@ -138,28 +175,12 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 			fmt.Errorf("instance_size: The value is invalid. Must be one of: %v", instanceSizeArr))
 	}
 
-	if b.config.UserImageLabel == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("user_image_label: The option can't be missed."))
-	}
-	log.Println(fmt.Sprintf("%s: %v","user_image_label", b.config.UserImageLabel))
+	log.Println(fmt.Sprintf("%s: %v","instance_size", b.config.InstanceSize))
 
+
+	log.Println(fmt.Sprintf("%s: %v","user_image_label", b.config.UserImageLabel))
 	b.config.userImageName = fmt.Sprintf("%s_%s", b.config.UserImageLabel, uuid.New())
 	log.Println(fmt.Sprintf("%s: %v","user_image_name", b.config.userImageName))
-
-	// Errors
-	templates := map[string]*string{
-		"user_image_name":  &b.config.UserImageLabel,
-	}
-
-	for n, ptr := range templates {
-		var err error
-		*ptr, err = b.config.tpl.Process(*ptr, nil)
-		if err != nil {
-			errs = packer.MultiErrorAppend(errs, fmt.Errorf("Error processing %s: %s", n, err))
-		}
-	}
-
-	log.Println(fmt.Sprintf("%s: %v","user_image_name", b.config.UserImageLabel))
 
 	// random symbols for vm name (should be unique)
 	// for Win  - the computer name cannot be more than 15 characters long
@@ -417,35 +438,23 @@ func (b *Builder) Cancel() {
 }
 
 func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
-	// check Azure subscription
+	ui.Say("Validating Azure options...")
 
 	var blockBuffer bytes.Buffer
 	var err error
 	var res string
 
-	ui.Say("Validating Azure options...")
+	// check Azure subscription
 
-	blockBuffer.Reset()
-	blockBuffer.WriteString("Invoke-Command -scriptblock {")
-	blockBuffer.WriteString("$subscriptionName = '" + b.config.SubscriptionName + "';")
-	blockBuffer.WriteString("$s = Get-AzureSubscription | ? {$_.SubscriptionName -eq $subscriptionName};")
-	blockBuffer.WriteString("$s.Count -eq 1;")
-	blockBuffer.WriteString("}")
-
-	res, err = driver.ExecRet( blockBuffer.String() )
-
-	if err != nil {
-		return err
-	}
-
-	if(res == "False"){
-
+	if len(b.config.PublishSettingsPath) > 0 { // use PublishSettings file
+		log.Printf("Importing PublishSettings file '%s'", b.config.PublishSettingsPath)
 		blockBuffer.Reset()
 		blockBuffer.WriteString("Invoke-Command -scriptblock {")
-		blockBuffer.WriteString("Add-AzureAccount")
+		blockBuffer.WriteString("$psPath = '" + b.config.PublishSettingsPath + "';")
+		blockBuffer.WriteString("Import-AzurePublishSettingsFile $psPath;")
 		blockBuffer.WriteString("}")
 
-		err = driver.Exec( blockBuffer.String() )
+		res, err = driver.ExecRet( blockBuffer.String() )
 
 		if err != nil {
 			return err
@@ -468,7 +477,54 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 			err = fmt.Errorf("Can't find subscription '%s'", b.config.SubscriptionName)
 			return err
 		}
+
+	} else { // use AAD
+		blockBuffer.Reset()
+		blockBuffer.WriteString("Invoke-Command -scriptblock {")
+		blockBuffer.WriteString("$subscriptionName = '" + b.config.SubscriptionName + "';")
+		blockBuffer.WriteString("$s = Get-AzureSubscription | ? {$_.SubscriptionName -eq $subscriptionName};")
+		blockBuffer.WriteString("$s.Count -eq 1;")
+		blockBuffer.WriteString("}")
+
+		res, err = driver.ExecRet( blockBuffer.String() )
+
+		if err != nil {
+			return err
+		}
+
+		if(res == "False"){
+
+			blockBuffer.Reset()
+			blockBuffer.WriteString("Invoke-Command -scriptblock {")
+			blockBuffer.WriteString("Add-AzureAccount")
+			blockBuffer.WriteString("}")
+
+			err = driver.Exec( blockBuffer.String() )
+
+			if err != nil {
+				return err
+			}
+
+			blockBuffer.Reset()
+			blockBuffer.WriteString("Invoke-Command -scriptblock {")
+			blockBuffer.WriteString("$subscriptionName = '" + b.config.SubscriptionName + "';")
+			blockBuffer.WriteString("$s = Get-AzureSubscription | ? {$_.SubscriptionName -eq $subscriptionName};")
+			blockBuffer.WriteString("$s.Count -eq 1;")
+			blockBuffer.WriteString("}")
+
+			res, err = driver.ExecRet( blockBuffer.String() )
+
+			if err != nil {
+				return err
+			}
+
+			if(res == "False"){
+				err = fmt.Errorf("Can't find subscription '%s'", b.config.SubscriptionName)
+				return err
+			}
+		}
 	}
+
 
 	// check Storage account
 	blockBuffer.Reset()
@@ -519,7 +575,7 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 		return err
 	}
 
-	// check image
+	// check os image
 	blockBuffer.Reset()
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
 	blockBuffer.WriteString("$osImageLabel = '" + b.config.OsImageLabel + "';")

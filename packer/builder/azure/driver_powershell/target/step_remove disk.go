@@ -43,7 +43,9 @@ func (s *StepRemoveDisk) Run(state multistep.StateBag) multistep.StepAction {
 		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)
 		ui.Error(err.Error())
-		return multistep.ActionHalt
+
+		// this is not critical - report error and continue
+		return multistep.ActionContinue
 	}
 
 	state.Put("diskExists", 0)
