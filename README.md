@@ -9,4 +9,7 @@ You must have an Azure subscription to begin using Azure. http://azure.microsoft
 
 The Packer-Azure plugin is still in development and the current version can be launched from windows workstations only. You can build Linux and Windows Azure images with this plugin. 
 
-The bin directory contains example configurations for Packer-Azure. 
+The bin directory contains example configurations for Packer-Azure.
+
+To build plug-in use this command: 
+	go install  -tags 'powershell' github.com\MSOpenTech\packer-azure\packer\plugin\builder-azure
