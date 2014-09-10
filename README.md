@@ -39,6 +39,6 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 *	code.google.com/p/go-uuid
 *	code.google.com/p/go.crypto
 *	code.google.com/p/gosshold
-*	github.com\ugorji\go
+*	github.com/ugorji/go
 
 
