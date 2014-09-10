@@ -6,7 +6,6 @@ package win
 
 import (
 	"fmt"
-//	"bytes"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
 	"github.com/MSOpenTech/packer-azure/packer/communicator/powershell"

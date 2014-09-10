@@ -1,0 +1,113 @@
+// Copyright (c) Microsoft Open Technologies, Inc.
+// All Rights Reserved.
+// Licensed under the Apache License, Version 2.0.
+// See License.txt in the project root for license information.
+package win
+
+import (
+	"fmt"
+	"github.com/mitchellh/multistep"
+	"github.com/mitchellh/packer/packer"
+	"github.com/MSOpenTech/packer-azure/packer/communicator/azureVmCustomScriptExtension"
+	azureservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
+	storageservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
+	"log"
+)
+
+type StepSetProvisionInfrastructure struct {
+	VmName string
+	ServiceName string
+	StorageAccountName string
+	TempContainerName string
+	storageServiceDriver *storageservice.StorageServiceDriver
+	flagTempContainerCreated bool
+}
+
+func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep.StepAction {
+	ui := state.Get("ui").(packer.Ui)
+	reqManager := state.Get(constants.RequestManager).(*azureservice.Manager)
+
+	errorMsg := "Error StepRemoteSession: %s"
+	ui.Say("Preparing infrastructure for provision...")
+
+	// get key for storage account
+	ui.Message("Getting key for storage account...")
+	storageAccountName := s.StorageAccountName
+	requestData := reqManager.GetStorageAccountKeys(storageAccountName)
+	resp, err := reqManager.Execute(requestData)
+
+	if err != nil {
+		err := fmt.Errorf(errorMsg, err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
+
+	storageService, err := response.ParseStorageService(resp.Body)
+
+	if err != nil {
+		err := fmt.Errorf(errorMsg, err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
+
+	log.Printf("storageService: %v\n\n", storageService)
+
+	storageAccountKey := storageService.StorageServiceKeys.Primary
+
+	//create storage driver
+	storageServiceDriver := storageservice.NewStorageServiceDriver(storageAccountName, storageAccountKey)
+	s.storageServiceDriver = storageServiceDriver
+
+	//create temporary container
+	s.flagTempContainerCreated = false
+
+	ui.Message("Creating Azure Temporaty container...")
+	_, err = storageServiceDriver.CreateContainer(s.TempContainerName)
+	if err != nil {
+		err := fmt.Errorf(errorMsg, err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
+
+	s.flagTempContainerCreated = true
+
+	comm, err := azureVmCustomScriptExtension.New(
+		&azureVmCustomScriptExtension.Config{
+			ServiceName: s.ServiceName,
+			VmName: s.VmName,
+			StorageServiceDriver : storageServiceDriver,
+			AzureServiceRequestManager : reqManager,
+			ContainerName : s.TempContainerName,
+			Ui: ui,
+		})
+
+	if err != nil {
+		err := fmt.Errorf(errorMsg, err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
+
+	state.Put("communicator", comm)
+
+	return multistep.ActionContinue
+}
+
+func (s *StepSetProvisionInfrastructure) Cleanup(state multistep.StateBag) {
+	ui := state.Get("ui").(packer.Ui)
+	ui.Say("Cleaning Up Infrastructure for provision...")
+
+	if s.flagTempContainerCreated {
+		ui.Message("Removing Azure Temporaty container...")
+
+		_, err := s.storageServiceDriver.DeleteContainer(s.TempContainerName)
+		if err != nil {
+			ui.Message("Error removing temporaty container: " + err.Error())
+		}
+	}
+}
