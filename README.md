@@ -7,9 +7,9 @@ This is an Azure plugin for Packer.io to enable Microsoft Azure users to build c
 
 You must have an Azure subscription to begin using Azure. http://azure.microsoft.com
 
-You can build Linux and Windows Azure images with this plugin. 
+You can build Linux and Windows Azure images (targets) with this plugin. 
 
-You can execute the plugin from both Windows and Linux dev-boxes 
+You can execute the plugin from both Windows and Linux dev-boxes (clients). 
 
 **The bin directory contains binaries and example configurations for Packer-Azure.**
 
