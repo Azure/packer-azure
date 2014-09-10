@@ -26,3 +26,17 @@ You can execute the plugin from both Windows and Linux dev-boxes
 * To build the provisioner use this command: **go install github.com\MSOpenTech\packer-azure\packer\plugin\provisioner-azure-custom-script-extension** 
 * To manage certificates packer-azure uses **openssl**
 * To start using the plugin you will need to get **PublishSetting profile**. Visit this link to get the profile: https://windows.azure.com/download/publishprofile.aspx
+
+### Dependencies
+
+*	github.com/mitchellh/iochan
+*	github.com/mitchellh/mapstructure
+*	github.com/mitchellh/multistep
+*	github.com/mitchellh/packer
+*	github.com/hashicorp/go-version
+*	code.google.com/p/go-uuid
+*	code.google.com/p/go.crypto
+*	code.google.com/p/gosshold
+*	github.com\ugorji\go
+
+
