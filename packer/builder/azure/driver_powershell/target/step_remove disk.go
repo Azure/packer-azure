@@ -15,6 +15,7 @@ import (
 type StepRemoveDisk struct {
 	StorageAccount string
 	TmpVmName string
+	ContainerUrl string
 }
 
 func (s *StepRemoveDisk) Run(state multistep.StateBag) multistep.StepAction {
@@ -30,7 +31,7 @@ func (s *StepRemoveDisk) Run(state multistep.StateBag) multistep.StepAction {
 	blockBuffer.WriteString("$storageAccount = '" + s.StorageAccount + "';")
 	blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
 
-	blockBuffer.WriteString("$containerUrl = \"https://$storageAccount.blob.core.windows.net/vhds\";")
+	blockBuffer.WriteString("$containerUrl = '" + s.ContainerUrl + "';")
 	blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")
 
 	blockBuffer.WriteString("$disk = Get-AzureDisk | Where-Object {$_.MediaLink –eq $mediaLoc };")

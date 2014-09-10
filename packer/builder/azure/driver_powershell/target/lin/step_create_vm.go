@@ -20,6 +20,7 @@ type StepCreateVm struct {
 	TmpServiceName string
 	InstanceSize string
 	Username string
+	ContainerUrl string
 }
 
 func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
@@ -49,7 +50,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 	blockBuffer.WriteString("$instanceSize = '" + s.InstanceSize + "';")
 	blockBuffer.WriteString("$username = '" + s.Username + "';")
 
-	blockBuffer.WriteString("$containerUrl = \"https://$storageAccount.blob.core.windows.net/vhds\";")
+	blockBuffer.WriteString("$containerUrl = '" + s.ContainerUrl + "';")
 	blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")
 
 //	blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.Label -eq $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
@@ -127,50 +128,6 @@ func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 			return
 		}
 	}
-
-//	if res = state.Get("srvExists").(int); res == 1 {
-//		ui.Say("Removing Azure Temporary Service...")
-//		errorMsg := "Error Removing Temporary Azure Service: %s"
-//
-//		var blockBuffer bytes.Buffer
-//		blockBuffer.WriteString("Invoke-Command -scriptblock {")
-//		blockBuffer.WriteString("$tmpServiceName = '" + s.TmpServiceName + "';")
-//		blockBuffer.WriteString("Remove-AzureService -ServiceName $tmpServiceName -Force;")
-//		blockBuffer.WriteString("}")
-//
-//		err = driver.Exec( blockBuffer.String() )
-//
-//		if err != nil {
-//			err := fmt.Errorf(errorMsg, err)
-//			ui.Error(err.Error())
-//			return
-//		}
-//	}
-
-//	if res = state.Get("diskExists").(int); res == 1 {
-//		ui.Say("Removing Azure Disk...")
-//		errorMsg := "Error Removing Temporary Azure Disk: %s"
-//
-//		var blockBuffer bytes.Buffer
-//		blockBuffer.WriteString("Invoke-Command -scriptblock {")
-//		blockBuffer.WriteString("$storageAccount = '" + s.StorageAccount + "';")
-//		blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
-//
-//		blockBuffer.WriteString("$containerUrl = \"https://$storageAccount.blob.core.windows.net/vhds\";")
-//		blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")
-//
-//		blockBuffer.WriteString("$disk = Get-AzureDisk | Where-Object {$_.MediaLink –eq $mediaLoc };")
-//		blockBuffer.WriteString("Remove-AzureDisk -DiskName $disk.DiskName;")
-//		blockBuffer.WriteString("}")
-//
-//		err = driver.Exec( blockBuffer.String() )
-//
-//		if err != nil {
-//			err := fmt.Errorf(errorMsg, err)
-//			ui.Error(err.Error())
-//			return
-//		}
-//	}
 
 	if res = state.Get("imageCreated").(int); res == 0 {
 		// TODO: remove vhd

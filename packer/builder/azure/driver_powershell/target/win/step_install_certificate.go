@@ -12,12 +12,12 @@ import (
 	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
-type StepInstallCert struct {
+type StepInstallCertificate struct {
 	TmpVmName string
 	TmpServiceName string
 }
 
-func (s *StepInstallCert) Run(state multistep.StateBag) multistep.StepAction {
+func (s *StepInstallCertificate) Run(state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
@@ -53,6 +53,6 @@ func (s *StepInstallCert) Run(state multistep.StateBag) multistep.StepAction {
 	return multistep.ActionContinue
 }
 
-func (s *StepInstallCert) Cleanup(state multistep.StateBag) {
+func (s *StepInstallCertificate) Cleanup(state multistep.StateBag) {
 	// TODO: uninstall cert
 }

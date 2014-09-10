@@ -20,12 +20,17 @@ type StepUploadCertificate struct {
 }
 
 func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepAction {
-	certTempDir := state.Get("certTempDir").(string)
-	if certTempDir == "" {
-		return multistep.ActionContinue
-	}
 	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
+
+	var err error
+	certTempDir := state.Get("certTempDir").(string)
+	if certTempDir == "" {
+		err = fmt.Errorf("certTempDir is empty")
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
 
 	errorMsg := "Error Uploading Temporary Certificate: %s"
 	certPath := filepath.Join(certTempDir, s.CertFileName)

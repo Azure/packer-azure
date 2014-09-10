@@ -17,6 +17,7 @@ type StepCreateService struct {
 	TmpServiceName string
 	StorageAccount string
 	TmpVmName string
+	ContainerUrl string
 }
 
 func (s *StepCreateService) Run(state multistep.StateBag) multistep.StepAction {
@@ -56,7 +57,7 @@ func (s *StepCreateService) Cleanup(state multistep.StateBag) {
 	var res int
 
 	if res = state.Get("srvExists").(int); res == 1 {
-		ui.Say("Removing Azure Temporary Service...")
+		ui.Say("Removing Temporary Azure Service...")
 		errorMsg := "Error Removing Temporary Azure Service: %s"
 
 		var blockBuffer bytes.Buffer
@@ -75,7 +76,7 @@ func (s *StepCreateService) Cleanup(state multistep.StateBag) {
 	}
 
 	if res = state.Get("diskExists").(int); res == 1 {
-		ui.Say("Removing Azure Temporary Disk...")
+		ui.Say("Removing Temporary Azure Disk...")
 		errorMsg := "Error Removing Temporary Azure Disk: %s"
 
 		var blockBuffer bytes.Buffer
@@ -83,7 +84,7 @@ func (s *StepCreateService) Cleanup(state multistep.StateBag) {
 		blockBuffer.WriteString("$storageAccount = '" + s.StorageAccount + "';")
 		blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
 
-		blockBuffer.WriteString("$containerUrl = \"https://$storageAccount.blob.core.windows.net/vhds\";")
+		blockBuffer.WriteString("$containerUrl = '" + s.ContainerUrl + "';")
 		blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")
 
 		blockBuffer.WriteString("$disk = Get-AzureDisk | Where-Object {$_.MediaLink –eq $mediaLoc };")

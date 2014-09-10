@@ -18,6 +18,7 @@ type StepCreateImage struct {
 	UserImageLabel string
 	UserImageName string
 	OsType string
+	ContainerUrl string
 }
 
 func (s *StepCreateImage) Run(state multistep.StateBag) multistep.StepAction {
@@ -35,7 +36,7 @@ func (s *StepCreateImage) Run(state multistep.StateBag) multistep.StepAction {
 	blockBuffer.WriteString("$userImageLabel = '" + s.UserImageLabel + "';")
 	blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
 	blockBuffer.WriteString("$osType = '" + s.OsType + "';")
-	blockBuffer.WriteString("$containerUrl = \"https://$storageAccount.blob.core.windows.net/vhds\";")
+	blockBuffer.WriteString("$containerUrl = '" + s.ContainerUrl + "';")
 	blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")
 	blockBuffer.WriteString("Add-AzureVMImage -ImageName $userImageName -MediaLocation $mediaLoc -OS $osType -Label $userImageLabel;")
 	blockBuffer.WriteString("}")

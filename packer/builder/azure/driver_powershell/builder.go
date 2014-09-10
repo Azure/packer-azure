@@ -11,16 +11,15 @@ import (
 	"bytes"
 
 	"github.com/mitchellh/multistep"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/utils"
 	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target/win"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target/lin"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
-	"math/rand"
 	"time"
 	"code.google.com/p/go-uuid/uuid"
-	"path/filepath"
 	"regexp"
 	"os"
 )
@@ -36,6 +35,7 @@ type azure_config struct {
 	SubscriptionName        string     	`mapstructure:"subscription_name"`
 	PublishSettingsPath     string     	`mapstructure:"publish_settings_path"`
 	StorageAccount          string     	`mapstructure:"storage_account"`
+	StorageAccountContainer	string     	`mapstructure:"storage_account_container"`
 	OsType         			string   	`mapstructure:"os_type"`
 	OsImageLabel         	string   	`mapstructure:"os_image_label"`
 	Location 				string 		`mapstructure:"location"`
@@ -72,32 +72,12 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	errs := common.CheckUnusedConfig(md)
 	warnings := make([]string, 0)
 
-	if b.config.SubscriptionName == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("subscription_name: The option can't be missed."))
-	}
-
-	if b.config.StorageAccount == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("storage_account: The option can't be missed."))
-	}
-
-	if b.config.OsImageLabel == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("os_image_label: The option can't be missed."))
-	}
-
-	if b.config.Location == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("location: The option can't be missed."))
-	}
-	log.Println(fmt.Sprintf("%s: %v","location", b.config.Location))
-
-
-	if b.config.UserImageLabel == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("user_image_label: The option can't be missed."))
-	}
 
 	templates := map[string]*string{
 		"subscription_name":  &b.config.SubscriptionName,
 		"publish_settings_path":  &b.config.PublishSettingsPath,
 		"storage_account":  &b.config.StorageAccount,
+		"storage_account_container"	: &b.config.StorageAccountContainer,
 		"os_type":  &b.config.OsType,
 		"os_image_label":  &b.config.OsImageLabel,
 		"location":  &b.config.Location,
@@ -113,7 +93,35 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		}
 	}
 
+	if b.config.SubscriptionName == "" {
+		errs = packer.MultiErrorAppend(errs, errors.New("subscription_name: The option can't be missed."))
+	}
 	log.Println(fmt.Sprintf("%s: %v","subscription_name", b.config.SubscriptionName))
+
+	if b.config.StorageAccount == "" {
+		errs = packer.MultiErrorAppend(errs, errors.New("storage_account: The option can't be missed."))
+	}
+	log.Println(fmt.Sprintf("%s: %v","storage_account", b.config.StorageAccount))
+
+	if b.config.StorageAccountContainer == "" {
+		b.config.StorageAccountContainer = "vhds"
+	}
+	log.Println(fmt.Sprintf("%s: %v","storage_account", b.config.StorageAccountContainer))
+
+	if b.config.OsImageLabel == "" {
+		errs = packer.MultiErrorAppend(errs, errors.New("os_image_label: The option can't be missed."))
+	}
+	log.Println(fmt.Sprintf("%s: %v","os_image_label", b.config.OsImageLabel))
+
+	if b.config.Location == "" {
+		errs = packer.MultiErrorAppend(errs, errors.New("location: The option can't be missed."))
+	}
+	log.Println(fmt.Sprintf("%s: %v","location", b.config.Location))
+
+	if b.config.UserImageLabel == "" {
+		errs = packer.MultiErrorAppend(errs, errors.New("user_image_label: The option can't be missed."))
+	}
+	log.Println(fmt.Sprintf("%s: %v","user_image_label", b.config.UserImageLabel))
 
 	if len(b.config.PublishSettingsPath) > 0 {
 		if _, err := os.Stat(b.config.PublishSettingsPath); err != nil {
@@ -122,8 +130,6 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 		log.Println(fmt.Sprintf("%s: %v","publish_settings_path", b.config.PublishSettingsPath))
 	}
-
-	log.Println(fmt.Sprintf("%s: %v","storage_account", b.config.StorageAccount))
 
 	osTypeIsValid := false
 	osTypeArr := []string{
@@ -145,9 +151,6 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 	log.Println(fmt.Sprintf("%s: %v","os_type", b.config.OsType))
 
-
-	log.Println(fmt.Sprintf("%s: %v","os_image_label", b.config.OsImageLabel))
-
 	sizeIsValid := false
 	instanceSizeArr := []string{
 		target.ExtraSmall,
@@ -161,7 +164,6 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		target.A8,
 		target.A9,
 	}
-
 
 	for _, instanceSize := range instanceSizeArr {
 		if b.config.InstanceSize == instanceSize {
@@ -177,32 +179,22 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 	log.Println(fmt.Sprintf("%s: %v","instance_size", b.config.InstanceSize))
 
-
-	log.Println(fmt.Sprintf("%s: %v","user_image_label", b.config.UserImageLabel))
 	b.config.userImageName = fmt.Sprintf("%s_%s", b.config.UserImageLabel, uuid.New())
 	log.Println(fmt.Sprintf("%s: %v","user_image_name", b.config.userImageName))
 
 	// random symbols for vm name (should be unique)
 	// for Win  - the computer name cannot be more than 15 characters long
-	rand.Seed(time.Now().Unix())
-	availSymb := "0123456789abcdefghijklmnopqrstuvwxyz"
-	availSymbLen := len(availSymb)
 	const tmpServiceNamePrefix = "PkrSrv"
 	const tmpVmNamePrefix = "PkrVM"
-	const allowedVmNameLength = 15
-	genLen := allowedVmNameLength - len(tmpVmNamePrefix)
-	var rnd string
-	for i := 0; i < genLen; i++ {
-		rnd += string(availSymb[rand.Intn(availSymbLen)])
-	}
+	randSuffix := utils.BuildAzureVmNameRandomSuffix(tmpVmNamePrefix)
 
 	if b.config.tmpVmName == "" {
-		b.config.tmpVmName = fmt.Sprintf("%s%s", tmpVmNamePrefix, rnd)
+		b.config.tmpVmName = fmt.Sprintf("%s%s", tmpVmNamePrefix, randSuffix)
 	}
 	log.Println(fmt.Sprintf("%s: %v","tmpVmName", b.config.tmpVmName))
 
 	if b.config.tmpServiceName == "" {
-		b.config.tmpServiceName = fmt.Sprintf("%s%s", tmpServiceNamePrefix, rnd)
+		b.config.tmpServiceName = fmt.Sprintf("%s%s", tmpServiceNamePrefix, randSuffix)
 	}
 	log.Println(fmt.Sprintf("%s: %v","tmpServiceName", b.config.tmpServiceName))
 
@@ -244,8 +236,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put("hook", hook)
 	state.Put("ui", ui)
 	state.Put("tmpServiceName", b.config.tmpServiceName)
-	state.Put("certTempDir", "")
-
+//
 	// complete flags
 	state.Put("srvExists", 0)
 	state.Put("certUploaded", 0)
@@ -256,6 +247,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	var steps []multistep.Step
 
+	containerUrl := fmt.Sprintf("https://%s.blob.core.windows.net/%s", b.config.StorageAccount,  b.config.StorageAccountContainer)
+
 	if b.config.OsType == "Linux" {
 		certFileName:= "cert.pem"
 		keyFileName := "key.pem"
@@ -265,7 +258,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				SubscriptionName: b.config.SubscriptionName,
 				StorageAccount: b.config.StorageAccount,
 			},
-			&lin.StepCreateCert {
+			&lin.StepCreateCertificate {
 				CertFileName: certFileName,
 				KeyFileName: keyFileName,
 				TmpServiceName: b.config.tmpServiceName,
@@ -275,9 +268,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TmpServiceName: b.config.tmpServiceName,
 				StorageAccount: b.config.StorageAccount,
 				TmpVmName: b.config.tmpVmName,
+				ContainerUrl : containerUrl,
 			},
 			&target.StepUploadCertificate {
-				CertFileName: filepath.Join(state.Get("certTempDir").(string), certFileName),
+				CertFileName: certFileName,
 				TmpServiceName: b.config.tmpServiceName,
 				Username: b.config.username,
 			},
@@ -289,6 +283,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TmpServiceName: b.config.tmpServiceName,
 				InstanceSize: b.config.InstanceSize,
 				Username: b.config.username,
+				ContainerUrl : containerUrl,
 			},
 			&target.StepGetEndpoint {
 				OsType: b.config.OsType,
@@ -318,6 +313,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&target.StepRemoveDisk {
 				StorageAccount: b.config.StorageAccount,
 				TmpVmName: b.config.tmpVmName,
+				ContainerUrl : containerUrl,
 			},
 
 			&target.StepCreateImage {
@@ -326,6 +322,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				UserImageLabel: b.config.UserImageLabel,
 				UserImageName: b.config.userImageName,
 				OsType: b.config.OsType,
+				ContainerUrl : containerUrl,
 			},
 		}
 	} else if b.config.OsType == "Windows" {
@@ -348,9 +345,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				InstanceSize: b.config.InstanceSize,
 				Username: b.config.username,
 				Password: password,
-				},
+				ContainerUrl : containerUrl,
+			},
 
-			&win.StepInstallCert {
+			&win.StepInstallCertificate {
 				TmpVmName: b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
 				},
@@ -383,14 +381,16 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&target.StepRemoveDisk {
 				StorageAccount: b.config.StorageAccount,
 				TmpVmName: b.config.tmpVmName,
-				},
+				ContainerUrl : containerUrl,
+			},
 			&target.StepCreateImage {
 				StorageAccount: b.config.StorageAccount,
 				TmpVmName: b.config.tmpVmName,
 				UserImageLabel: b.config.UserImageLabel,
 				UserImageName: b.config.userImageName,
 				OsType: b.config.OsType,
-				},
+				ContainerUrl : containerUrl,
+			},
 		}
 
 	} else {
@@ -425,7 +425,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	return &artifact {
 		imageLabel: b.config.UserImageLabel,
 		imageName: b.config.userImageName,
-		mediaLocation: fmt.Sprintf("https://%s.blob.core.windows.net/vhds/%s.vhd", b.config.StorageAccount,  b.config.tmpVmName),
+		mediaLocation: fmt.Sprintf("%s/%s.vhd", containerUrl,  b.config.tmpVmName),
 		}, nil
 }
 
@@ -438,7 +438,7 @@ func (b *Builder) Cancel() {
 }
 
 func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
-	ui.Say("Validating Azure options...")
+	ui.Say("Validating Azure Options...")
 
 	var blockBuffer bytes.Buffer
 	var err error
@@ -447,7 +447,7 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 	// check Azure subscription
 
 	if len(b.config.PublishSettingsPath) > 0 { // use PublishSettings file
-		log.Printf("Importing PublishSettings file '%s'", b.config.PublishSettingsPath)
+		ui.Message("Importing PublishSettings File...")
 		blockBuffer.Reset()
 		blockBuffer.WriteString("Invoke-Command -scriptblock {")
 		blockBuffer.WriteString("$psPath = '" + b.config.PublishSettingsPath + "';")
@@ -479,6 +479,7 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 		}
 
 	} else { // use AAD
+		ui.Message("Getting AzureSubscription with AAD...")
 		blockBuffer.Reset()
 		blockBuffer.WriteString("Invoke-Command -scriptblock {")
 		blockBuffer.WriteString("$subscriptionName = '" + b.config.SubscriptionName + "';")
@@ -527,6 +528,8 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 
 
 	// check Storage account
+	ui.Message("Checking Storage Account...")
+
 	blockBuffer.Reset()
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
 	blockBuffer.WriteString("$storageAccount = '" + b.config.StorageAccount + "';")
@@ -576,6 +579,8 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 	}
 
 	// check os image
+	ui.Message("Checking OS Image...")
+
 	blockBuffer.Reset()
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
 	blockBuffer.WriteString("$osImageLabel = '" + b.config.OsImageLabel + "';")

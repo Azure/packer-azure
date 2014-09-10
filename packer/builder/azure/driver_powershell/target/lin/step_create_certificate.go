@@ -23,14 +23,14 @@ import (
 	"github.com/mitchellh/packer/packer"
 )
 
-type StepCreateCert struct {
+type StepCreateCertificate struct {
 	CertFileName string
 	KeyFileName string
 	TempDir string
 	TmpServiceName string
 }
 
-func (s *StepCreateCert) Run(state multistep.StateBag) multistep.StepAction {
+func (s *StepCreateCertificate) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 
 	ui.Say("Creating Temporary Certificate...")
@@ -63,7 +63,7 @@ func (s *StepCreateCert) Run(state multistep.StateBag) multistep.StepAction {
 	return multistep.ActionContinue
 }
 
-func (s *StepCreateCert) Cleanup(state multistep.StateBag) {
+func (s *StepCreateCertificate) Cleanup(state multistep.StateBag) {
 	if s.TempDir == "" {
 		return
 	}
@@ -79,7 +79,7 @@ func (s *StepCreateCert) Cleanup(state multistep.StateBag) {
 	}
 }
 
-func (s *StepCreateCert)createCert(state multistep.StateBag) error {
+func (s *StepCreateCertificate)createCert(state multistep.StateBag) error {
 	host  := fmt.Sprintf("%s.cloudapp.net", s.TmpServiceName)
 	validFor  := 365*24*time.Hour
 	isCA      := false

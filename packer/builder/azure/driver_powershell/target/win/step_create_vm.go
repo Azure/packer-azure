@@ -22,6 +22,7 @@ type StepCreateVm struct {
 	InstanceSize string
 	Username string
 	Password string
+	ContainerUrl string
 }
 
 func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
@@ -43,7 +44,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 	blockBuffer.WriteString("$username = '" + s.Username + "';")
 	blockBuffer.WriteString("$password = '" + s.Password + "';")
 
-	blockBuffer.WriteString("$containerUrl = \"https://$storageAccount.blob.core.windows.net/vhds\";")
+	blockBuffer.WriteString("$containerUrl = '" + s.ContainerUrl + "';")
 	blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")
 
 	blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.Label -Match $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
@@ -144,7 +145,7 @@ func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 		blockBuffer.WriteString("$storageAccount = '" + s.StorageAccount + "';")
 		blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
 
-		blockBuffer.WriteString("$containerUrl = \"https://$storageAccount.blob.core.windows.net/vhds\";")
+		blockBuffer.WriteString("$containerUrl = '" + s.ContainerUrl + "';")
 		blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")
 
 		blockBuffer.WriteString("$disk = Get-AzureDisk | Where-Object {$_.MediaLink –eq $mediaLoc };")

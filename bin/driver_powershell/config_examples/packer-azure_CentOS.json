@@ -6,14 +6,15 @@
 	"builders": 
 	[
 		{
-			"type"				: "azure",
-			"subscription_name"	: "Contoso-subscription",
-			"storage_account" 	: "Contoso-storage-account",
-			"os_type"			: "Linux",
-			"os_image_label"	: "OpenLogic",
-			"location"			: "West US",
-			"instance_size"		: "Small",
-			"user_image_label"	: "PackerMade_OpenLogicImage"
+			"type"						: "azure",
+			"subscription_name"			: "Contoso-subscription",
+			"storage_account" 			: "Contoso-storage-account",
+			"storage_account_container" : "images",
+			"os_type"					: "Linux",
+			"os_image_label"			: "OpenLogic",
+			"location"					: "West US",
+			"instance_size"				: "Small",
+			"user_image_label"			: "PackerMade_OpenLogicImage"
 		}
 	]
 	
