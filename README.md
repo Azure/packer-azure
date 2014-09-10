@@ -15,15 +15,15 @@ You can execute the plugin from both Windows and Linux dev-boxes
 
 ### Windows dev-box
 
-* packer-azure for Windows implemented as a **PowerShell Azure** wrapper and consists of two plug-ins: **builder-azure.exe** and **provisioner-powershell-azure.exe**  
+* packer-azure for Windows implemented as a **PowerShell Azure** wrapper and consists of two plug-ins: **builder-azure.exe** and **provisioner-powershell-azure.exe** (for Windows targets)  
 * To build the builder use this command: **go install  -tags 'powershell' github.com\MSOpenTech\packer-azure\packer\plugin\builder-azure**
-* To build the provisioner use this command: **go install github.com\MSOpenTech\packer-azure\packer\plugin\provisioner-powershell-azure**
+* To build the provisioner (for Windows targets) use this command: **go install github.com\MSOpenTech\packer-azure\packer\plugin\provisioner-powershell-azure**
 
 ### Linux dev-box
 
-* packer-azure for Linux utilizes **Service Management REST API** and **Storage Services REST API** and consists of two plug-ins: **builder-azure** and **provisioner-azure-custom-script-extension**  
+* packer-azure for Linux utilizes **Service Management REST API** and **Storage Services REST API** and consists of two plug-ins: **builder-azure** and **provisioner-azure-custom-script-extension** (for Windows targets) 
 * To build the builder use this command: **go install -tags 'restapi' github.com\MSOpenTech\packer-azure\packer\plugin\builder-azure**
-* To build the provisioner use this command: **go install github.com\MSOpenTech\packer-azure\packer\plugin\provisioner-azure-custom-script-extension** 
+* To build the provisioner (for Windows targets) use this command: **go install github.com\MSOpenTech\packer-azure\packer\plugin\provisioner-azure-custom-script-extension** 
 * To manage certificates packer-azure uses **openssl**
 * To start using the plugin you will need to get **PublishSetting profile**. Visit this link to get the profile: https://windows.azure.com/download/publishprofile.aspx
 
