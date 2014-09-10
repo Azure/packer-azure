@@ -25,3 +25,4 @@ You can execute the plugin from both Windows and Linux dev-boxes
 * To build the builder use this command: **go install -tags 'restapi' github.com\MSOpenTech\packer-azure\packer\plugin\builder-azure**
 * To build the provisioner use this command: **go install github.com\MSOpenTech\packer-azure\packer\plugin\provisioner-azure-custom-script-extension** 
 * To manage certificates packer-azure uses **openssl**
+* To start using the plugin you will need to get **PublishSetting profile**. Visit this link to get the profile: https://windows.azure.com/download/publishprofile.aspx
