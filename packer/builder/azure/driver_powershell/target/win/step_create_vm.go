@@ -118,7 +118,7 @@ func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 	}
 
 	if res = state.Get("srvExists").(int); res == 1 {
-		ui.Say("Removing Azure Temporary Service...")
+		ui.Say("Removing Temporary Azure Service...")
 		errorMsg := "Error Removing Temporary Azure Service: %s"
 
 		var blockBuffer bytes.Buffer
@@ -137,7 +137,7 @@ func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 	}
 
 	if res = state.Get("diskExists").(int); res == 1 {
-		ui.Say("Removing Azure Temporary Disk...")
+		ui.Say("Removing Temporary Azure Disk...")
 		errorMsg := "Error Removing Temporary Azure Disk: %s"
 
 		var blockBuffer bytes.Buffer

@@ -41,8 +41,10 @@ func (s *StepSetRemoting) Run(state multistep.StateBag) multistep.StepAction {
 		return multistep.ActionHalt
 	}
 
-	s.comm = comm
-	state.Put("communicator", comm)
+	packerCommunicator := packer.Communicator(comm)
+
+	s.comm = packerCommunicator
+	state.Put("communicator", packerCommunicator)
 
 	return multistep.ActionContinue
 }

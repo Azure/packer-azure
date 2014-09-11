@@ -22,7 +22,7 @@ func (s *StepRemoveService) Run(state multistep.StateBag) multistep.StepAction {
 
 	errorMsg := "Error Removing Temporary Azure Service: %s"
 
-	ui.Say("Removing Azure Temporary Service...")
+	ui.Say("Removing Temporary Azure Service...")
 
 	var blockBuffer bytes.Buffer
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")

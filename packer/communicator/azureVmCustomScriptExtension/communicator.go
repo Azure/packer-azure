@@ -252,7 +252,7 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 	return
 }
 
-func (c *comm) Upload(path string, input io.Reader) error {
+func (c *comm)Upload(string, io.Reader, *os.FileInfo) error {
 	return fmt.Errorf("Upload is not supported for azureVmCustomScriptExtension")
 }
 

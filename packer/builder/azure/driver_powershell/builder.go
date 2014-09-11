@@ -19,7 +19,6 @@ import (
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
 	"time"
-	"code.google.com/p/go-uuid/uuid"
 	"regexp"
 	"os"
 )
@@ -106,7 +105,7 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	if b.config.StorageAccountContainer == "" {
 		b.config.StorageAccountContainer = "vhds"
 	}
-	log.Println(fmt.Sprintf("%s: %v","storage_account", b.config.StorageAccountContainer))
+	log.Println(fmt.Sprintf("%s: %v","storage_account_container", b.config.StorageAccountContainer))
 
 	if b.config.OsImageLabel == "" {
 		errs = packer.MultiErrorAppend(errs, errors.New("os_image_label: The option can't be missed."))
@@ -179,7 +178,7 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 	log.Println(fmt.Sprintf("%s: %v","instance_size", b.config.InstanceSize))
 
-	b.config.userImageName = fmt.Sprintf("%s_%s", b.config.UserImageLabel, uuid.New())
+	b.config.userImageName = utils.DecorateImageName(b.config.UserImageLabel)
 	log.Println(fmt.Sprintf("%s: %v","user_image_name", b.config.userImageName))
 
 	// random symbols for vm name (should be unique)

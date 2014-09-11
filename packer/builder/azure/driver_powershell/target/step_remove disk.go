@@ -22,9 +22,9 @@ func (s *StepRemoveDisk) Run(state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(ps.Driver)
 	ui := state.Get("ui").(packer.Ui)
 
-	errorMsg := "Error Removing  Azure Temporary Disk: %s"
+	errorMsg := "Error Removing Temporary Azure Disk: %s"
 
-	ui.Say("Removing Azure Temporary Disk...")
+	ui.Say("Removing Temporary Azure Disk...")
 
 	var blockBuffer bytes.Buffer
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")

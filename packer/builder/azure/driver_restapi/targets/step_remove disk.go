@@ -19,8 +19,8 @@ func (s *StepRemoveDisk) Run(state multistep.StateBag) multistep.StepAction {
 	reqManager := state.Get(constants.RequestManager).(*request.Manager)
 	ui := state.Get(constants.Ui).(packer.Ui)
 
-	errorMsg := "Error Removing  Azure Temporary Disk: %s"
-	ui.Say("Removing Azure Temporary Disk...")
+	errorMsg := "Error Removing Temporary Azure  Disk: %s"
+	ui.Say("Removing Temporary Azure Disk...")
 
 	diskName := state.Get(constants.HardDiskName).(string)
 	if len(diskName) == 0 {

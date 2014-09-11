@@ -49,7 +49,7 @@ func (s *StepCreateService) Cleanup(state multistep.StateBag) {
 	var res int
 
 	if res = state.Get(constants.SrvExists).(int); res == 1 {
-		ui.Say("Removing Azure Temporary Service...")
+		ui.Say("Removing Temporary Azure Service...")
 		errorMsg := "Error Removing Temporary Azure Service: %s"
 
 		var requestData *request.Data

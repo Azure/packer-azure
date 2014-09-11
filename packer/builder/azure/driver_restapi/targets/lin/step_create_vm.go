@@ -114,7 +114,7 @@ func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 	}
 
 	if res = state.Get(constants.DiskExists).(int); res == 1 {
-		ui.Message("Removing Azure Temporary Disk...")
+		ui.Message("Removing Temporary Azure Disk...")
 		errorMsg := "Error Removing Temporary Azure Disk: %s"
 
 //		var requestData *request.Data

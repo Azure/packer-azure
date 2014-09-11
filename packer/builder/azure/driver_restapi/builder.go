@@ -191,9 +191,7 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 	//	log.Println(fmt.Sprintf("%s: %v","user_image_label", b.config.UserImageLabel))
 
-	now := time.Now()
-	y,m,d := now.Date()
-	b.config.userImageName = fmt.Sprintf("%s_%v-%v-%v_%v-%v", b.config.UserImageLabel, y,m,d, now.Hour(), now.Minute() )
+	b.config.userImageName = utils.DecorateImageName(b.config.UserImageLabel)
 	log.Println(fmt.Sprintf("%s: %v","user_image_name", b.config.userImageName))
 
 	b.config.tmpContainerName = fmt.Sprintf("packer-provision-%d-%d-%d-%d-%d-%d", now.Hour(), now.Minute(), now.Second(), d,m,y )

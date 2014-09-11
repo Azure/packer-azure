@@ -93,7 +93,9 @@ func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep
 		return multistep.ActionHalt
 	}
 
-	state.Put("communicator", comm)
+	packerCommunicator := packer.Communicator(comm)
+
+	state.Put("communicator", packerCommunicator)
 
 	return multistep.ActionContinue
 }
