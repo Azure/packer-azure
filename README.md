@@ -29,16 +29,25 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
   * https://windows.azure.com/download/publishprofile.aspx
   * http://go.microsoft.com/fwlink/?LinkId=254432
 
+* Easy steps to build the plugin on Ubunty
+  * sudo apt-get install git
+  * sudo apt-get install mercurial meld
+  * go get github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi
+  * go get github.com/hashicorp/yamux
+  * go get github.com/ugorji/go/codec
+  * go install -tags 'restapi' github.com/MSOpenTech/packer-azure/packer/plugin/builder-azure
+  * go install github.com/MSOpenTech/packer-azure/packer/plugin/provisioner-azure-custom-script-extension
+
 ### Dependencies
 
+*	code.google.com/p/go.crypto
+*	github.com/mitchellh/go-fs
 *	github.com/mitchellh/iochan
 *	github.com/mitchellh/mapstructure
 *	github.com/mitchellh/multistep
 *	github.com/mitchellh/packer
 *	github.com/hashicorp/go-version
-*	code.google.com/p/go-uuid
-*	code.google.com/p/go.crypto
-*	code.google.com/p/gosshold
-*	github.com/ugorji/go
+*	github.com/hashicorp/yamux
+*	github.com/ugorji/go/codec
 
 
