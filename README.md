@@ -13,6 +13,8 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 
 **The bin directory contains binaries and example configurations for Packer-Azure.**
 
+#### Packer version the plug-ins were tested is 0.7.1
+
 ### Windows dev-box
 
 * packer-azure for Windows implemented as a **PowerShell Azure** wrapper and consists of two plug-ins: **builder-azure.exe** and **provisioner-powershell-azure.exe** (for Windows targets)  
