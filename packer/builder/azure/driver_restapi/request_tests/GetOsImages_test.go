@@ -11,7 +11,7 @@ import (
 	"fmt"
 )
 
-func _TestGetOsImages(t *testing.T) {
+func TestGetOsImages(t *testing.T) {
 
 	errMassage := "GetOsImages: %s\n"
 
@@ -35,11 +35,13 @@ func _TestGetOsImages(t *testing.T) {
 
 	fmt.Printf("osImageList:\n\n")
 
-	for _, image := range(list.OSImages){
-		fmt.Printf("label: '%s'\nfamily: '%s'\nlocations: '%s'\nPublishedDate: '%s'\n\n", image.Label, image.ImageFamily, image.Location, image.PublishedDate)
-	}
+//	for _, image := range(list.OSImages){
+//		fmt.Printf("label: '%s'\nfamily: '%s'\nlocations: '%s'\nPublishedDate: '%s'\n\n", image.Label, image.ImageFamily, image.Location, image.PublishedDate)
+//	}
 
-	label := "Ubuntu Server 12.04 LTS"
+//	label := "Ubuntu Server 12.04 LTS"
+	label := "Windows Server 2012 R2 Datacenter"
+//	label := "SUSE Linux Enterprise Server 11 SP3 (Premium Image)"
 	location := "West US"
 
 	filteredImageList := list.Filter(label, location)
@@ -49,6 +51,11 @@ func _TestGetOsImages(t *testing.T) {
 	for _, image := range(filteredImageList){
 		fmt.Printf("label: '%s'\nfamily: '%s'\nlocations: '%s'\nPublishedDate: '%s'\n\n", image.Label, image.ImageFamily, image.Location, image.PublishedDate)
 	}
+
+	fmt.Println("Os Image Label: " + filteredImageList[0].Label)
+	fmt.Println("Os Image Family: " + filteredImageList[0].ImageFamily)
+
+
 
 	t.Error("eom")
 }

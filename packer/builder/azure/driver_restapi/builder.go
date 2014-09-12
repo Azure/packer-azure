@@ -511,6 +511,8 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, state *multistep.BasicStateB
 //	}
 
 	osImageName := filteredImageList[0].Name
+	ui.Message("Os Image Label: " + filteredImageList[0].Label)
+	ui.Message("Os Image Family: " + filteredImageList[0].ImageFamily)
 	ui.Message("Os Image Name: " + osImageName)
 	state.Put(constants.OsImageName, osImageName)
 

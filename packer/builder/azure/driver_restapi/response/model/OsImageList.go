@@ -6,9 +6,10 @@ package model
 
 import (
 	"encoding/xml"
-	"regexp"
+//	"regexp"
 	"sort"
 	"strings"
+	"fmt"
 )
 
 type OsImageList struct {
@@ -40,12 +41,18 @@ type OSImage struct {
 	Language			string
 }
 
+
 func (l *OsImageList) Filter(label, location string) []OSImage {
+	dgb_output := false
+
 	origLen := len(l.OSImages)
 	filtered  := make([]OSImage, 0, origLen)
 
-	pattern := label
-	for _, im := range(l.OSImages){
+	var matchImageLabel bool
+	var matchImageFamily bool
+
+	for _, im := range(l.OSImages) {
+
 		matchImageLocation := false
 		for _, loc := range strings.Split(im.Location, ";")	{
 			if loc == location {
@@ -55,8 +62,14 @@ func (l *OsImageList) Filter(label, location string) []OSImage {
 		}
 		if !matchImageLocation { continue }
 
-		matchImageLabel, _ := regexp.MatchString(pattern, im.Label)
-		matchImageFamily, _ := regexp.MatchString(pattern, im.ImageFamily)
+		matchImageLabel = strings.Contains(im.Label, label)
+		matchImageFamily =  strings.Contains(im.ImageFamily, label)
+
+		if dgb_output {
+			fmt.Printf("label: '%s'\nfamily: '%s'\nlocations: '%s'\nPublishedDate: '%s'\nl-f: '%v-%v'\n\n",
+				im.Label, im.ImageFamily, im.Location, im.PublishedDate, matchImageLabel, matchImageFamily)
+		}
+
 		if matchImageLabel || matchImageFamily  {
 			filtered = append( filtered, im)
 		}
