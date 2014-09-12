@@ -47,13 +47,18 @@ func (l *OsImageList) Filter(label, location string) []OSImage {
 	pattern := label
 	for _, im := range(l.OSImages){
 		matchImageLocation := false
-		for _, loc := range strings.Split(im.Location, ";") { if loc == location{ matchImageLocation = true; break } }
+		for _, loc := range strings.Split(im.Location, ";")	{
+			if loc == location {
+				matchImageLocation = true;
+				break
+			}
+		}
 		if !matchImageLocation { continue }
+
 		matchImageLabel, _ := regexp.MatchString(pattern, im.Label)
 		matchImageFamily, _ := regexp.MatchString(pattern, im.ImageFamily)
-		if( (matchImageLabel || matchImageFamily) && matchImageLabel ) {
+		if matchImageLabel || matchImageFamily  {
 			filtered = append( filtered, im)
-
 		}
 	}
 
