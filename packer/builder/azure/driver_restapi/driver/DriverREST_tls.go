@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"encoding/xml"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/settings"
+	"regexp"
 )
 
 type DriverRest_tls struct {
@@ -44,6 +45,7 @@ func NewTlsDriver(pem []byte) (IDriverRest, error) {
 func (d *DriverRest_tls) Exec(verb string, url string, headers map[string]string, body io.Reader) (resp *http.Response, err error) {
 //	var err error
 	var req *http.Request
+	errorIgnoreCount := 10
 
 	for {
 		req, err = http.NewRequest(verb, url, body)
@@ -86,7 +88,21 @@ func (d *DriverRest_tls) Exec(verb string, url string, headers map[string]string
 				return nil, err
 			}
 
-			err = fmt.Errorf("%s %s", "Remote server returned error:", errXml.Message)
+			pattern := "Request needs to have a x-ms-version header"
+			errString := errXml.Message
+			// Sometimes server returns strange error - ignore it
+			match, _ := regexp.MatchString(pattern, errString)
+			if match {
+				log.Println("Exec ignoring error: " + errString)
+				errorIgnoreCount--
+				if errorIgnoreCount == 0 {
+					return nil, fmt.Errorf("Remote server returned error: %s %d times", errString, errorIgnoreCount)
+				}
+				continue
+			}
+
+
+			err = fmt.Errorf("Remote server returned error: %s", errXml.Message)
 
 			return nil, err
 		}

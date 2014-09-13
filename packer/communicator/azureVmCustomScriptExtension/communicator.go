@@ -20,7 +20,6 @@ import (
 	storageservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
 	"time"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/utils"
-	"regexp"
 )
 
 type comm struct {
@@ -50,7 +49,7 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 
 	reqManager := c.config.AzureServiceRequestManager
 
-	log.Println("Requesting resource extentions...")
+	ui.Message("Requesting resource extentions...")
 	requestData := reqManager.ListResourceExtensions()
 	resp, err := reqManager.Execute(requestData)
 
@@ -117,7 +116,7 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 	var stdOutBuff, stdErrBuff string
 
 	needUpdateStatus := true
-	errorIgnoreCount := 10
+//	errorIgnoreCount := 10
 
 	for needUpdateStatus {
 		repeatCount := 30
@@ -126,6 +125,7 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 			resp, err = reqManager.Execute(requestData)
 
 			if err != nil {
+/*
 				log.Printf("Checking Result error: '%s'", err.Error())
 				pattern := "Request needs to have a x-ms-version header"
 				errString := err.Error()
@@ -139,6 +139,7 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 					}
 					continue
 				}
+*/
 
 				return
 			}

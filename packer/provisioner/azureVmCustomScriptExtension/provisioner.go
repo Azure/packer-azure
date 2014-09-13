@@ -136,7 +136,7 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 	tempDir := os.TempDir()
 	packerTempDir, err := ioutil.TempDir(tempDir, "packer_script")
 	if err != nil {
-		err := fmt.Errorf("Error creating temporary directory: %s", err)
+		err := fmt.Errorf("Error creating temporary directory: %s", err.Error())
 		return err
 	}
 
@@ -241,7 +241,6 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		err = fmt.Errorf(errorMsg, "stderrString", stderrString)
 		log.Printf("Provision stderr: %s", stderrString)
 	}
-	
 
 	ui.Say("Script output")
 

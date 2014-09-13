@@ -10,13 +10,11 @@ import (
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
-
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
 	"log"
 	"time"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response/model"
-	"regexp"
 )
 
 const(
@@ -58,6 +56,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 	for count != 0 {
 		resp, err := reqManager.Execute(requestData)
 		if err != nil {
+/*
 			pattern := "Request needs to have a x-ms-version header"
 			errString := err.Error()
 			// Sometimes server returns strange error - ignore it
@@ -67,6 +66,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 				count--
 				continue
 			}
+*/
 			err := fmt.Errorf(errorMsg, err)
 			state.Put("error", err)
 			ui.Error(err.Error())
