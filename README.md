@@ -120,6 +120,11 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 				  </tr> 
 				  <tr>
 					<td>&nbsp;</td>
+					<td>"execute_command":</td> 
+					<td>"chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
 					<td valign="top">"inline": [</td> 
 					<td>
 						"sudo apt-get update",<br>
