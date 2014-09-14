@@ -32,6 +32,7 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
   * http://go.microsoft.com/fwlink/?LinkId=254432
 
 * Easy steps to build the plugin on Ubunty
+  * install go, visit https://golang.org/doc/install for details;
   * sudo apt-get install git
   * sudo apt-get install mercurial meld
   * go get github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi
@@ -39,6 +40,8 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
   * go get github.com/ugorji/go/codec
   * go install -tags 'restapi' github.com/MSOpenTech/packer-azure/packer/plugin/builder-azure
   * go install github.com/MSOpenTech/packer-azure/packer/plugin/provisioner-azure-custom-script-extension
+  * copy built plugins from $GOPATH/bin to you Packer folder
+  * install the plugins, find details here: https://github.com/MSOpenTech/packer-azure/tree/master/bin/driver_restapi/lin
    
 * Quick Packer configuration examples:
  <table border="1" style="width:100%">
@@ -47,7 +50,7 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 		<th>Windows target</th>
      </tr>
      <tr>
-		<td valign="top" >
+		<td valign="top"  style="font-size:medium;" >
 			{<br>
 				<table align="left" border="0" style="font-size:medium;">
 				  <tr>
@@ -217,7 +220,7 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 						"Write-Host 'Installing Mozilla Firefox...'",<br>
 						"$filename = 'Firefox Setup 31.0.exe'",<br>
 						"$link = 'https://download.mozilla.org/?product=firefox-31.0-SSL&os=win&lang=en-US'",<br>
-						"$dstDir = "c:/MyFileFolder"",<br>
+						"$dstDir = 'c:/MyFileFolder'",<br>
 						"New-Item $dstDir -type directory -force | Out-Null",<br>
 						"$remotePath = Join-Path $dstDir $filename",<br>
 						"(New-Object System.Net.Webclient).downloadfile($link, $remotePath)",<br>
