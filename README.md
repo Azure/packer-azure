@@ -23,7 +23,7 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 
 ### Linux dev-box
 
-* packer-azure for Linux utilizes **Service Management REST API** and **Storage Services REST API** and consists of two plug-ins: **builder-azure** and **provisioner-azure-custom-script-extension** (for Windows targets). For Linux targets use good known "shell" provisioner; 
+* packer-azure for Linux utilizes **Service Management REST API** and **Storage Services REST API** and consists of two plug-ins: **builder-azure** and **provisioner-azure-custom-script-extension** (for Windows targets). For Linux targets use well known "shell" provisioner; 
 * To build the builder use this command: **go install -tags 'restapi' github.com\MSOpenTech\packer-azure\packer\plugin\builder-azure**;
 * To build the provisioner (for Windows targets) use this command: **go install github.com\MSOpenTech\packer-azure\packer\plugin\provisioner-azure-custom-script-extension**.<br/><i>Visit http://msdn.microsoft.com/en-us/library/dn781373.aspx to understand how the provisioner works</i>;
 * To manage certificates packer-azure uses **openssl**;
@@ -39,6 +39,205 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
   * go get github.com/ugorji/go/codec
   * go install -tags 'restapi' github.com/MSOpenTech/packer-azure/packer/plugin/builder-azure
   * go install github.com/MSOpenTech/packer-azure/packer/plugin/provisioner-azure-custom-script-extension
+   
+* Quick Packer configuration examples:
+ <table border="1" style="width:100%">
+     <tr>
+		<th>Linux target</th> 
+		<th>Windows target</th>
+     </tr>
+     <tr>
+		<td valign="top" >
+			{<br>
+				<table align="left" border="0" style="font-size:medium;">
+				  <tr>
+					<td colspan=3>"builders":[{</td>
+				  </tr>
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"type":</td> 
+					<td>"azure",</td>
+				  </tr>
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"publish_settings_path":</td> 
+					<td>"your_path",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"subscription_name":</td> 
+					<td>"your_name",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"storage_account":</td> 
+					<td>"your_storage_account",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"storage_account_container":</td> 
+					<td>"my_images",</td>
+				  </tr> 
+			  
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"os_type":</td> 
+					<td>"Linux",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"os_image_label":</td> 
+					<td>"Ubuntu Server 14.04 LTS",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"location":</td> 
+					<td>"West US",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"instance_size":</td> 
+					<td>"Small",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"user_image_label":</td> 
+					<td>"PackerMade_Ubuntu_Serv14"</td>
+				  </tr> 
+				  <tr>
+					<td colspan=3>}],</td>
+				  </tr>
+				  <tr>
+					<td colspan=3>"provisioners":[{</td>
+				  </tr>
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"type":</td> 
+					<td>"shell",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td valign="top">"inline": [</td> 
+					<td>
+						"sudo apt-get update",<br>
+						"sudo apt-get install -y mc",<br>
+						"sudo apt-get install -y nodejs",<br>
+						"sudo apt-get install -y npm",<br>
+						"sudo npm install azure-cli -g"
+					</td>
+				  </tr> 			  <tr>
+					<td>&nbsp;</td>
+					<td colspan=2>],</td> 
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"inline_shebang":</td> 
+					<td>"/bin/sh -x"</td>
+				  </tr> 
+
+				  <tr>
+					<td colspan=3>}]</td>
+				  </tr>
+				</table> 
+			}
+		</td>
+		<td>
+			{<br>
+				<table align="left" border="0" style="font-size:medium;">
+				  <tr>
+					<td colspan=3>"builders":[{</td>
+				  </tr>
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"type":</td> 
+					<td>"azure",</td>
+				  </tr>
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"publish_settings_path":</td> 
+					<td>"your_path",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"subscription_name":</td> 
+					<td>"your_name",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"storage_account":</td> 
+					<td>"your_storage_account",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"storage_account_container":</td> 
+					<td>"my_images",</td>
+				  </tr> 
+			  
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"os_type":</td> 
+					<td>"Windows",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"os_image_label":</td> 
+					<td>"Windows Server 2012 R2 Datacenter",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"location":</td> 
+					<td>"West US",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"instance_size":</td> 
+					<td>"Small",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"user_image_label":</td> 
+					<td>"PackerMade_Windows2012R2DC"</td>
+				  </tr> 
+				  <tr>
+					<td colspan=3>}],</td>
+				  </tr>
+				  <tr>
+					<td colspan=3>"provisioners":[{</td>
+				  </tr>
+				  <tr>
+					<td>&nbsp;</td>
+					<td>"type":</td> 
+					<td>"azure-custom-script-extension",</td>
+				  </tr> 
+				  <tr>
+					<td>&nbsp;</td>
+					<td valign="top">"inline": [</td> 
+					<td>
+						"Write-Host 'Inline script!'",<br>
+						"Write-Host 'Installing Mozilla Firefox...'",<br>
+						"$filename = 'Firefox Setup 31.0.exe'",<br>
+						"$link = 'https://download.mozilla.org/?product=firefox-31.0-SSL&os=win&lang=en-US'",<br>
+						"$dstDir = "c:/MyFileFolder"",<br>
+						"New-Item $dstDir -type directory -force | Out-Null",<br>
+						"$remotePath = Join-Path $dstDir $filename",<br>
+						"(New-Object System.Net.Webclient).downloadfile($link, $remotePath)",<br>
+						"Start-Process $remotePath -NoNewWindow -Wait -Argument '/S'",<br>
+						"Write-Host 'Inline script finished!'"
+					</td>
+				  </tr> 			  
+				  <tr>
+					<td>&nbsp;</td>
+					<td colspan=2>]</td> 
+				  </tr> 
+				  <tr>
+					<td colspan=3>}]</td>
+				  </tr>
+				</table> 
+			}
+		</td>
+		
+	</tr>
+</table>
 
 ### Dependencies
 
