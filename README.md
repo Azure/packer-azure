@@ -32,7 +32,14 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
   * http://go.microsoft.com/fwlink/?LinkId=254432
 
 * Easy steps to build the plugin on Ubunty
-  * install go, visit https://golang.org/doc/install for details;
+  * install go 1.3, visit https://golang.org/doc/install for details. Possible steps to install go 1.3:
+  	* wget -P $HOME/downloads  https://storage.googleapis.com/golang/go1.3.1.linux-amd64.tar.gz
+  	* sudo tar -C /usr/local -xzf $HOME/downloads/go1.3.1.linux-amd64.tar.gz
+  	* mkdir $HOME/go
+  	* export PATH=$PATH:/usr/local/go/bin
+	* export GOROOT=/usr/local/go
+	* export GOPATH=$HOME/go
+	* export PATH=$PATH:$GOPATH/bin
   * sudo apt-get install git
   * sudo apt-get install mercurial meld
   * go get github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi
@@ -44,7 +51,7 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
   * install the plugins, find details here: https://github.com/MSOpenTech/packer-azure/tree/master/bin/driver_restapi/lin
    
 * Quick Packer configuration examples:
- <table border="1" style="width:100%">
+ <table border="1" style="width:100%;font-size:medium;">
      <tr>
 		<th>Linux target</th> 
 		<th>Windows target</th>
