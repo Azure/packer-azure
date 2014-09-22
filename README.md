@@ -28,8 +28,8 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 * To build the provisioner (for Windows targets) use this command: **go install github.com\MSOpenTech\packer-azure\packer\plugin\packer-provisioner-azure-custom-script-extension**.<br/><i>Visit http://msdn.microsoft.com/en-us/library/dn781373.aspx to understand how the provisioner works</i>;
 * To manage certificates packer-azure uses **openssl**;
 * To start using the plugin you will need to get **PublishSetting profile**. Visit one of the links bellow to get the profile:
-  * https://windows.azure.com/download/publishprofile.aspx
   * http://go.microsoft.com/fwlink/?LinkId=254432
+  * <del>https://windows.azure.com/download/publishprofile.aspx</del> (dead link)
 
 * Easy steps to build the plugin on Ubunty
   * install go 1.3, visit https://golang.org/doc/install for details. Possible steps to install go 1.3:
