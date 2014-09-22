@@ -47,7 +47,7 @@ type azure_config struct {
 	username          		string		`mapstructure:"username"`
 	tmpVmName              	string
 	tmpServiceName          string
-	tmpContainerName          string
+	tmpContainerName        string
 	userImageName          	string
 }
 
@@ -228,8 +228,6 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 // Run executes a Packer build and returns a packer.Artifact representing
 // a PS Azure appliance.
 func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
-	// Create the driver that we'll use to communicate with PS Azure
-//	pemPath := "d:\\Packer.io\\PackerLinux\\cert.pem"
 
 	var err error
 	ui.Say("Preparing builder...")
@@ -514,6 +512,7 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, state *multistep.BasicStateB
 	ui.Message("Os Image Label: " + filteredImageList[0].Label)
 	ui.Message("Os Image Family: " + filteredImageList[0].ImageFamily)
 	ui.Message("Os Image Name: " + osImageName)
+	ui.Message("Os Image PublishedDate: " + filteredImageList[0].PublishedDate)
 	state.Put(constants.OsImageName, osImageName)
 
 	return nil

@@ -1,8 +1,0 @@
-{
-  "builders": {
-    "azure": "builder-azure"
-  },
-  "provisioners": {
-    "azure-custom-script-extension":  "provisioner-azure-custom-script-extension"
-  }
-}
