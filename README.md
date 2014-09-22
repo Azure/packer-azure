@@ -45,10 +45,9 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
   * go get github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi
   * go get github.com/hashicorp/yamux
   * go get github.com/ugorji/go/codec
-  * go install -tags 'restapi' github.com/MSOpenTech/packer-azure/packer/plugin/builder-azure
-  * go install github.com/MSOpenTech/packer-azure/packer/plugin/provisioner-azure-custom-script-extension
-  * copy built plugins from $GOPATH/bin to you Packer folder
-  * install the plugins, find details here: https://github.com/MSOpenTech/packer-azure/tree/master/bin/driver_restapi/lin
+  * go install -tags 'restapi' github.com/MSOpenTech/packer-azure/packer/plugin/packer-builder-azure
+  * go install github.com/MSOpenTech/packer-azure/packer/plugin/packer-provisioner-azure-custom-script-extension
+  * copy built plugins from $GOPATH/bin to you Packer folder 
    
 * Quick Packer configuration examples:
  <table border="1" style="width:100%;font-size:medium;">
