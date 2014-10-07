@@ -349,7 +349,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TmpServiceName:          b.config.tmpServiceName,
 				InstanceSize:            b.config.InstanceSize,
 				Username:                b.config.username,
-				Password:                "Zxcv1234",
+				Password:                utils.RandomPassword(),
 			},
 			&targets.StepPollStatus{
 				TmpServiceName: b.config.tmpServiceName,
