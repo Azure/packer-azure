@@ -1,5 +1,5 @@
 
-The files **packer-builder-azure** and **packer-provisioner-azure-custom-script-extension** are a Packer plug-ins. 
+The files **packer-builder-azure** and **packer-provisioner-azure-custom-script-extension** are Packer plug-ins. 
 
 How to install plug-ins you can find here: http://www.packer.io/docs/extend/plugins.html
 

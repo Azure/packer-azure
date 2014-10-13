@@ -1,5 +1,5 @@
 
-The files **packer-builder-azure.exe** and **packer-provisioner-powershell-azure.exe** are a Packer plug-ins. 
+The files **packer-builder-azure.exe** and **packer-provisioner-powershell-azure.exe** are Packer plug-ins. 
 
 How to install plug-ins you can find here: http://www.packer.io/docs/extend/plugins.html
 
