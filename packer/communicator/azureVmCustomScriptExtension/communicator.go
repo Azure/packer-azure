@@ -20,7 +20,11 @@ import (
 	storageservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
 	"time"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/utils"
+	"code.google.com/p/go-uuid/uuid"
 )
+
+const extPublisher = "Microsoft.Compute"
+const extName = "CustomScriptExtension"
 
 type comm struct {
 	config *Config
@@ -34,6 +38,7 @@ type Config struct {
 	AzureServiceRequestManager *azureservice.Manager
 	ContainerName string
 	Ui packer.Ui
+	IsOSImage bool
 }
 
 func New(config *Config) (result *comm, err error) {
@@ -45,49 +50,125 @@ func New(config *Config) (result *comm, err error) {
 }
 
 func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
-	ui := c.config.Ui
+	ext, err := c.requestCustomScriptExtension()
+	if err != nil {
+		return
+	}
 
+	nameOfReference := fmt.Sprintf("PackerCustomScriptExtension-%s", uuid.New())
+	nameOfPublisher := extPublisher
+	nameOfExtension := extName
+	versionOfExtension := ext.Version
+
+	log.Println("Installing CustomScriptExtension...")
+	state := "enable"
+	params := c.buildParams(cmd.Command)
+
+	err = c.updateRoleResourceExtension(nameOfReference, nameOfPublisher, nameOfExtension, versionOfExtension, state, params)
+	if err != nil {
+		return
+	}
+
+	stdOutBuff, stdErrBuff, err := c.pollCustomScriptExtensionIsReady()
+	if err != nil {
+		return
+	}
+
+	_, err = cmd.Stdout.Write([]byte(stdOutBuff))
+	if err != nil {
+		err = fmt.Errorf("cmd.Stdout error: %s", err.Error())
+		return
+	}
+
+	_, err = cmd.Stderr.Write([]byte(stdErrBuff))
+	if err != nil {
+		err = fmt.Errorf("cmd.Stdout error: %s", err.Error())
+		return
+	}
+
+	log.Println("Uninstalling CustomScriptExtension...")
+
+	state = "uninstall"
+	params = nil
+	err = c.updateRoleResourceExtension(nameOfReference, nameOfPublisher, nameOfExtension, versionOfExtension, state, params)
+	if err != nil {
+		return
+	}
+
+	c.sleepSec(20)
+
+	err = c.pollCustomScriptIsUninstalled()
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (c *comm) sleepSec(d time.Duration){
+	log.Printf("Sleep for %v sec", uint(d))
+	time.Sleep(time.Second*d)
+}
+
+func (c *comm) requestCustomScriptExtension() (*model.ResourceExtension, error) {
 	reqManager := c.config.AzureServiceRequestManager
 
-	ui.Message("Requesting resource extentions...")
+	log.Println("Requesting resource extensions...")
 	requestData := reqManager.ListResourceExtensions()
 	resp, err := reqManager.Execute(requestData)
 
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	list, err := response.ParseResourceExtensionList(resp.Body)
 
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	ui.Message("Searching for CustomScriptExtension...")
+	log.Println("Searching for CustomScriptExtension...")
 	ext := list.FirstOrNull("CustomScriptExtension")
 	log.Printf("CustomScriptExtension: %v\n\n", ext)
 
 	if ext == nil {
 		err = fmt.Errorf("CustomScriptExtension is nil")
-		return
+		return nil, err
 	}
+	
+	return ext, nil
+}
+
+func (c *comm) updateRoleResourceExtension(
+	nameOfReference, nameOfPublisher, nameOfExtension, versionOfExtension, state string,
+	params []azureservice.ResourceExtensionParameterValue) error {
+
+	reqManager := c.config.AzureServiceRequestManager
 
 	serviceName := c.config.ServiceName
 	vmName := c.config.VmName
-	nameOfReference := "PackerCSE"
-	nameOfPublisher := ext.Publisher
-	nameOfExtension := ext.Name
-	versionOfExtension := ext.Version
-	state := "enable"
 
+
+	log.Println("Updating Role Resource Extension...")
+
+	requestData := reqManager.UpdateRoleResourceExtensionReference(serviceName, vmName, nameOfReference, nameOfPublisher, nameOfExtension, versionOfExtension, state, params)
+	err := reqManager.ExecuteSync(requestData)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *comm)buildParams(runScript string) (params []azureservice.ResourceExtensionParameterValue) {
 	storageAccountName, storageAccountKey := c.config.StorageServiceDriver.GetProps()
 
 	account := "{\"storageAccountName\":\"" + storageAccountName + "\",\"storageAccountKey\": \"" + storageAccountKey + "\"}";
-	runScript := cmd.Command
 
 	scriptfile := "{\"fileUris\": [" + c.uris + "], \"commandToExecute\":\"powershell -ExecutionPolicy Unrestricted -file " + runScript + "\"}"
 
-	params := []azureservice.ResourceExtensionParameterValue {
+	params = []azureservice.ResourceExtensionParameterValue {
 		azureservice.ResourceExtensionParameterValue{
 			Key: "CustomScriptExtensionPublicConfigParameter",
 			Value: base64.StdEncoding.EncodeToString([]byte(scriptfile)),
@@ -99,48 +180,37 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 			Type: "Private",
 		},
 	}
-	ui.Message("Updating Role Resource Extension...")
-	requestData = reqManager.UpdateRoleResourceExtensionReference(serviceName, vmName, nameOfReference, nameOfPublisher, nameOfExtension, versionOfExtension, state, params)
-	err = reqManager.ExecuteSync(requestData)
 
-	if err != nil {
-		return
-	}
+	return
+}
 
-	ui.Message("Polling the VM is ready. It may take some time...")
+func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string, err error) {
+	reqManager := c.config.AzureServiceRequestManager
+	log.Println("Polling CustomScriptExtension is ready. It may take some time...")
 
 	var deployment *model.Deployment
 	var res *model.ResourceExtensionStatus
 	const statusSuccess = "Success"
 	const statusError = "Error"
-	var stdOutBuff, stdErrBuff string
 
-	needUpdateStatus := true
-//	errorIgnoreCount := 10
+//	needUpdateStatus := true
 
-	for needUpdateStatus {
-		repeatCount := 30
+	serviceName := c.config.ServiceName
+	vmName := c.config.VmName
+
+	const attemptLimit uint = 30;
+
+	requestData := reqManager.GetDeployment(serviceName, vmName)
+	updateCount := attemptLimit
+
+	for ; updateCount > 0; updateCount--{
+
+		repeatCount := attemptLimit
 		for ; repeatCount > 0; repeatCount-- {
-			requestData = reqManager.GetDeployment(serviceName, vmName)
-			resp, err = reqManager.Execute(requestData)
+			resp, errEx := reqManager.Execute(requestData)
 
-			if err != nil {
-/*
-				log.Printf("Checking Result error: '%s'", err.Error())
-				pattern := "Request needs to have a x-ms-version header"
-				errString := err.Error()
-				// Sometimes server returns strange error - ignore it
-				match, _ := regexp.MatchString(pattern, errString)
-				if match {
-					log.Println("Checking Result ignore error: " + errString)
-					errorIgnoreCount--
-					if errorIgnoreCount == 0 {
-						return
-					}
-					continue
-				}
-*/
-
+			if errEx != nil {
+				err = errEx
 				return
 			}
 
@@ -150,23 +220,21 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 				return
 			}
 
-			if len(deployment.RoleInstanceList[0].ResourceExtensionStatusList) > 0 {
-				break
+			if deployment.RoleInstanceList[0].InstanceStatus == "ReadyRole" {
+				if len(deployment.RoleInstanceList[0].ResourceExtensionStatusList) > 0 {
+					break
+				}
 			}
 
-			var d time.Duration = 30
-			log.Printf("Sleep for %v", d)
-			time.Sleep(time.Second*d)
+			c.sleepSec(45)
 		}
 
 		if repeatCount == 0 {
-			err = fmt.Errorf("CustomScriptExtension ResourceExtensionStatusList is empty")
+			err = fmt.Errorf("InstanceStatus is not 'ReadyRole' or CustomScriptExtension ResourceExtensionStatusList is empty after %d attempts", attemptLimit)
 			return
 		}
 
-//		log.Printf("ResourceExtensionStatusList: %v", deployment.RoleInstanceList[0].ResourceExtensionStatusList)
-
-		extHandlerName := ext.Publisher + "." + ext.Name
+		extHandlerName := extPublisher + "." + extName
 
 		for _, s := range deployment.RoleInstanceList[0].ResourceExtensionStatusList {
 			if s.HandlerName == extHandlerName {
@@ -179,12 +247,12 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 			return
 		}
 
-//		log.Printf("CustomScriptExtension status: %v", res)
+		log.Printf("CustomScriptExtension status: %v", res)
 
 		extensionSettingStatus := res.ExtensionSettingStatus
 
 		if extensionSettingStatus.Status == statusError {
-			err = fmt.Errorf("CustomScriptExtension operation '%s' status: %s", extensionSettingStatus.Operation, extensionSettingStatus.Status )
+			err = fmt.Errorf("CustomScriptExtension operation '%s' status: %s", extensionSettingStatus.Operation, extensionSettingStatus.FormattedMessage.Message )
 			return
 		}
 
@@ -220,8 +288,6 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 			stdOutBuff = utils.Clue(stdOutBuff, stdOut)
 		}
 
-//		log.Printf("stdOutBuff: '%s'\n", stdOutBuff)
-
 		if len(stdErrBuff) == 0 {
 			stdErrBuff = stdErr
 		} else {
@@ -229,35 +295,65 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 		}
 
 		if extensionSettingStatus.Status == statusSuccess {
-			needUpdateStatus = false
 			break
 		}
 
-		var d time.Duration = 30
-		log.Printf("Sleep for %v", d)
-		time.Sleep(time.Second*d)
+		c.sleepSec(40)
 	}
 
-	_, err = cmd.Stdout.Write([]byte(stdOutBuff))
-	if res == nil {
-		err = fmt.Errorf("cmd.Stdout error: %s", err.Error())
-		return
-	}
-
-	_, err = cmd.Stderr.Write([]byte(stdErrBuff))
-	if res == nil {
-		err = fmt.Errorf("cmd.Stdout error: %s", err.Error())
+	if updateCount == 0 {
+		err = fmt.Errorf("extensionSettingStatus.Status in not 'Success' after %d attempts", attemptLimit)
 		return
 	}
 
 	return
 }
 
+func (c *comm) pollCustomScriptIsUninstalled() error {
+	reqManager := c.config.AzureServiceRequestManager
+	log.Println("Polling CustomScript is uninstalled. It may take some time...")
+
+	serviceName := c.config.ServiceName
+	vmName := c.config.VmName
+
+	requestData := reqManager.GetDeployment(serviceName, vmName)
+	const attemptLimit uint = 30;
+	repeatCount := attemptLimit
+	for ; repeatCount > 0; repeatCount-- {
+		resp, err := reqManager.Execute(requestData)
+
+		if err != nil {
+			return err
+		}
+
+		deployment, err := response.ParseDeployment(resp.Body)
+
+		if err != nil {
+			return err
+		}
+
+		if deployment.RoleInstanceList[0].InstanceStatus == "ReadyRole" {
+			if len(deployment.RoleInstanceList[0].ResourceExtensionStatusList) == 0 {
+				break
+			}
+		}
+
+		c.sleepSec(45)
+	}
+
+	if repeatCount == 0 {
+		err := fmt.Errorf("InstanceStatus is not 'ReadyRole' or ResourceExtensionStatusList is not empty after %d attempts", attemptLimit)
+		return err
+	}
+
+	return nil
+}
+
 func (c *comm)Upload(string, io.Reader, *os.FileInfo) error {
 	return fmt.Errorf("Upload is not supported for azureVmCustomScriptExtension")
 }
 
-func (c *comm) UploadDir(dst string, src string, excl []string) error {
+func (c *comm) UploadDir(skipped string, src string, excl []string) error {
 
 	src = filepath.FromSlash(src)
 	info, err := os.Stat(src)

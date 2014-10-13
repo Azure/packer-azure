@@ -28,7 +28,9 @@ func _TestCreateVirtualMachineDeployment(t *testing.T) {
 	osImageName := "a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-201407.01-en.us-127GB.vhd"
 	mediaLoc := fmt.Sprintf("https://packervhds.blob.core.windows.net/vhds/%s.vhd", vmName)
 
-	requestData := reqManager.CreateVirtualMachineDeploymentWin(serviceName, vmName, vmSize, /*certThumbprint,*/ userName, userPassword, osImageName, mediaLoc)
+	isOSImage := true;
+
+	requestData := reqManager.CreateVirtualMachineDeploymentWin(isOSImage, serviceName, vmName, vmSize, /*certThumbprint,*/ userName, userPassword, osImageName, mediaLoc)
 	_, err = reqManager.Execute(requestData)
 
 	if err != nil {

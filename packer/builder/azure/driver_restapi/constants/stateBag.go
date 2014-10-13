@@ -23,6 +23,7 @@ const (
 	UserCertThumbprint 	string = "userCertThumbprint"
 	UserCertPath 		string = "userCertPath"
 	OsImageName 		string = "osImageName"
+	IsOSImage 			string = "isOSImage"
 	PrivateKey 			string = "privateKey"
 	AzureVmAddr 		string = "azureVmAddr"
 	HardDiskName 		string = "hardDiskName"

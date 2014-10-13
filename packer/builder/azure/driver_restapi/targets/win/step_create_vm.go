@@ -41,9 +41,11 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 		return multistep.ActionHalt
 	}
 
+	isOSImage := state.Get(constants.IsOSImage).(bool)
+
 	mediaLoc := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s.vhd", s.StorageAccount, s.StorageAccountContainer, s.TmpVmName)
 
-	requestData := reqManager.CreateVirtualMachineDeploymentWin(s.TmpServiceName, s.TmpVmName, s.InstanceSize, s.Username, s.Password, osImageName, mediaLoc )
+	requestData := reqManager.CreateVirtualMachineDeploymentWin(isOSImage, s.TmpServiceName, s.TmpVmName, s.InstanceSize, s.Username, s.Password, osImageName, mediaLoc )
 
 	err = reqManager.ExecuteSync(requestData)
 
@@ -61,6 +63,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 }
 
 func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
+
 	reqManager := state.Get(constants.RequestManager).(*request.Manager)
 	ui := state.Get(constants.Ui).(packer.Ui)
 

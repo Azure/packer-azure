@@ -15,6 +15,7 @@ import (
 	"sort"
 	"net/url"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/settings"
+	"time"
 )
 
 type StorageServiceDriver struct {
@@ -226,3 +227,49 @@ type ErrorXml struct {
 	AuthenticationErrorDetail string
 }
 
+func (d *StorageServiceDriver) buildShareAccessSignature(container, signedstart, signedexpiry string) (string, error) {
+
+//	StringToSign = r + \n
+//               2009-02-09 + \n
+//               2009-02-10 + \n
+//               /myaccount/pictures + \n
+//               YWJjZGVmZw== + \n
+//               2012-02-12
+
+
+
+	stringToSign := fmt.Sprintf("%s\n%s\n%s\n/%s/%s\n%s", "r", signedstart, signedexpiry, d.account, container, "2012-02-12" )
+	fmt.Println("stringToSign:\n " + stringToSign)
+
+	urlDec, err := url.QueryUnescape(stringToSign)
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println("urlDec: " + urlDec)
+
+
+	signature, err := d.computeHmac256(urlDec)
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println("signature: " + signature)
+
+	return signature, nil
+}
+
+func (d *StorageServiceDriver) GetContainerSAS(container string) (string, error) {
+
+	ts := time.Now().UTC()
+	signedstart := ts.Format(time.RFC3339)
+	te := ts.Add(time.Hour*24)
+	signedexpiry := te.Format(time.RFC3339)
+
+	sas, err := d.buildShareAccessSignature(container, signedstart, signedexpiry)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("?sv=2012-02-12&st=%s&se=%s&sr=c&sp=r&sig=%s", signedstart, signedexpiry, url.QueryEscape(sas)), nil
+}

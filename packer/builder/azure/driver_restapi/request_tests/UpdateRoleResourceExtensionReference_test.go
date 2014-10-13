@@ -60,8 +60,8 @@ func _TestUpdateRoleResourceExtensionReference(t *testing.T) {
 		t.Errorf(errMassage, "CustomScriptExtension is nil")
 	}
 
-	serviceName := "pkrsrvpakd9ma4yb"
-	vmName := "shchVm1"
+	serviceName := "shchTmp"
+	vmName := "shchTmp"
 	nameOfReference := "PackerCSE"
 	nameOfPublisher := ext.Publisher
 	nameOfExtension := ext.Name

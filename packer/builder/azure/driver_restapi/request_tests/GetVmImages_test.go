@@ -8,11 +8,13 @@ package request_tests
 import (
 	"testing"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response/model"
+	"fmt"
 )
 
-func _TestGetVmImages(t *testing.T) {
+func TestGetVmImages(t *testing.T) {
 
-	errMassage := "TestCaptureVmImage: %s\n"
+	errMassage := "TestGetVmImages: %s\n"
 
 	reqManager, err := getRequestManager()
 	if err != nil {
@@ -26,23 +28,23 @@ func _TestGetVmImages(t *testing.T) {
 		t.Errorf(errMassage, err.Error())
 	}
 
-	vmImageList, err := response.ParseVmImageList(resp.Body)
+	list, err := response.ParseVmImageList(resp.Body)
 
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}
 
-	t.Logf("vmImageList:\n\n")
+	fmt.Printf("vmImageList:\n\n")
+	model.PrintVmImages(list.VMImages)
 
-//	for _, image := range(vmImageList.VMImages){
-//		t.Logf("%v\n\n", image)
-//	}
+	userImageName := "CoreOS"
 
-	userImageName := "PackerMade_Ubuntu_Server_14_04_2014-August-21_16-12"
-
-	first := vmImageList.First(userImageName)
+	fmt.Printf("Image named %s:\n", userImageName)
+	first := list.First(userImageName)
 	if first != nil {
 		t.Logf("%v\n\n", first)
+	} else {
+		t.Logf("%v\n\n", "Not found!")
 	}
 
 	t.Error("eom")

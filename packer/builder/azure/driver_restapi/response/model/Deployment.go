@@ -123,9 +123,11 @@ type Role struct {
 	OsVersion				string
 	RoleType				string
 	ConfigurationSets		[]ConfigurationSet		`xml:"ConfigurationSets>ConfigurationSet"`
+	VMImageName				string
 	DataVirtualHardDisks	[]DataVirtualHardDisk	`xml:"DataVirtualHardDisks>DataVirtualHardDisk"`
 	OSVirtualHardDisk		OSVirtualHardDisk
 	RoleSize				string
+	ProvisionGuestAgent		bool
 }
 
 type ConfigurationSet struct {

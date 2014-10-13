@@ -15,6 +15,7 @@ import (
 	"bufio"
 	"io/ioutil"
 	"strings"
+	"code.google.com/p/go-uuid/uuid"
 )
 
 const DistrDstPathDefault = "C:/PackerDistr"
@@ -25,7 +26,6 @@ type config struct {
 	// The local path of the script.
 	ScriptPath string `mapstructure:"script_path"`
 	DistrSrcPath string `mapstructure:"distr_src_path"`
-	DistrDstPath string `mapstructure:"distr_dst_dir_path"`
 	Inline []string		`mapstructure:"inline"`
 	tpl *packer.ConfigTemplate
 }
@@ -53,10 +53,6 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 		p.config.Inline = nil
 	}
 
-	if(p.config.DistrDstPath == "" ){
-		p.config.DistrDstPath = DistrDstPathDefault
-	}
-
 	sliceTemplates := map[string][]string{
 		"inline":           p.config.Inline,
 	}
@@ -77,7 +73,6 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 	templates := map[string]*string{
 		"script_path":      &p.config.ScriptPath,
 		"distr_src_path": 	&p.config.DistrSrcPath,
-		"distr_dst_path": 	&p.config.DistrDstPath,
 	}
 
 	for n, ptr := range templates {
@@ -88,8 +83,6 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 				errs, fmt.Errorf("Error processing %s: %s", n, err))
 		}
 	}
-
-	log.Println(fmt.Sprintf("%s: %v","script_path", p.config.DistrDstPath))
 
 	if len(p.config.ScriptPath) == 0 && p.config.Inline == nil {
 		errs = packer.MultiErrorAppend(errs,
@@ -122,7 +115,7 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 
 	var err error
-	errorMsg := "Error preparing shell script, %s error: s%"
+	errorMsg := "Error preparing shell script, %s error: %s"
 
 	ui.Say("Provisioning...")
 
@@ -142,7 +135,8 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 
 	// create a temporary script file and upload it to Azure storage
 	ui.Message("Preparing execution script...")
-	provisionFileName := "provision.ps1"
+	provisionFileName := fmt.Sprintf("provision-%s.ps1", uuid.New())
+
 	scriptPath := filepath.Join(packerTempDir, provisionFileName)
 	tf, err := os.Create(scriptPath)
 
@@ -192,8 +186,8 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 	log.Println("Writing SysPrep to execution script...")
 	sysprepPs := []string{
 		"Write-Host 'Executing Sysprep from File...'",
-		"Start-Process $env:windir\\System32\\Sysprep\\sysprep.exe -Wait -Argument '/quiet /generalize /oobe /quit'",
-		"Write-Host 'Sysprep is done'",
+		"Start-Process $env:windir\\System32\\Sysprep\\sysprep.exe -NoNewWindow -Wait -Argument '/quiet /generalize /oobe /quit'",
+		"Write-Host 'Sysprep is done!'",
 	}
 
 	for _, command := range sysprepPs {
@@ -227,7 +221,7 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 
 	cmd.Command = runScript
 
-	ui.Message("Starting execution script...")
+	ui.Message("Starting provisioning. It may take some time...")
 	err = comm.Start(&cmd)
 	if err != nil {
 		err = fmt.Errorf(errorMsg, "comm.Start", err.Error())

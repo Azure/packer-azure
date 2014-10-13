@@ -8,8 +8,14 @@ package request_tests
 import (
 	"testing"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 	"fmt"
 )
+
+const extPublisher = "Microsoft.Compute"
+const extName = "CustomScriptExtension"
+const extRefName = "CustomScriptExtension"
+
 
 func _TestGetDeploymet(t *testing.T) {
 
@@ -20,8 +26,10 @@ func _TestGetDeploymet(t *testing.T) {
 		t.Errorf(errMassage, err.Error())
 	}
 
-	serviceName := "pkrsrvpakd9ma4yb"
-	vmName := "shchVm1"
+	serviceName := "pkrsrvkqtw0mqcm4"
+	vmName := "PkrVMkqtw0mqcm4"
+
+
 
 	requestData := reqManager.GetDeployment(serviceName, vmName)
 	resp, err := reqManager.Execute(requestData)
@@ -29,23 +37,43 @@ func _TestGetDeploymet(t *testing.T) {
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}
-
-/*
-	defer resp.Body.Close()
-	var respBody []byte
-	respBody, err = ioutil.ReadAll(resp.Body)
-
-	t.Logf("resp.Body: %s\n", string(respBody))
-*/
-
 	deployment, err := response.ParseDeployment(resp.Body)
 
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}
 
+	nameOfReference := extRefName
+	nameOfPublisher := extPublisher
+	nameOfExtension := extName
+	versionOfExtension := "1.1"
+
+	var params []request.ResourceExtensionParameterValue
+
+	state := "uninstall"
+
+	requestData = reqManager.UpdateRoleResourceExtensionReference(serviceName, vmName, nameOfReference, nameOfPublisher, nameOfExtension, versionOfExtension, state, params)
+	err = reqManager.ExecuteSync(requestData)
+
+	if err != nil {
+		t.Errorf(errMassage, err.Error())
+	}
+
+	requestData = reqManager.GetDeployment(serviceName, vmName)
+	resp, err = reqManager.Execute(requestData)
+
+	if err != nil {
+		t.Errorf(errMassage, err.Error())
+	}
+
+
+	deployment, err = response.ParseDeployment(resp.Body)
+
+	if err != nil {
+		t.Errorf(errMassage, err.Error())
+	}
+
 	fmt.Printf("\ndeployment:\n\n %v", deployment.RoleInstanceList[0].GuestAgentStatus)
-	fmt.Printf("\ndeployment:\n\n %v", deployment.RoleInstanceList[0].ResourceExtensionStatusList[1])
 
 	t.Error("eom")
 }

@@ -46,12 +46,13 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
-
 	}
+
+	isOSImage := state.Get(constants.IsOSImage).(bool)
 
 	mediaLoc := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s.vhd", s.StorageAccount, s.StorageAccountContainer, s.TmpVmName)
 
-	requestData := reqManager.CreateVirtualMachineDeploymentLin(s.TmpServiceName, s.TmpVmName, s.InstanceSize, certThumbprint, s.Username, osImageName, mediaLoc )
+	requestData := reqManager.CreateVirtualMachineDeploymentLin(isOSImage, s.TmpServiceName, s.TmpVmName, s.InstanceSize, certThumbprint, s.Username, osImageName, mediaLoc )
 	err = reqManager.ExecuteSync(requestData)
 
 	if err != nil {

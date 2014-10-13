@@ -308,7 +308,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&targets.StepPollStatus {
 				TmpServiceName: b.config.tmpServiceName,
 				TmpVmName: b.config.tmpVmName,
-				},
+				OsType: b.config.OsType,
+			},
 
 			&common.StepConnectSSH {
 				SSHAddress:     lin.SSHAddress,
@@ -333,8 +334,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			},
 		}
 	} else if b.config.OsType == targets.Windows {
-//		b.config.tmpVmName = "shchVm1"
-//		b.config.tmpServiceName = "pkrsrvpakd9ma4yb"
+//		b.config.tmpVmName = "shchTemp"
+//		b.config.tmpServiceName = "shchTemp"
 		steps = []multistep.Step {
 
 			&targets.StepCreateService {
@@ -355,6 +356,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&targets.StepPollStatus {
 				TmpServiceName: b.config.tmpServiceName,
 				TmpVmName: b.config.tmpVmName,
+				OsType: b.config.OsType,
 			},
 			&win.StepSetProvisionInfrastructure {
 				VmName: b.config.tmpVmName,
@@ -363,12 +365,6 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TempContainerName: b.config.tmpContainerName,
 				},
 			&common.StepProvision{},
-/*
-			&win.StepSysprep{
-				OsImageLabel: b.config.OsImageLabel,
-			},
-*/
-
 			&targets.StepStopVm {
 				TmpVmName: b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
@@ -452,7 +448,7 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, state *multistep.BasicStateB
 	var err error
 
 	// Check Storage account (& container)
-	ui.Message("Checking Storage account...")
+	ui.Message("Checking Storage Account...")
 
 	requestData := reqManager.CheckStorageAccountNameAvailability(b.config.StorageAccount)
 	resp, err := reqManager.Execute(requestData)
@@ -466,56 +462,106 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, state *multistep.BasicStateB
 	log.Printf("availabilityResponse:\n %v", availabilityResponse)
 
 	if availabilityResponse.Result == "true" {
-		return fmt.Errorf("Can't find storage account '%s'", b.config.StorageAccount)
+		return fmt.Errorf("Can't Find Storage Account '%s'", b.config.StorageAccount)
 	}
 
 	// Check image exists
-
-	ui.Message("Checking OS image...")
-	requestData = reqManager.GetOsImages()
-	resp, err = reqManager.Execute(requestData)
-
+	exists, err := b.checkOsImageExists(ui, state, reqManager)
 	if err != nil {
 		return err
 	}
 
-//	ui.Say("Parsing response...")
+	if( exists == false) {
+		exists, err = b.checkOsUserImageExists(ui, state, reqManager)
+		if err != nil {
+			return err
+		}
+
+		if( exists == false) {
+			err = fmt.Errorf("Can't Find OS Image '%s' Located at '%s'", b.config.OsImageLabel, b.config.Location)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func  (b *Builder) checkOsImageExists(ui packer.Ui, state *multistep.BasicStateBag, reqManager *request.Manager) (bool, error) {
+	ui.Message("Checking OS image with the label '"+ b.config.OsImageLabel +"' exists...")
+	requestData := reqManager.GetOsImages()
+	resp, err := reqManager.Execute(requestData)
+
+	if err != nil {
+		return false, err
+	}
+
 	imageList, err := response.ParseOsImageList(resp.Body)
 
 	if err != nil {
-		return err
+		return false, err
 	}
 
-//	for _, im := range(imageList.OSImages) {
-//		ui.Message(fmt.Sprintf("l: %s\nf: %s\nloc:%s\n\n", im.Label, im.ImageFamily, im.Location))
-//	}
-//	ui.Say(fmt.Sprintf("imageList: %v", imageList ))
-
-//	ui.Say("Filtering response...")
 	filteredImageList := imageList.Filter(b.config.OsImageLabel, b.config.Location)
-//	for _, im := range(filteredImageList) {
-//		ui.Message(fmt.Sprintf("lab: %s\nfam: %s\nloc:%s\ndate: %s\n\n", im.Label, im.ImageFamily, im.Location, im.PublishedDate))
-//	}
 
-	if len(filteredImageList) == 0 {
-		err = fmt.Errorf("Can't find OS image '%s' located at '%s'", b.config.OsImageLabel, b.config.Location)
-		return err
+	if len(filteredImageList) != 0 {
+
+		ui.Message(fmt.Sprintf("Found %v image(s).", len(filteredImageList)))
+		ui.Message("Take the most recent:")
+
+		imageList.SortByDateDesc(filteredImageList)
+
+		osImageName := filteredImageList[0].Name
+		ui.Message("OS Image Label: " + filteredImageList[0].Label)
+		ui.Message("OS Image Family: " + filteredImageList[0].ImageFamily)
+		ui.Message("OS Image Name: " + osImageName)
+		ui.Message("OS Image PublishedDate: " + filteredImageList[0].PublishedDate)
+		state.Put(constants.OsImageName, osImageName)
+		state.Put(constants.IsOSImage, true)
+		return true, nil
 	}
 
-//	ui.Say("Sorting response...")
-	imageList.SortByDateDesc(filteredImageList)
-//	for _, im := range(filteredImageList) {
-//		ui.Message(fmt.Sprintf("lab: %s\nfam: %s\nloc:%s\ndate: %s\n\n", im.Label, im.ImageFamily, im.Location, im.PublishedDate))
-//	}
+	ui.Message("Image not found.")
+	return false, nil
+}
 
-	osImageName := filteredImageList[0].Name
-	ui.Message("Os Image Label: " + filteredImageList[0].Label)
-	ui.Message("Os Image Family: " + filteredImageList[0].ImageFamily)
-	ui.Message("Os Image Name: " + osImageName)
-	ui.Message("Os Image PublishedDate: " + filteredImageList[0].PublishedDate)
-	state.Put(constants.OsImageName, osImageName)
+func (b *Builder) checkOsUserImageExists(ui packer.Ui, state *multistep.BasicStateBag, reqManager *request.Manager) (bool, error) {
+	// check user images
+	ui.Message("Checking VM image with the label '"+ b.config.OsImageLabel +"' exists...")
 
-	return nil
+	requestData := reqManager.GetVmImages()
+	resp, err := reqManager.Execute(requestData)
+
+	if err != nil {
+		return false, err
+	}
+
+	imageList, err := response.ParseVmImageList(resp.Body)
+
+	if err != nil {
+		return false, err
+	}
+
+	filteredImageList := imageList.Filter(b.config.OsImageLabel, b.config.Location)
+
+	if len(filteredImageList) != 0 {
+
+		ui.Message(fmt.Sprintf("Found %v image(s).", len(filteredImageList)))
+		ui.Message("Take the most recent:")
+
+		imageList.SortByDateDesc(filteredImageList)
+
+		osImageName := filteredImageList[0].Name
+		ui.Message("VM Image Label: " + filteredImageList[0].Label)
+		ui.Message("VM Image Family: " + filteredImageList[0].ImageFamily)
+		ui.Message("VM Image Name: " + osImageName)
+		ui.Message("VM Image PublishedDate: " + filteredImageList[0].PublishedDate)
+		state.Put(constants.OsImageName, osImageName)
+		state.Put(constants.IsOSImage, false)
+		return true, nil
+	}
+
+	ui.Message("Image not found.")
+	return false, nil
 }
 
 func appendWarnings(slice []string, data ...string) []string {

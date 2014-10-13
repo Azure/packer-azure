@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 	"fmt"
+	"bytes"
 )
 
 type OsImageList struct {
@@ -40,7 +41,6 @@ type OSImage struct {
 	SmallIconUri		string
 	Language			string
 }
-
 
 func (l *OsImageList) Filter(label, location string) []OSImage {
 	dgb_output := false
@@ -78,16 +78,32 @@ func (l *OsImageList) Filter(label, location string) []OSImage {
 	return filtered[:len(filtered)]
 }
 
-type ByDateDesc []OSImage
+type OSImageByDateDesc []OSImage
 
-func (a ByDateDesc) Len() int           { return len(a) }
-func (a ByDateDesc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByDateDesc) Less(i, j int) bool { return a[i].PublishedDate > a[j].PublishedDate }
+func (a OSImageByDateDesc) Len() int           { return len(a) }
+func (a OSImageByDateDesc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a OSImageByDateDesc) Less(i, j int) bool { return a[i].PublishedDate > a[j].PublishedDate }
 
-func (l *OsImageList) SortByDateDesc(imageList []OSImage) {
-	if len(imageList) == 0 {
-		sort.Sort(ByDateDesc(l.OSImages))
+func (l *OsImageList) SortByDateDesc(images []OSImage) {
+	if len(images) == 0 {
+		sort.Sort(OSImageByDateDesc(l.OSImages))
 	} else {
-		sort.Sort(ByDateDesc(imageList))
+		sort.Sort(OSImageByDateDesc(images))
+	}
+}
+
+func PrintOsImages(images []OSImage){
+	var output bytes.Buffer
+	for _, im := range(images) {
+		output.Reset()
+		output.WriteString("Label: " + 			im.Label 			+ "\n")
+		output.WriteString("Location: " + 		im.Location 		+ "\n")
+		output.WriteString("Name: " + 			im.Name 			+ "\n")
+		output.WriteString("ImageFamily: " + 	im.ImageFamily 		+ "\n")
+		output.WriteString("PublishedDate: " +	im.PublishedDate 	+ "\n")
+		output.WriteString("Category: " + 		im.Category 		+ "\n")
+		output.WriteString("MediaLink: " + 		im.MediaLink 		+ "\n")
+
+		fmt.Println(output.String())
 	}
 }

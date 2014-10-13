@@ -6,11 +6,10 @@ package settings
 
 const (
 // request
-	LogRawRequestBody 		bool = false
-	LogRequestData 			bool = false
+	LogRequestData 			bool = true
 
 // response
-	LogRawResponseBody 		bool = false
+	LogRawResponseBody 		bool = true
 	LogRawResponseError 	bool = true
 
 // azure storage

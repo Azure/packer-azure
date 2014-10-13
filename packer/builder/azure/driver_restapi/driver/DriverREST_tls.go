@@ -45,7 +45,10 @@ func NewTlsDriver(pem []byte) (IDriverRest, error) {
 func (d *DriverRest_tls) Exec(verb string, url string, headers map[string]string, body io.Reader) (resp *http.Response, err error) {
 //	var err error
 	var req *http.Request
-	errorIgnoreCount := 10
+
+	const errorIgnoreLimit = 10
+	errorIgnoreCount1 := 0
+	errorIgnoreCount2 := 0
 
 	for {
 		req, err = http.NewRequest(verb, url, body)
@@ -88,32 +91,42 @@ func (d *DriverRest_tls) Exec(verb string, url string, headers map[string]string
 				return nil, err
 			}
 
-			pattern := "Request needs to have a x-ms-version header"
 			errString := errXml.Message
+
+			pattern := "Request needs to have a x-ms-version header"
 			// Sometimes server returns strange error - ignore it
 			match, _ := regexp.MatchString(pattern, errString)
 			if match {
 				log.Println("Exec ignoring error: " + errString)
-				errorIgnoreCount--
-				if errorIgnoreCount == 0 {
-					return nil, fmt.Errorf("Remote server returned error: %s %d times", errString, errorIgnoreCount)
+				errorIgnoreCount1++
+				if errorIgnoreCount1 == errorIgnoreLimit {
+					return nil, fmt.Errorf("Remote server returned error: '%s' (%d times).", errString, errorIgnoreCount1)
 				}
 				continue
 			}
 
+			pattern = "The server encountered an internal error. Please retry the request"
+			match, _ = regexp.MatchString(pattern, errString)
+			if match {
+				log.Println("Exec ignoring error: " + errString)
+				errorIgnoreCount2++
+				if errorIgnoreCount2 == errorIgnoreLimit {
+					return nil, fmt.Errorf("Remote server returned error: '%s' (%d times).", errString, errorIgnoreCount2)
+				}
+				continue
+			}
 
 			err = fmt.Errorf("Remote server returned error: %s", errXml.Message)
 
 			return nil, err
 		}
 
-
 		if statusCode == 307 { // Temporary Redirect
 			redirectUrl , ok := resp.Header["Location"]
 			if !ok {
 				return nil, fmt.Errorf("%s %s", "Failed to redirect:", "header key 'Location' wasn't found")
 			}
-
+			log.Printf("Redirecting: '%s' --> '%s'", url, redirectUrl[0])
 			url = redirectUrl[0]
 			continue
 

@@ -7,25 +7,33 @@ package storage_tests
 import (
 	"testing"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
+	"fmt"
+	"time"
 )
 
-func _TestPutBlob(t *testing.T) {
+func TestGetContainerSas(t *testing.T) {
 
-	errMassage := "TestPutBlob error: %s\n"
+	errMassage := "TestGetContainerSas: %s\n"
 
 	sa := request.NewStorageServiceDriver(g_accountName, g_secret)
 
-	filePath := "d:\\Packer.io\\example\\Azure\\srcFolder\\npp.6.6.3.Installer.exe"
 
-	containerName := "packer-provision"
+	ts := time.Now().UTC()
+	fmt.Println("ts: " + ts.String())
+	te := ts.Add(time.Hour*24)
+	fmt.Println("te: " + te.String())
 
-	_, err := sa.PutBlob(containerName, filePath)
+	signedstart := ts.Format(time.RFC3339)
+	fmt.Println("signedstart: " + signedstart)
+
+	containerName := "images"
+	sas, err := sa.GetContainerSAS(containerName)
 
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}
 
-
+	fmt.Println("sas: " + sas)
 
 	t.Error("eom")
 }
