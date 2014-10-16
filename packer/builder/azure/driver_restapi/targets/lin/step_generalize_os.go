@@ -9,9 +9,7 @@ import (
 	"bytes"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-//	"strings"
 	"log"
-//	"time"
 )
 
 type StepGeneralizeOs struct {

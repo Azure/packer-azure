@@ -25,6 +25,7 @@ const(
 	instanceStatus_ReadyRole = "ReadyRole"
 	instanceStatus_FailedStartingRole = "FailedStartingRole"
 	instanceStatus_FailedStartingVM = "FailedStartingVM"
+	instanceStatus_ProvisioningFailed = "ProvisioningFailed"
 	instanceStatus_UnresponsiveRole = "UnresponsiveRole"
 )
 
@@ -86,6 +87,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 
 			if instanceStatus == instanceStatus_FailedStartingRole ||
 				instanceStatus == instanceStatus_FailedStartingVM ||
+				instanceStatus == instanceStatus_ProvisioningFailed ||
 				instanceStatus == instanceStatus_UnresponsiveRole {
 				err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].instanceStatus is " + instanceStatus)
 				state.Put("error", err)
