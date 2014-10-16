@@ -253,9 +253,17 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 	</tr>
 </table>
 
+* Quick steps to get Packer on Ubunty
+  * wget -P $HOME/downloads https://dl.bintray.com/mitchellh/packer/packer_0.7.1_linux_amd64.zip
+  * unzip $HOME/downloads/packer_0.7.1_linux_amd64.zip -d $HOME/packer/
+  * export PATH=$PATH:$HOME/packer/
+  * export PACKER_LOG=1
+  * export PACKER_LOG_PATH=$HOME/packer.log
+
 ### Dependencies
 
 *	code.google.com/p/go.crypto
+*	code.google.com/p/go-uuid/uuid
 *	github.com/mitchellh/go-fs
 *	github.com/mitchellh/iochan
 *	github.com/mitchellh/mapstructure
