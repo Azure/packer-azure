@@ -13,7 +13,7 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 
 **The bin directory contains binaries and example configurations for Packer-Azure.**
 
-#### Packer version the plug-ins were tested is 0.7.1
+#### Packer version the plug-ins were tested is 0.7.2
 
 ### Windows dev-box
 
@@ -44,7 +44,7 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
   * sudo apt-get install mercurial meld
   * go get github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi
   * go get github.com/hashicorp/yamux
-  * go get github.com/ugorji/go/codec
+  * go get github.com/hashicorp/go-msgpack/codec
   * go install -tags 'restapi' github.com/MSOpenTech/packer-azure/packer/plugin/packer-builder-azure
   * go install github.com/MSOpenTech/packer-azure/packer/plugin/packer-provisioner-azure-custom-script-extension
   * copy built plugins from $GOPATH/bin to you Packer folder 
@@ -249,7 +249,6 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 				</table> 
 			}
 		</td>
-		
 	</tr>
 </table>
 
@@ -271,6 +270,6 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 *	github.com/mitchellh/packer
 *	github.com/hashicorp/go-version
 *	github.com/hashicorp/yamux
-*	github.com/ugorji/go/codec
+*	github.com/hashicorp/go-msgpack/codec
 
 

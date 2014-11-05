@@ -29,6 +29,10 @@ func (a *artifact) Id() string {
 	return a.imageName
 }
 
+func (a *artifact) State(name string) interface{} {
+	return "Not implemented"
+}
+
 func (a *artifact) String() string {
 	return fmt.Sprintf("{%s,%s,%s}",
 		fmt.Sprintf("imageLabel: '%s'", a.imageLabel),
