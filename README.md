@@ -259,6 +259,15 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
   * export PACKER_LOG=1
   * export PACKER_LOG_PATH=$HOME/packer.log
 
+* Known Issues
+  * It was discovered that some Linux distributions behave strangely as a target. in particular, if a user 
+    1. creates a VM from a **OpenLogin image** using **certificate authentication only**;
+    2. captures the VM to an user image;
+    3. creates a VM from the captured image using **password and certificate authentication** - password authentication won't work.
+
+    - Sinse the Paker plugin uses the same scenario (steps 1-2) to provision images - be ready to use Packer created images with certificate authentication only.
+    - **All Ubuntu distributions work fine**. 	
+
 ### Dependencies
 
 *	code.google.com/p/go.crypto
