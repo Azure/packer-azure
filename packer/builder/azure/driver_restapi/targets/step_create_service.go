@@ -49,11 +49,11 @@ func (s *StepCreateService) Cleanup(state multistep.StateBag) {
 	var res int
 
 	if res = state.Get(constants.SrvExists).(int); res == 1 {
-		ui.Say("Removing Temporary Azure Service...")
+		ui.Say("Removing Temporary Azure Service and It's Deployments If Any...")
 		errorMsg := "Error Removing Temporary Azure Service: %s"
 
 		var requestData *request.Data
-		requestData = reqManager.DeleteCloudService(s.TmpServiceName)
+		requestData = reqManager.DeleteCloudServiceAndMedia(s.TmpServiceName)
 
 		err = reqManager.ExecuteSync(requestData)
 
