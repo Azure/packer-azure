@@ -6,13 +6,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"os"
 	"io"
 	"io/ioutil"
-	"encoding/json"
-	"path/filepath"
+	"os"
 	"os/user"
+	"path/filepath"
 )
 
 const (
@@ -21,11 +21,11 @@ const (
 )
 
 type Config struct {
-	Builders   map[string]string			`json:"builders"`
-	Provisioners   map[string]string		`json:"provisioners"`
+	Builders     map[string]string `json:"builders"`
+	Provisioners map[string]string `json:"provisioners"`
 }
 
-func main () {
+func main() {
 	wd, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		fmt.Println("Error getting working directory: " + err.Error())
@@ -62,7 +62,7 @@ func ModifyCoreConfig(srcPath, dstPath string) error {
 	}
 
 	// create a copy of a packer core config
-	dstPathCopy := filepath.Join(filepath.Dir(dstPath), filepath.Base(dstPath) + ".orig")
+	dstPathCopy := filepath.Join(filepath.Dir(dstPath), filepath.Base(dstPath)+".orig")
 	err = CopyFile(dstPath, dstPathCopy)
 	if err != nil {
 		return fmt.Errorf("Can't create a backup copy of file: %s", err.Error())
@@ -90,8 +90,8 @@ func ModifyCoreConfig(srcPath, dstPath string) error {
 		if ok && sv == dv {
 			continue
 		}
-		if dstConf.Builders == nil{
-			dstConf.Builders = map[string]string{sk:sv}
+		if dstConf.Builders == nil {
+			dstConf.Builders = map[string]string{sk: sv}
 		} else {
 			dstConf.Builders[sk] = sv
 		}
@@ -103,8 +103,8 @@ func ModifyCoreConfig(srcPath, dstPath string) error {
 		if ok && sv == dv {
 			continue
 		}
-		if dstConf.Provisioners == nil{
-			dstConf.Provisioners = map[string]string{sk:sv}
+		if dstConf.Provisioners == nil {
+			dstConf.Provisioners = map[string]string{sk: sv}
 		} else {
 			dstConf.Provisioners[sk] = sv
 		}
@@ -129,15 +129,21 @@ func ModifyCoreConfig(srcPath, dstPath string) error {
 	return nil
 }
 
-func CopyFile(srcPath, dstPath string) error{
+func CopyFile(srcPath, dstPath string) error {
 	in, err := os.Open(srcPath)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	defer in.Close()
 	out, err := os.Create(dstPath)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	defer out.Close()
 	_, err = io.Copy(out, in)
 	err = out.Close()
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	return nil
 }

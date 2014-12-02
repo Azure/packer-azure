@@ -6,22 +6,22 @@ package win
 
 import (
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
 )
 
 type StepCreateVm struct {
-	OsType string
-	StorageAccount string
+	OsType                  string
+	StorageAccount          string
 	StorageAccountContainer string
-	OsImageLabel string
-	TmpVmName string
-	TmpServiceName string
-	InstanceSize string
-	Username string
-	Password string
+	OsImageLabel            string
+	TmpVmName               string
+	TmpServiceName          string
+	InstanceSize            string
+	Username                string
+	Password                string
 }
 
 func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
@@ -45,7 +45,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 
 	mediaLoc := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s.vhd", s.StorageAccount, s.StorageAccountContainer, s.TmpVmName)
 
-	requestData := reqManager.CreateVirtualMachineDeploymentWin(isOSImage, s.TmpServiceName, s.TmpVmName, s.InstanceSize, s.Username, s.Password, osImageName, mediaLoc )
+	requestData := reqManager.CreateVirtualMachineDeploymentWin(isOSImage, s.TmpServiceName, s.TmpVmName, s.InstanceSize, s.Username, s.Password, osImageName, mediaLoc)
 
 	err = reqManager.ExecuteSync(requestData)
 

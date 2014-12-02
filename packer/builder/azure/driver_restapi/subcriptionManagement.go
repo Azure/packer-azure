@@ -5,24 +5,24 @@
 package driver_restapi
 
 import (
-	"encoding/xml"
-	"os"
-	"fmt"
-	"io/ioutil"
+	"bytes"
+	"crypto/md5"
 	"encoding/base64"
+	"encoding/xml"
+	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"io/ioutil"
+	"log"
+	"os"
+	"os/exec"
+	"os/user"
 	"path/filepath"
 	"runtime"
-	"os/exec"
-	"bytes"
 	"strings"
-	"crypto/md5"
-	"log"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"os/user"
 )
 
 type SubscriptionInfo struct {
-	Id string
+	Id       string
 	CertData []byte
 }
 
@@ -31,21 +31,21 @@ type publishData struct {
 }
 
 type publishProfile struct {
-	SchemaVersion string `xml:",attr"`
-	PublishMethod string `xml:",attr"`
-	Url string `xml:",attr"`
-	ManagementCertificate string `xml:",attr"`
-	Subscriptions []subscription `xml:"Subscription"`
+	SchemaVersion         string         `xml:",attr"`
+	PublishMethod         string         `xml:",attr"`
+	Url                   string         `xml:",attr"`
+	ManagementCertificate string         `xml:",attr"`
+	Subscriptions         []subscription `xml:"Subscription"`
 }
 
 type subscription struct {
-	ServiceManagementUrl string `xml:",attr"`
-	Id string `xml:",attr"`
-	Name string `xml:",attr"`
+	ServiceManagementUrl  string `xml:",attr"`
+	Id                    string `xml:",attr"`
+	Name                  string `xml:",attr"`
 	ManagementCertificate string `xml:",attr"`
 }
 
-func ParsePublishSettings(path string, subscriptionName string) (*SubscriptionInfo, error){
+func ParsePublishSettings(path string, subscriptionName string) (*SubscriptionInfo, error) {
 
 	var err error
 	if _, err = os.Stat(path); err != nil {
@@ -53,7 +53,7 @@ func ParsePublishSettings(path string, subscriptionName string) (*SubscriptionIn
 		return nil, err
 	}
 
-	if len(subscriptionName)==0 {
+	if len(subscriptionName) == 0 {
 		err = fmt.Errorf("ParsePublishSettings: '%v' subscriptionName is empty.", subscriptionName)
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func ParsePublishSettings(path string, subscriptionName string) (*SubscriptionIn
 	certBase64 := publishData.PublishProfile.ManagementCertificate
 
 	log.Println(fmt.Sprintf("looking for subscription info..."))
-	for _, s := range(publishData.PublishProfile.Subscriptions) {
+	for _, s := range publishData.PublishProfile.Subscriptions {
 		if s.Name == subscriptionName {
 			if len(s.Id) > 0 {
 				id = s.Id
@@ -129,11 +129,11 @@ func ParsePublishSettings(path string, subscriptionName string) (*SubscriptionIn
 		usrHome = usr.HomeDir
 	}
 
-	log.Println( usrHome )
+	log.Println(usrHome)
 
 	packerSubscriptionStoreDirPath := filepath.Join(usrHome, packerSubscriptionStoreDirName)
-	subscrPath := filepath.Join(packerSubscriptionStoreDirPath,id)
-	tagFilePath := filepath.Join(subscrPath,".tag")
+	subscrPath := filepath.Join(packerSubscriptionStoreDirPath, id)
+	tagFilePath := filepath.Join(subscrPath, ".tag")
 
 	var modeDir os.FileMode = 0700
 	var modeFile os.FileMode = 0600
@@ -203,7 +203,7 @@ func ParsePublishSettings(path string, subscriptionName string) (*SubscriptionIn
 		progName := "openssl"
 		binary, err := exec.LookPath(progName)
 		if err != nil {
-			err := fmt.Errorf("Can't find '%s' programm: %s", progName,  err.Error())
+			err := fmt.Errorf("Can't find '%s' programm: %s", progName, err.Error())
 			return nil, err
 		}
 
@@ -233,7 +233,7 @@ func ParsePublishSettings(path string, subscriptionName string) (*SubscriptionIn
 		}
 	}
 
-	log.Println("reading pemfile: " + certPemPath )
+	log.Println("reading pemfile: " + certPemPath)
 	var pemData []byte
 	pemData, err = ioutil.ReadFile(certPemPath)
 	if err != nil {
@@ -241,7 +241,7 @@ func ParsePublishSettings(path string, subscriptionName string) (*SubscriptionIn
 	}
 
 	si := &SubscriptionInfo{
-		Id : id,
+		Id:       id,
 		CertData: pemData,
 	}
 
@@ -272,4 +272,3 @@ func Exec(name string, arg ...string) error {
 
 	return err
 }
-

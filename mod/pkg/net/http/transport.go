@@ -12,9 +12,9 @@ package http
 import (
 	"bufio"
 	"compress/gzip"
-	"github.com/MSOpenTech/packer-azure/mod/pkg/crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/mod/pkg/crypto/tls"
 	"io"
 	"log"
 	"net"

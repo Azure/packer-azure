@@ -5,9 +5,9 @@
 package storage_tests
 
 import (
-	"testing"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
+	"testing"
 	"time"
 )
 
@@ -17,10 +17,9 @@ func TestGetContainerSas(t *testing.T) {
 
 	sa := request.NewStorageServiceDriver(g_accountName, g_secret)
 
-
 	ts := time.Now().UTC()
 	fmt.Println("ts: " + ts.String())
-	te := ts.Add(time.Hour*24)
+	te := ts.Add(time.Hour * 24)
 	fmt.Println("te: " + te.String())
 
 	signedstart := ts.Format(time.RFC3339)

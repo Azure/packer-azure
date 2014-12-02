@@ -5,17 +5,17 @@
 package azureVmCustomScriptExtension
 
 import (
+	"bufio"
+	"bytes"
+	"code.google.com/p/go-uuid/uuid"
 	"fmt"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
-	"os"
-	"bytes"
-	"log"
-	"path/filepath"
-	"bufio"
 	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
 	"strings"
-	"code.google.com/p/go-uuid/uuid"
 )
 
 const DistrDstPathDefault = "C:/PackerDistr"
@@ -24,10 +24,10 @@ type config struct {
 	common.PackerConfig `mapstructure:",squash"`
 
 	// The local path of the script.
-	ScriptPath string `mapstructure:"script_path"`
-	DistrSrcPath string `mapstructure:"distr_src_path"`
-	Inline []string		`mapstructure:"inline"`
-	tpl *packer.ConfigTemplate
+	ScriptPath   string   `mapstructure:"script_path"`
+	DistrSrcPath string   `mapstructure:"distr_src_path"`
+	Inline       []string `mapstructure:"inline"`
+	tpl          *packer.ConfigTemplate
 }
 
 type Provisioner struct {
@@ -54,7 +54,7 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 	}
 
 	sliceTemplates := map[string][]string{
-		"inline":           p.config.Inline,
+		"inline": p.config.Inline,
 	}
 
 	for n, slice := range sliceTemplates {
@@ -68,11 +68,11 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 		}
 	}
 
-	log.Println(fmt.Sprintf("%s: %v","inline", p.config.ScriptPath))
+	log.Println(fmt.Sprintf("%s: %v", "inline", p.config.ScriptPath))
 
 	templates := map[string]*string{
-		"script_path":      &p.config.ScriptPath,
-		"distr_src_path": 	&p.config.DistrSrcPath,
+		"script_path":    &p.config.ScriptPath,
+		"distr_src_path": &p.config.DistrSrcPath,
 	}
 
 	for n, ptr := range templates {
@@ -95,7 +95,7 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 				fmt.Errorf("script_path: '%v' check the path is correct.", p.config.ScriptPath))
 		}
 	}
-	log.Println(fmt.Sprintf("%s: %v","script_path", p.config.ScriptPath))
+	log.Println(fmt.Sprintf("%s: %v", "script_path", p.config.ScriptPath))
 
 	if len(p.config.DistrSrcPath) != 0 {
 		if _, err := os.Stat(p.config.DistrSrcPath); err != nil {
@@ -103,7 +103,7 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 				fmt.Errorf("distr_src_path: '%v' check the path is correct.", p.config.DistrSrcPath))
 		}
 	}
-	log.Println(fmt.Sprintf("%s: %v","distr_src_path", p.config.DistrSrcPath))
+	log.Println(fmt.Sprintf("%s: %v", "distr_src_path", p.config.DistrSrcPath))
 
 	if errs != nil && len(errs.Errors) > 0 {
 		return errs
@@ -141,7 +141,7 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 	tf, err := os.Create(scriptPath)
 
 	if err != nil {
-		return fmt.Errorf(errorMsg, "os.Create",  err.Error())
+		return fmt.Errorf(errorMsg, "os.Create", err.Error())
 	}
 
 	defer os.RemoveAll(packerTempDir)
@@ -155,7 +155,7 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		for _, command := range p.config.Inline {
 			log.Println(command)
 			if _, err := writer.WriteString(command + ";\n"); err != nil {
-				return fmt.Errorf(errorMsg, "writer.WriteString",  err.Error())
+				return fmt.Errorf(errorMsg, "writer.WriteString", err.Error())
 			}
 		}
 	}
@@ -166,7 +166,7 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 
 		f, err := os.Open(p.config.ScriptPath)
 		if err != nil {
-			return fmt.Errorf(errorMsg, "os.Open",  err.Error())
+			return fmt.Errorf(errorMsg, "os.Open", err.Error())
 		}
 		defer f.Close()
 
@@ -174,12 +174,12 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		for scanner.Scan() {
 			log.Println(scanner.Text())
 			if _, err := writer.WriteString(scanner.Text() + "\n"); err != nil {
-				return fmt.Errorf(errorMsg, "writer.WriteString",  err.Error())
+				return fmt.Errorf(errorMsg, "writer.WriteString", err.Error())
 			}
 		}
 
 		if err := scanner.Err(); err != nil {
-			return fmt.Errorf(errorMsg, "scanner.Scan",  err.Error())
+			return fmt.Errorf(errorMsg, "scanner.Scan", err.Error())
 		}
 	}
 
@@ -193,7 +193,7 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 	for _, command := range sysprepPs {
 		log.Println(command)
 		if _, err := writer.WriteString(command + ";\n"); err != nil {
-			return fmt.Errorf(errorMsg, "writer.WriteString",  err.Error())
+			return fmt.Errorf(errorMsg, "writer.WriteString", err.Error())
 		}
 	}
 
@@ -216,8 +216,8 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 	var stdoutBuff bytes.Buffer
 	var stderrBuff bytes.Buffer
 	var cmd packer.RemoteCmd
-	cmd.Stdout = &stdoutBuff;
-	cmd.Stderr = &stderrBuff;
+	cmd.Stdout = &stdoutBuff
+	cmd.Stderr = &stderrBuff
 
 	cmd.Command = runScript
 
@@ -227,11 +227,11 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		err = fmt.Errorf(errorMsg, "comm.Start", err.Error())
 		return err
 	}
-	
+
 	ui.Message("Provision is Completed")
 
 	stderrString := stderrBuff.String()
-	if(len(stderrString)>0) {
+	if len(stderrString) > 0 {
 		err = fmt.Errorf(errorMsg, "stderrString", stderrString)
 		log.Printf("Provision stderr: %s", stderrString)
 	}
@@ -239,10 +239,10 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 	ui.Say("Script output")
 
 	stdoutString := stdoutBuff.String()
-	if(len(stdoutString)>0) {
+	if len(stdoutString) > 0 {
 		log.Printf("Provision stdout: %s", stdoutString)
 		scriptMessages := strings.Split(stdoutString, "\\n")
-		for _, m := range scriptMessages{
+		for _, m := range scriptMessages {
 			ui.Message(m)
 		}
 	}

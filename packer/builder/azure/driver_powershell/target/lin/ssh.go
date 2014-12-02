@@ -5,16 +5,16 @@
 package lin
 
 import (
+	"code.google.com/p/go.crypto/ssh"
 	"fmt"
 	"github.com/mitchellh/multistep"
-	"code.google.com/p/go.crypto/ssh"
 )
 
 // SSHAddress returns a function that can be given to the SSH communicator
 func SSHAddress(state multistep.StateBag) (string, error) {
 	azureVmAddr := state.Get("azureVmAddr").(string)
-//	tmpServiceName := state.Get("tmpServiceName").(string)
-//	return fmt.Sprintf("%s.cloudapp.net:%s", tmpServiceName, port), nil
+	//	tmpServiceName := state.Get("tmpServiceName").(string)
+	//	return fmt.Sprintf("%s.cloudapp.net:%s", tmpServiceName, port), nil
 	return azureVmAddr, nil
 }
 
@@ -38,4 +38,3 @@ func SSHConfig(username string) func(multistep.StateBag) (*ssh.ClientConfig, err
 		}, nil
 	}
 }
-

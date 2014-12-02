@@ -11,22 +11,22 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
+	"github.com/mitchellh/multistep"
+	"github.com/mitchellh/packer/packer"
+	"io/ioutil"
 	"log"
 	"math/big"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
-	"io/ioutil"
-	"path/filepath"
-	"github.com/mitchellh/multistep"
-	"github.com/mitchellh/packer/packer"
 )
 
 type StepCreateCertificate struct {
-	CertFileName string
-	KeyFileName string
-	TempDir string
+	CertFileName   string
+	KeyFileName    string
+	TempDir        string
 	TmpServiceName string
 }
 
@@ -35,7 +35,7 @@ func (s *StepCreateCertificate) Run(state multistep.StateBag) multistep.StepActi
 
 	ui.Say("Creating Temporary Certificate...")
 
-	if(len(s.TempDir) == 0){
+	if len(s.TempDir) == 0 {
 		//Creating temporary directory
 		tempDir := os.TempDir()
 		packerTempDir, err := ioutil.TempDir(tempDir, "packer_cert")
@@ -46,7 +46,7 @@ func (s *StepCreateCertificate) Run(state multistep.StateBag) multistep.StepActi
 			return multistep.ActionHalt
 		}
 
-		s.TempDir = packerTempDir;
+		s.TempDir = packerTempDir
 		state.Put("certTempDir", packerTempDir)
 		log.Printf("certTempDir: %s", packerTempDir)
 	}
@@ -79,18 +79,17 @@ func (s *StepCreateCertificate) Cleanup(state multistep.StateBag) {
 	}
 }
 
-func (s *StepCreateCertificate)createCert(state multistep.StateBag) error {
-	host  := fmt.Sprintf("%s.cloudapp.net", s.TmpServiceName)
-	validFor  := 365*24*time.Hour
-	isCA      := false
-	rsaBits   := 2048
+func (s *StepCreateCertificate) createCert(state multistep.StateBag) error {
+	host := fmt.Sprintf("%s.cloudapp.net", s.TmpServiceName)
+	validFor := 365 * 24 * time.Hour
+	isCA := false
+	rsaBits := 2048
 
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
 		err := fmt.Errorf("Failed to Generate Private Key: %s", err)
 		return err
 	}
-
 
 	// ASN.1 DER encoded form
 	priv_der := x509.MarshalPKCS1PrivateKey(priv)
@@ -169,4 +168,3 @@ func (s *StepCreateCertificate)createCert(state multistep.StateBag) error {
 
 	return nil
 }
-

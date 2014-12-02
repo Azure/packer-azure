@@ -6,9 +6,9 @@
 package request_tests
 
 import (
-	"testing"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
+	"testing"
 )
 
 func _TestGetStorageAccountKeys(t *testing.T) {

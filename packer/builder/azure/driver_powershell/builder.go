@@ -5,22 +5,22 @@
 package driver_powershell
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
-	"bytes"
 
-	"github.com/mitchellh/multistep"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/utils"
 	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target/win"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target/lin"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target/win"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/utils"
+	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
-	"time"
-	"regexp"
 	"os"
+	"regexp"
+	"time"
 )
 
 // Builder implements packer.Builder and builds the actual Azure
@@ -31,23 +31,22 @@ type Builder struct {
 }
 
 type azure_config struct {
-	SubscriptionName        string     	`mapstructure:"subscription_name"`
-	PublishSettingsPath     string     	`mapstructure:"publish_settings_path"`
-	StorageAccount          string     	`mapstructure:"storage_account"`
-	StorageAccountContainer	string     	`mapstructure:"storage_account_container"`
-	OsType         			string   	`mapstructure:"os_type"`
-	OsImageLabel         	string   	`mapstructure:"os_image_label"`
-	Location 				string 		`mapstructure:"location"`
-	InstanceSize 			string		`mapstructure:"instance_size"`
-	UserImageLabel 			string		`mapstructure:"user_image_label"`
-	common.PackerConfig           		`mapstructure:",squash"`
-	tpl *packer.ConfigTemplate
+	SubscriptionName        string `mapstructure:"subscription_name"`
+	PublishSettingsPath     string `mapstructure:"publish_settings_path"`
+	StorageAccount          string `mapstructure:"storage_account"`
+	StorageAccountContainer string `mapstructure:"storage_account_container"`
+	OsType                  string `mapstructure:"os_type"`
+	OsImageLabel            string `mapstructure:"os_image_label"`
+	Location                string `mapstructure:"location"`
+	InstanceSize            string `mapstructure:"instance_size"`
+	UserImageLabel          string `mapstructure:"user_image_label"`
+	common.PackerConfig     `mapstructure:",squash"`
+	tpl                     *packer.ConfigTemplate
 
-	username          		string		`mapstructure:"username"`
-	tmpVmName              	string
-	tmpServiceName          string
-	userImageName          	string
-
+	username       string `mapstructure:"username"`
+	tmpVmName      string
+	tmpServiceName string
+	userImageName  string
 }
 
 // Prepare processes the build configuration parameters.
@@ -71,17 +70,16 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	errs := common.CheckUnusedConfig(md)
 	warnings := make([]string, 0)
 
-
 	templates := map[string]*string{
-		"subscription_name":  &b.config.SubscriptionName,
-		"publish_settings_path":  &b.config.PublishSettingsPath,
-		"storage_account":  &b.config.StorageAccount,
-		"storage_account_container"	: &b.config.StorageAccountContainer,
-		"os_type":  &b.config.OsType,
-		"os_image_label":  &b.config.OsImageLabel,
-		"location":  &b.config.Location,
-		"instance_size":  &b.config.InstanceSize,
-		"user_image_label":  &b.config.UserImageLabel,
+		"subscription_name":         &b.config.SubscriptionName,
+		"publish_settings_path":     &b.config.PublishSettingsPath,
+		"storage_account":           &b.config.StorageAccount,
+		"storage_account_container": &b.config.StorageAccountContainer,
+		"os_type":                   &b.config.OsType,
+		"os_image_label":            &b.config.OsImageLabel,
+		"location":                  &b.config.Location,
+		"instance_size":             &b.config.InstanceSize,
+		"user_image_label":          &b.config.UserImageLabel,
 	}
 
 	for n, ptr := range templates {
@@ -95,39 +93,39 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	if b.config.SubscriptionName == "" {
 		errs = packer.MultiErrorAppend(errs, errors.New("subscription_name: The option can't be missed."))
 	}
-	log.Println(fmt.Sprintf("%s: %v","subscription_name", b.config.SubscriptionName))
+	log.Println(fmt.Sprintf("%s: %v", "subscription_name", b.config.SubscriptionName))
 
 	if b.config.StorageAccount == "" {
 		errs = packer.MultiErrorAppend(errs, errors.New("storage_account: The option can't be missed."))
 	}
-	log.Println(fmt.Sprintf("%s: %v","storage_account", b.config.StorageAccount))
+	log.Println(fmt.Sprintf("%s: %v", "storage_account", b.config.StorageAccount))
 
 	if b.config.StorageAccountContainer == "" {
 		b.config.StorageAccountContainer = "vhds"
 	}
-	log.Println(fmt.Sprintf("%s: %v","storage_account_container", b.config.StorageAccountContainer))
+	log.Println(fmt.Sprintf("%s: %v", "storage_account_container", b.config.StorageAccountContainer))
 
 	if b.config.OsImageLabel == "" {
 		errs = packer.MultiErrorAppend(errs, errors.New("os_image_label: The option can't be missed."))
 	}
-	log.Println(fmt.Sprintf("%s: %v","os_image_label", b.config.OsImageLabel))
+	log.Println(fmt.Sprintf("%s: %v", "os_image_label", b.config.OsImageLabel))
 
 	if b.config.Location == "" {
 		errs = packer.MultiErrorAppend(errs, errors.New("location: The option can't be missed."))
 	}
-	log.Println(fmt.Sprintf("%s: %v","location", b.config.Location))
+	log.Println(fmt.Sprintf("%s: %v", "location", b.config.Location))
 
 	if b.config.UserImageLabel == "" {
 		errs = packer.MultiErrorAppend(errs, errors.New("user_image_label: The option can't be missed."))
 	}
-	log.Println(fmt.Sprintf("%s: %v","user_image_label", b.config.UserImageLabel))
+	log.Println(fmt.Sprintf("%s: %v", "user_image_label", b.config.UserImageLabel))
 
 	if len(b.config.PublishSettingsPath) > 0 {
 		if _, err := os.Stat(b.config.PublishSettingsPath); err != nil {
 			errs = packer.MultiErrorAppend(errs, errors.New("publish_settings_path: Check the path is correct."))
 		}
 
-		log.Println(fmt.Sprintf("%s: %v","publish_settings_path", b.config.PublishSettingsPath))
+		log.Println(fmt.Sprintf("%s: %v", "publish_settings_path", b.config.PublishSettingsPath))
 	}
 
 	osTypeIsValid := false
@@ -148,7 +146,7 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 			fmt.Errorf("os_type: The value is invalid. Must be one of: %v", osTypeArr))
 	}
 
-	log.Println(fmt.Sprintf("%s: %v","os_type", b.config.OsType))
+	log.Println(fmt.Sprintf("%s: %v", "os_type", b.config.OsType))
 
 	sizeIsValid := false
 	instanceSizeArr := []string{
@@ -176,10 +174,10 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 			fmt.Errorf("instance_size: The value is invalid. Must be one of: %v", instanceSizeArr))
 	}
 
-	log.Println(fmt.Sprintf("%s: %v","instance_size", b.config.InstanceSize))
+	log.Println(fmt.Sprintf("%s: %v", "instance_size", b.config.InstanceSize))
 
 	b.config.userImageName = utils.DecorateImageName(b.config.UserImageLabel)
-	log.Println(fmt.Sprintf("%s: %v","user_image_name", b.config.userImageName))
+	log.Println(fmt.Sprintf("%s: %v", "user_image_name", b.config.userImageName))
 
 	// random symbols for vm name (should be unique)
 	// for Win  - the computer name cannot be more than 15 characters long
@@ -190,17 +188,17 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	if b.config.tmpVmName == "" {
 		b.config.tmpVmName = fmt.Sprintf("%s%s", tmpVmNamePrefix, randSuffix)
 	}
-	log.Println(fmt.Sprintf("%s: %v","tmpVmName", b.config.tmpVmName))
+	log.Println(fmt.Sprintf("%s: %v", "tmpVmName", b.config.tmpVmName))
 
 	if b.config.tmpServiceName == "" {
 		b.config.tmpServiceName = fmt.Sprintf("%s%s", tmpServiceNamePrefix, randSuffix)
 	}
-	log.Println(fmt.Sprintf("%s: %v","tmpServiceName", b.config.tmpServiceName))
+	log.Println(fmt.Sprintf("%s: %v", "tmpServiceName", b.config.tmpServiceName))
 
 	if b.config.username == "" {
 		b.config.username = fmt.Sprintf("%s", "packer")
 	}
-	log.Println(fmt.Sprintf("%s: %v","username", b.config.username))
+	log.Println(fmt.Sprintf("%s: %v", "username", b.config.username))
 
 	if errs != nil && len(errs.Errors) > 0 {
 		return warnings, errs
@@ -235,7 +233,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put("hook", hook)
 	state.Put("ui", ui)
 	state.Put("tmpServiceName", b.config.tmpServiceName)
-//
+	//
 	// complete flags
 	state.Put("srvExists", 0)
 	state.Put("certUploaded", 0)
@@ -246,149 +244,149 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	var steps []multistep.Step
 
-	containerUrl := fmt.Sprintf("https://%s.blob.core.windows.net/%s", b.config.StorageAccount,  b.config.StorageAccountContainer)
+	containerUrl := fmt.Sprintf("https://%s.blob.core.windows.net/%s", b.config.StorageAccount, b.config.StorageAccountContainer)
 
 	if b.config.OsType == "Linux" {
-		certFileName:= "cert.pem"
+		certFileName := "cert.pem"
 		keyFileName := "key.pem"
 
 		steps = []multistep.Step{
-			&target.StepSelectSubscription {
+			&target.StepSelectSubscription{
 				SubscriptionName: b.config.SubscriptionName,
+				StorageAccount:   b.config.StorageAccount,
+			},
+			&lin.StepCreateCertificate{
+				CertFileName:   certFileName,
+				KeyFileName:    keyFileName,
+				TmpServiceName: b.config.tmpServiceName,
+			},
+			&target.StepCreateService{
+				Location:       b.config.Location,
+				TmpServiceName: b.config.tmpServiceName,
 				StorageAccount: b.config.StorageAccount,
+				TmpVmName:      b.config.tmpVmName,
+				ContainerUrl:   containerUrl,
 			},
-			&lin.StepCreateCertificate {
-				CertFileName: certFileName,
-				KeyFileName: keyFileName,
+			&target.StepUploadCertificate{
+				CertFileName:   certFileName,
 				TmpServiceName: b.config.tmpServiceName,
+				Username:       b.config.username,
 			},
-			&target.StepCreateService {
-				Location: b.config.Location,
-				TmpServiceName: b.config.tmpServiceName,
+			&lin.StepCreateVm{
+				OsType:         b.config.OsType,
 				StorageAccount: b.config.StorageAccount,
-				TmpVmName: b.config.tmpVmName,
-				ContainerUrl : containerUrl,
-			},
-			&target.StepUploadCertificate {
-				CertFileName: certFileName,
+				OsImageLabel:   b.config.OsImageLabel,
+				TmpVmName:      b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
-				Username: b.config.username,
+				InstanceSize:   b.config.InstanceSize,
+				Username:       b.config.username,
+				ContainerUrl:   containerUrl,
 			},
-			&lin.StepCreateVm {
-				OsType: b.config.OsType,
-				StorageAccount: b.config.StorageAccount,
-				OsImageLabel: b.config.OsImageLabel,
-				TmpVmName: b.config.tmpVmName,
-				TmpServiceName: b.config.tmpServiceName,
-				InstanceSize: b.config.InstanceSize,
-				Username: b.config.username,
-				ContainerUrl : containerUrl,
-			},
-			&target.StepGetEndpoint {
-				OsType: b.config.OsType,
-				TmpVmName: b.config.tmpVmName,
+			&target.StepGetEndpoint{
+				OsType:         b.config.OsType,
+				TmpVmName:      b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
 			},
-			&common.StepConnectSSH {
+			&common.StepConnectSSH{
 				SSHAddress:     lin.SSHAddress,
 				SSHConfig:      lin.SSHConfig(b.config.username),
-				SSHWaitTimeout: 20*time.Minute,
+				SSHWaitTimeout: 20 * time.Minute,
 			},
-			&common.StepProvision {},
+			&common.StepProvision{},
 			&lin.StepGeneralizeOs{
 				Command: "sudo /usr/sbin/waagent -force -deprovision && export HISTSIZE=0",
 			},
-			&target.StepStopVm {
-				TmpVmName: b.config.tmpVmName,
+			&target.StepStopVm{
+				TmpVmName:      b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
 			},
-			&target.StepRemoveVm {
-				TmpVmName: b.config.tmpVmName,
+			&target.StepRemoveVm{
+				TmpVmName:      b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
 			},
-			&target.StepRemoveService {
+			&target.StepRemoveService{
 				TmpServiceName: b.config.tmpServiceName,
 			},
-			&target.StepRemoveDisk {
+			&target.StepRemoveDisk{
 				StorageAccount: b.config.StorageAccount,
-				TmpVmName: b.config.tmpVmName,
-				ContainerUrl : containerUrl,
+				TmpVmName:      b.config.tmpVmName,
+				ContainerUrl:   containerUrl,
 			},
 
-			&target.StepCreateImage {
+			&target.StepCreateImage{
 				StorageAccount: b.config.StorageAccount,
-				TmpVmName: b.config.tmpVmName,
+				TmpVmName:      b.config.tmpVmName,
 				UserImageLabel: b.config.UserImageLabel,
-				UserImageName: b.config.userImageName,
-				OsType: b.config.OsType,
-				ContainerUrl : containerUrl,
+				UserImageName:  b.config.userImageName,
+				OsType:         b.config.OsType,
+				ContainerUrl:   containerUrl,
 			},
 		}
 	} else if b.config.OsType == "Windows" {
-//		b.config.tmpVmName = "PkrVM-95129190"
-//		b.config.tmpServiceName = "PkrSrv-95129190"
+		//		b.config.tmpVmName = "PkrVM-95129190"
+		//		b.config.tmpServiceName = "PkrSrv-95129190"
 		password := "Zxcv1234"
-		steps = []multistep.Step {
-			&target.StepSelectSubscription {
+		steps = []multistep.Step{
+			&target.StepSelectSubscription{
 				SubscriptionName: b.config.SubscriptionName,
-				StorageAccount: b.config.StorageAccount,
-				},
-
-			&win.StepCreateVm {
-				OsType: b.config.OsType,
-				StorageAccount: b.config.StorageAccount,
-				OsImageLabel: b.config.OsImageLabel,
-				Location: b.config.Location,
-				TmpVmName: b.config.tmpVmName,
-				TmpServiceName: b.config.tmpServiceName,
-				InstanceSize: b.config.InstanceSize,
-				Username: b.config.username,
-				Password: password,
-				ContainerUrl : containerUrl,
+				StorageAccount:   b.config.StorageAccount,
 			},
 
-			&win.StepInstallCertificate {
-				TmpVmName: b.config.tmpVmName,
+			&win.StepCreateVm{
+				OsType:         b.config.OsType,
+				StorageAccount: b.config.StorageAccount,
+				OsImageLabel:   b.config.OsImageLabel,
+				Location:       b.config.Location,
+				TmpVmName:      b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
-				},
-			&target.StepGetEndpoint {
-				OsType: b.config.OsType,
-				TmpVmName: b.config.tmpVmName,
+				InstanceSize:   b.config.InstanceSize,
+				Username:       b.config.username,
+				Password:       password,
+				ContainerUrl:   containerUrl,
+			},
+
+			&win.StepInstallCertificate{
+				TmpVmName:      b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
-				},
-			&win.StepSetRemoting {
+			},
+			&target.StepGetEndpoint{
+				OsType:         b.config.OsType,
+				TmpVmName:      b.config.tmpVmName,
+				TmpServiceName: b.config.tmpServiceName,
+			},
+			&win.StepSetRemoting{
 				Username: b.config.username,
 				Password: password,
-				},
+			},
 			new(win.StepCheckRemoting),
 			&common.StepProvision{},
 			&win.StepSysprep{
 				OsImageLabel: b.config.OsImageLabel,
 			},
 
-			&target.StepStopVm {
-				TmpVmName: b.config.tmpVmName,
+			&target.StepStopVm{
+				TmpVmName:      b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
-				},
-			&target.StepRemoveVm {
-				TmpVmName: b.config.tmpVmName,
-				TmpServiceName: b.config.tmpServiceName,
-				},
-			&target.StepRemoveService {
-				TmpServiceName: b.config.tmpServiceName,
-				},
-			&target.StepRemoveDisk {
-				StorageAccount: b.config.StorageAccount,
-				TmpVmName: b.config.tmpVmName,
-				ContainerUrl : containerUrl,
 			},
-			&target.StepCreateImage {
+			&target.StepRemoveVm{
+				TmpVmName:      b.config.tmpVmName,
+				TmpServiceName: b.config.tmpServiceName,
+			},
+			&target.StepRemoveService{
+				TmpServiceName: b.config.tmpServiceName,
+			},
+			&target.StepRemoveDisk{
 				StorageAccount: b.config.StorageAccount,
-				TmpVmName: b.config.tmpVmName,
+				TmpVmName:      b.config.tmpVmName,
+				ContainerUrl:   containerUrl,
+			},
+			&target.StepCreateImage{
+				StorageAccount: b.config.StorageAccount,
+				TmpVmName:      b.config.tmpVmName,
 				UserImageLabel: b.config.UserImageLabel,
-				UserImageName: b.config.userImageName,
-				OsType: b.config.OsType,
-				ContainerUrl : containerUrl,
+				UserImageName:  b.config.userImageName,
+				OsType:         b.config.OsType,
+				ContainerUrl:   containerUrl,
 			},
 		}
 
@@ -421,11 +419,11 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		return nil, errors.New("Build was halted.")
 	}
 
-	return &artifact {
-		imageLabel: b.config.UserImageLabel,
-		imageName: b.config.userImageName,
-		mediaLocation: fmt.Sprintf("%s/%s.vhd", containerUrl,  b.config.tmpVmName),
-		}, nil
+	return &artifact{
+		imageLabel:    b.config.UserImageLabel,
+		imageName:     b.config.userImageName,
+		mediaLocation: fmt.Sprintf("%s/%s.vhd", containerUrl, b.config.tmpVmName),
+	}, nil
 }
 
 // Cancel.
@@ -436,7 +434,7 @@ func (b *Builder) Cancel() {
 	}
 }
 
-func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
+func (b *Builder) validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 	ui.Say("Validating Azure Options...")
 
 	var blockBuffer bytes.Buffer
@@ -453,7 +451,7 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 		blockBuffer.WriteString("Import-AzurePublishSettingsFile $psPath;")
 		blockBuffer.WriteString("}")
 
-		res, err = driver.ExecRet( blockBuffer.String() )
+		res, err = driver.ExecRet(blockBuffer.String())
 
 		if err != nil {
 			return err
@@ -466,13 +464,13 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 		blockBuffer.WriteString("$s.Count -eq 1;")
 		blockBuffer.WriteString("}")
 
-		res, err = driver.ExecRet( blockBuffer.String() )
+		res, err = driver.ExecRet(blockBuffer.String())
 
 		if err != nil {
 			return err
 		}
 
-		if(res == "False"){
+		if res == "False" {
 			err = fmt.Errorf("Can't find subscription '%s'", b.config.SubscriptionName)
 			return err
 		}
@@ -486,20 +484,20 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 		blockBuffer.WriteString("$s.Count -eq 1;")
 		blockBuffer.WriteString("}")
 
-		res, err = driver.ExecRet( blockBuffer.String() )
+		res, err = driver.ExecRet(blockBuffer.String())
 
 		if err != nil {
 			return err
 		}
 
-		if(res == "False"){
+		if res == "False" {
 
 			blockBuffer.Reset()
 			blockBuffer.WriteString("Invoke-Command -scriptblock {")
 			blockBuffer.WriteString("Add-AzureAccount")
 			blockBuffer.WriteString("}")
 
-			err = driver.Exec( blockBuffer.String() )
+			err = driver.Exec(blockBuffer.String())
 
 			if err != nil {
 				return err
@@ -512,19 +510,18 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 			blockBuffer.WriteString("$s.Count -eq 1;")
 			blockBuffer.WriteString("}")
 
-			res, err = driver.ExecRet( blockBuffer.String() )
+			res, err = driver.ExecRet(blockBuffer.String())
 
 			if err != nil {
 				return err
 			}
 
-			if(res == "False"){
+			if res == "False" {
 				err = fmt.Errorf("Can't find subscription '%s'", b.config.SubscriptionName)
 				return err
 			}
 		}
 	}
-
 
 	// check Storage account
 	ui.Message("Checking Storage Account...")
@@ -550,7 +547,7 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 			blockBuffer.WriteString("Add-AzureAccount")
 			blockBuffer.WriteString("}")
 
-			err = driver.Exec( blockBuffer.String() )
+			err = driver.Exec(blockBuffer.String())
 
 			if err != nil {
 				return err
@@ -572,7 +569,7 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 
 	}
 
-	if(res == "False"){
+	if res == "False" {
 		err = fmt.Errorf("Can't find storage account '%s'", b.config.StorageAccount)
 		return err
 	}
@@ -586,22 +583,22 @@ func (b *Builder)validateAzureOptions(ui packer.Ui, driver ps.Driver) error {
 	blockBuffer.WriteString("$location = '" + b.config.Location + "';")
 	if b.config.OsType == target.Linux {
 		blockBuffer.WriteString("$image = Get-AzureVMImage | where { ($_.Label -like $osImageLabel) -or ($_.ImageFamily -like $osImageLabel) } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
-	} else if  b.config.OsType ==  target.Windows {
+	} else if b.config.OsType == target.Windows {
 		blockBuffer.WriteString("$image = Get-AzureVMImage | where {  $_.Label -Match $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
 	} else {
-		err := fmt.Errorf("Can't find OS image '%s' with OS type '%s'", b.config.OsImageLabel, b.config.OsType )
+		err := fmt.Errorf("Can't find OS image '%s' with OS type '%s'", b.config.OsImageLabel, b.config.OsType)
 		return err
 	}
 	blockBuffer.WriteString("$image -ne $null;")
 	blockBuffer.WriteString("}")
 
-	res, err = driver.ExecRet( blockBuffer.String() )
+	res, err = driver.ExecRet(blockBuffer.String())
 
 	if err != nil {
 		return err
 	}
 
-	if(res == "False"){
+	if res == "False" {
 		err = fmt.Errorf("Can't find OS image '%s' located at '%s'", b.config.OsImageLabel, b.config.Location)
 		return err
 	}
@@ -624,4 +621,3 @@ func appendWarnings(slice []string, data ...string) []string {
 	copy(slice[m:n], data)
 	return slice
 }
-

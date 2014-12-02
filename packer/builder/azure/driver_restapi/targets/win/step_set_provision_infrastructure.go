@@ -6,22 +6,22 @@ package win
 
 import (
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	azureservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
+	storageservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
+	"github.com/MSOpenTech/packer-azure/packer/communicator/azureVmCustomScriptExtension"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	"github.com/MSOpenTech/packer-azure/packer/communicator/azureVmCustomScriptExtension"
-	azureservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
-	storageservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
 	"log"
 )
 
 type StepSetProvisionInfrastructure struct {
-	VmName string
-	ServiceName string
-	StorageAccountName string
-	TempContainerName string
-	storageServiceDriver *storageservice.StorageServiceDriver
+	VmName                   string
+	ServiceName              string
+	StorageAccountName       string
+	TempContainerName        string
+	storageServiceDriver     *storageservice.StorageServiceDriver
 	flagTempContainerCreated bool
 }
 
@@ -80,13 +80,13 @@ func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep
 
 	comm, err := azureVmCustomScriptExtension.New(
 		&azureVmCustomScriptExtension.Config{
-			ServiceName: s.ServiceName,
-			VmName: s.VmName,
-			StorageServiceDriver : storageServiceDriver,
-			AzureServiceRequestManager : reqManager,
-			ContainerName : s.TempContainerName,
-			Ui: ui,
-			IsOSImage : isOSImage,
+			ServiceName:                s.ServiceName,
+			VmName:                     s.VmName,
+			StorageServiceDriver:       storageServiceDriver,
+			AzureServiceRequestManager: reqManager,
+			ContainerName:              s.TempContainerName,
+			Ui:                         ui,
+			IsOSImage:                  isOSImage,
 		})
 
 	if err != nil {

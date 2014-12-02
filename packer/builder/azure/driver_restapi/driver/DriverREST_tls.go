@@ -5,14 +5,14 @@
 package driver
 
 import (
-	"github.com/MSOpenTech/packer-azure/mod/pkg/net/http"
+	"encoding/xml"
 	"fmt"
 	"github.com/MSOpenTech/packer-azure/mod/pkg/crypto/tls"
-	"log"
+	"github.com/MSOpenTech/packer-azure/mod/pkg/net/http"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/settings"
 	"io"
 	"io/ioutil"
-	"encoding/xml"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/settings"
+	"log"
 	"regexp"
 )
 
@@ -30,20 +30,20 @@ func NewTlsDriver(pem []byte) (IDriverRest, error) {
 		return nil, err
 	}
 
-	tr := &http.Transport {
-		TLSClientConfig: &tls.Config { Certificates : []tls.Certificate { cert } },
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{Certificates: []tls.Certificate{cert}},
 	}
 
-	client := &http.Client { Transport: tr }
+	client := &http.Client{Transport: tr}
 
-	tlsDriver := &DriverRest_tls{ httpClient: client}
+	tlsDriver := &DriverRest_tls{httpClient: client}
 
 	return tlsDriver, nil
 }
 
 // Exec executes REST request
 func (d *DriverRest_tls) Exec(verb string, url string, headers map[string]string, body io.Reader) (resp *http.Response, err error) {
-//	var err error
+	//	var err error
 	var req *http.Request
 
 	const errorIgnoreLimit = 10
@@ -71,10 +71,10 @@ func (d *DriverRest_tls) Exec(verb string, url string, headers map[string]string
 
 		statusCode := resp.StatusCode
 
-		if 	statusCode>=400 && statusCode<= 505 {
+		if statusCode >= 400 && statusCode <= 505 {
 
 			defer resp.Body.Close()
-			errXml := new (ErrorXml)
+			errXml := new(ErrorXml)
 
 			var respBody []byte
 			respBody, err = ioutil.ReadAll(resp.Body)
@@ -122,7 +122,7 @@ func (d *DriverRest_tls) Exec(verb string, url string, headers map[string]string
 		}
 
 		if statusCode == 307 { // Temporary Redirect
-			redirectUrl , ok := resp.Header["Location"]
+			redirectUrl, ok := resp.Header["Location"]
 			if !ok {
 				return nil, fmt.Errorf("%s %s", "Failed to redirect:", "header key 'Location' wasn't found")
 			}
@@ -139,11 +139,6 @@ func (d *DriverRest_tls) Exec(verb string, url string, headers map[string]string
 }
 
 type ErrorXml struct {
-	Code string		`xml:"Code"`
-	Message string	`xml:"Message"`
+	Code    string `xml:"Code"`
+	Message string `xml:"Message"`
 }
-
-
-
-
-

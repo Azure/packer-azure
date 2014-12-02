@@ -6,8 +6,8 @@
 package request_tests
 
 import (
-	"testing"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
+	"testing"
 )
 
 func _TestAvailabilityResponse(t *testing.T) {

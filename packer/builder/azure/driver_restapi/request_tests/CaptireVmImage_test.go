@@ -6,9 +6,9 @@
 package request_tests
 
 import (
+	"fmt"
 	"testing"
 	"time"
-	"fmt"
 )
 
 func _TestCaptureVmImage(t *testing.T) {
@@ -23,17 +23,17 @@ func _TestCaptureVmImage(t *testing.T) {
 	now := time.Now()
 	label := "PackerMadeUbuntuServer14"
 
-	y,m,d := now.Date()
+	y, m, d := now.Date()
 
-	tmpServiceName 		:= g_tmpServiceName
-	tmpVmName 			:= g_tmpVmName
-	userImageName 		:= fmt.Sprintf("%s_%v-%v-%v_%v-%v",label,  y,m,d, now.Hour(), now.Minute() )
-	userImageLabel 		:= "paker made image"
-	description 		:= "paker made image"
-	imageFamily 		:= "PackerMade"
-	recommendedVMSize 	:= "Small"
+	tmpServiceName := g_tmpServiceName
+	tmpVmName := g_tmpVmName
+	userImageName := fmt.Sprintf("%s_%v-%v-%v_%v-%v", label, y, m, d, now.Hour(), now.Minute())
+	userImageLabel := "paker made image"
+	description := "paker made image"
+	imageFamily := "PackerMade"
+	recommendedVMSize := "Small"
 
-	requestData := reqManager.CaptureVMImage(tmpServiceName, tmpVmName, userImageName, userImageLabel, description, imageFamily, recommendedVMSize )
+	requestData := reqManager.CaptureVMImage(tmpServiceName, tmpVmName, userImageName, userImageLabel, description, imageFamily, recommendedVMSize)
 	_, err = reqManager.Execute(requestData)
 
 	if err != nil {

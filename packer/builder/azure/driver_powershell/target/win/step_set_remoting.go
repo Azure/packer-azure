@@ -6,14 +6,14 @@ package win
 
 import (
 	"fmt"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
+	"github.com/MSOpenTech/packer-azure/packer/communicator/powershell"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	"github.com/MSOpenTech/packer-azure/packer/communicator/powershell"
-	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepSetRemoting struct {
-	comm packer.Communicator
+	comm     packer.Communicator
 	Username string
 	Password string
 }
@@ -27,11 +27,11 @@ func (s *StepSetRemoting) Run(state multistep.StateBag) multistep.StepAction {
 
 	comm, err := powershell.New(
 		&powershell.Config{
-			Driver: driver,
-			Username: s.Username,
-			Password: s.Password,
+			Driver:        driver,
+			Username:      s.Username,
+			Password:      s.Password,
 			RemoteHostUrl: azureVmAddr,
-			Ui: ui,
+			Ui:            ui,
 		})
 
 	if err != nil {

@@ -5,10 +5,10 @@
 package lin
 
 import (
-	"fmt"
-	"github.com/mitchellh/multistep"
 	"code.google.com/p/go.crypto/ssh"
+	"fmt"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/mitchellh/multistep"
 )
 
 // SSHAddress returns a function that can be given to the SSH communicator
@@ -37,4 +37,3 @@ func SSHConfig(username string) func(multistep.StateBag) (*ssh.ClientConfig, err
 		}, nil
 	}
 }
-

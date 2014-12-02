@@ -5,15 +5,15 @@
 package win
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	"log"
-	"regexp"
-	"os"
 	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
+	"regexp"
 )
 
 type StepSysprep struct {
@@ -32,7 +32,6 @@ func (s *StepSysprep) Run(state multistep.StateBag) multistep.StepAction {
 
 	match, _ := regexp.MatchString(pattern, value)
 	is2008 := match
-
 
 	ui.Say("Executing sysprep...")
 
@@ -77,8 +76,8 @@ func (s *StepSysprep) Run(state multistep.StateBag) multistep.StepAction {
 		var stdoutBuff bytes.Buffer
 		var stderrBuff bytes.Buffer
 		var cmd packer.RemoteCmd
-		cmd.Stdout = &stdoutBuff;
-		cmd.Stderr = &stderrBuff;
+		cmd.Stdout = &stdoutBuff
+		cmd.Stderr = &stderrBuff
 
 		cmd.Command = "-filepath " + filepath.FromSlash(f.Name())
 
@@ -94,7 +93,7 @@ func (s *StepSysprep) Run(state multistep.StateBag) multistep.StepAction {
 		stderrString := stderrBuff.String()
 		log.Printf("StepSysprep stderr: %s", stderrString)
 
-		if(len(stderrString)>0) {
+		if len(stderrString) > 0 {
 			err = fmt.Errorf(errorMsg, stderrString)
 			log.Printf(errorMsg, stderrString)
 			state.Put("error", err)
@@ -103,7 +102,7 @@ func (s *StepSysprep) Run(state multistep.StateBag) multistep.StepAction {
 		}
 
 		stdoutString := stdoutBuff.String()
-		if(len(stdoutString)>0) {
+		if len(stdoutString) > 0 {
 			log.Printf("Provision from file stdout: %s", stdoutString)
 			ui.Message(stdoutString)
 		}
@@ -117,14 +116,14 @@ func (s *StepSysprep) Run(state multistep.StateBag) multistep.StepAction {
 	var blockBuffer bytes.Buffer
 	blockBuffer.WriteString("{")
 	blockBuffer.WriteString("Start-Process \"$env:windir\\System32\\Sysprep\\sysprep.exe\" -Wait -Argument '/quiet /generalize /oobe /quit'")
-//	blockBuffer.WriteString("Start-Process 'cmd' -NoNewWindow -Wait -Argument '/k c:\\Windows\\System32\\Sysprep\\sysprep.exe /quiet /generalize /oobe /quit'")
+	//	blockBuffer.WriteString("Start-Process 'cmd' -NoNewWindow -Wait -Argument '/k c:\\Windows\\System32\\Sysprep\\sysprep.exe /quiet /generalize /oobe /quit'")
 	blockBuffer.WriteString("}")
 
 	var stdoutBuff bytes.Buffer
 	var stderrBuff bytes.Buffer
 	var cmd packer.RemoteCmd
-	cmd.Stdout = &stdoutBuff;
-	cmd.Stderr = &stderrBuff;
+	cmd.Stdout = &stdoutBuff
+	cmd.Stderr = &stderrBuff
 
 	cmd.Command = "-ScriptBlock " + blockBuffer.String()
 
@@ -140,7 +139,7 @@ func (s *StepSysprep) Run(state multistep.StateBag) multistep.StepAction {
 	stderrString := stderrBuff.String()
 	log.Printf("StepSysprep stderr: %s", stderrString)
 
-	if(len(stderrString)>0) {
+	if len(stderrString) > 0 {
 		err = fmt.Errorf(errorMsg, stderrString)
 		log.Printf(errorMsg, stderrString)
 		state.Put("error", err)
@@ -148,8 +147,8 @@ func (s *StepSysprep) Run(state multistep.StateBag) multistep.StepAction {
 		return multistep.ActionHalt
 	}
 
-//	sleepTime := time.Minute * 5
-//	time.Sleep(sleepTime)
+	//	sleepTime := time.Minute * 5
+	//	time.Sleep(sleepTime)
 
 	return multistep.ActionContinue
 }

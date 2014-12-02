@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-func ParseStorageService(body io.ReadCloser) (*model.StorageService, error ) {
+func ParseStorageService(body io.ReadCloser) (*model.StorageService, error) {
 	data, err := toModel(body, &model.StorageService{})
 
 	if err != nil {

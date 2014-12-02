@@ -5,11 +5,11 @@
 package utils
 
 import (
+	"bytes"
+	"fmt"
 	"log"
 	"os/exec"
-	"fmt"
 	"strings"
-	"bytes"
 )
 
 func Exec(name string, arg ...string) error {
@@ -25,7 +25,7 @@ func Exec(name string, arg ...string) error {
 	err := script.Run()
 
 	if _, ok := err.(*exec.ExitError); ok {
-	err = fmt.Errorf("Exec error: %s\n", err)
+		err = fmt.Errorf("Exec error: %s\n", err)
 	}
 
 	stderrString := strings.TrimSpace(stderr.String())
@@ -34,7 +34,7 @@ func Exec(name string, arg ...string) error {
 	log.Printf("Exec stdout: %s\n", stdoutString)
 	log.Printf("Exec stderr: %s\n", stderrString)
 	if len(stderrString) > 0 {
-	err = fmt.Errorf("%s\n", stderrString)
+		err = fmt.Errorf("%s\n", stderrString)
 	}
 
 	return err
