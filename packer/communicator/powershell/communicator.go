@@ -5,26 +5,25 @@
 package powershell
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/mitchellh/packer/packer"
 	"io"
-	"path/filepath"
 	"os"
-	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
+	"path/filepath"
 )
-
 
 type comm struct {
 	config *Config
 }
 
 type Config struct {
-	Driver ps.Driver
-	Username string
-	Password string
+	Driver        ps.Driver
+	Username      string
+	Password      string
 	RemoteHostUrl string
-	Ui packer.Ui
+	Ui            packer.Ui
 }
 
 // Creates a new packer.Communicator implementation over SSH. This takes
@@ -59,8 +58,8 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 	blockBuffer.WriteString("}")
 
 	var cmdCopy packer.RemoteCmd
-	cmdCopy.Stdout = cmd.Stdout;
-	cmdCopy.Stderr = cmd.Stderr;
+	cmdCopy.Stdout = cmd.Stdout
+	cmdCopy.Stderr = cmd.Stderr
 
 	cmdCopy.Command = blockBuffer.String()
 	err = driver.ExecRemote(&cmdCopy)
@@ -81,13 +80,13 @@ func (c *comm) UploadDir(dst string, src string, excl []string) error {
 	ui := c.config.Ui
 
 	if info.IsDir() {
-		ui.Say(fmt.Sprintf("Uploading folder to the VM '%s' => '%s'...",  src, dst))
+		ui.Say(fmt.Sprintf("Uploading folder to the VM '%s' => '%s'...", src, dst))
 		err := c.uploadFolder(dst, src)
 		if err != nil {
 			return err
 		}
 	} else {
-		target_file := filepath.Join(dst,filepath.Base(src))
+		target_file := filepath.Join(dst, filepath.Base(src))
 		ui.Say(fmt.Sprintf("Uploading file to the VM '%s' => '%s'...", src, target_file))
 		err := c.uploadFile(target_file, src)
 		if err != nil {
@@ -123,12 +122,12 @@ func (c *comm) uploadFile(dscPath string, srcPath string) error {
 	blockBuffer.WriteString("CopyFileToAzureVm -srcPath $srcPath -dstDir $dstDir -sess $sess;")
 	blockBuffer.WriteString("Remove-PSSession -session $sess;")
 
-	err := driver.Exec( blockBuffer.String() )
+	err := driver.Exec(blockBuffer.String())
 
 	return err
 }
 
-func (c *comm) uploadFolder(dscPath string, srcPath string ) error {
+func (c *comm) uploadFolder(dscPath string, srcPath string) error {
 
 	driver := c.config.Driver
 
@@ -148,8 +147,7 @@ func (c *comm) uploadFolder(dscPath string, srcPath string ) error {
 	blockBuffer.WriteString("CopyDirToAzureVm -srcDir $srcDir -dstDir $dstDir -sess $sess;")
 	blockBuffer.WriteString("Remove-PSSession -session $sess;")
 
-	err := driver.Exec( blockBuffer.String() )
+	err := driver.Exec(blockBuffer.String())
 
 	return err
 }
-

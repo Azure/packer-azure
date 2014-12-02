@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-func ParseServiceCertificateList(body io.ReadCloser) (*model.ServiceCertificateList, error ) {
+func ParseServiceCertificateList(body io.ReadCloser) (*model.ServiceCertificateList, error) {
 	data, err := toModel(body, &model.ServiceCertificateList{})
 
 	if err != nil {

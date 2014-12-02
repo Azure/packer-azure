@@ -6,10 +6,10 @@
 package request_tests
 
 import (
-	"testing"
+	"fmt"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response/model"
-	"fmt"
+	"testing"
 )
 
 func _TestGetOsImages(t *testing.T) {
@@ -45,8 +45,6 @@ func _TestGetOsImages(t *testing.T) {
 	fmt.Printf("Filtered and Sorted ----------------------------------:\n\n")
 
 	model.PrintOsImages(filteredImageList)
-
-
 
 	t.Error("eom")
 }

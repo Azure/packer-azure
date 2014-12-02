@@ -5,22 +5,22 @@
 package azureVmCustomScriptExtension
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/mitchellh/packer/packer"
 	"io"
-	"path/filepath"
-	"os"
 	"io/ioutil"
-	"encoding/base64"
 	"log"
+	"os"
+	"path/filepath"
 
+	"code.google.com/p/go-uuid/uuid"
+	azureservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response/model"
-	azureservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 	storageservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
-	"time"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/utils"
-	"code.google.com/p/go-uuid/uuid"
+	"time"
 )
 
 const extPublisher = "Microsoft.Compute"
@@ -28,17 +28,17 @@ const extName = "CustomScriptExtension"
 
 type comm struct {
 	config *Config
-	uris string
+	uris   string
 }
 
 type Config struct {
-	ServiceName string
-	VmName	string
-	StorageServiceDriver *storageservice.StorageServiceDriver
+	ServiceName                string
+	VmName                     string
+	StorageServiceDriver       *storageservice.StorageServiceDriver
 	AzureServiceRequestManager *azureservice.Manager
-	ContainerName string
-	Ui packer.Ui
-	IsOSImage bool
+	ContainerName              string
+	Ui                         packer.Ui
+	IsOSImage                  bool
 }
 
 func New(config *Config) (result *comm, err error) {
@@ -105,9 +105,9 @@ func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
 	return
 }
 
-func (c *comm) sleepSec(d time.Duration){
+func (c *comm) sleepSec(d time.Duration) {
 	log.Printf("Sleep for %v sec", uint(d))
-	time.Sleep(time.Second*d)
+	time.Sleep(time.Second * d)
 }
 
 func (c *comm) requestCustomScriptExtension() (*model.ResourceExtension, error) {
@@ -135,7 +135,7 @@ func (c *comm) requestCustomScriptExtension() (*model.ResourceExtension, error) 
 		err = fmt.Errorf("CustomScriptExtension is nil")
 		return nil, err
 	}
-	
+
 	return ext, nil
 }
 
@@ -147,7 +147,6 @@ func (c *comm) updateRoleResourceExtension(
 
 	serviceName := c.config.ServiceName
 	vmName := c.config.VmName
-
 
 	log.Println("Updating Role Resource Extension...")
 
@@ -161,23 +160,23 @@ func (c *comm) updateRoleResourceExtension(
 	return nil
 }
 
-func (c *comm)buildParams(runScript string) (params []azureservice.ResourceExtensionParameterValue) {
+func (c *comm) buildParams(runScript string) (params []azureservice.ResourceExtensionParameterValue) {
 	storageAccountName, storageAccountKey := c.config.StorageServiceDriver.GetProps()
 
-	account := "{\"storageAccountName\":\"" + storageAccountName + "\",\"storageAccountKey\": \"" + storageAccountKey + "\"}";
+	account := "{\"storageAccountName\":\"" + storageAccountName + "\",\"storageAccountKey\": \"" + storageAccountKey + "\"}"
 
 	scriptfile := "{\"fileUris\": [" + c.uris + "], \"commandToExecute\":\"powershell -ExecutionPolicy Unrestricted -file " + runScript + "\"}"
 
-	params = []azureservice.ResourceExtensionParameterValue {
+	params = []azureservice.ResourceExtensionParameterValue{
 		azureservice.ResourceExtensionParameterValue{
-			Key: "CustomScriptExtensionPublicConfigParameter",
+			Key:   "CustomScriptExtensionPublicConfigParameter",
 			Value: base64.StdEncoding.EncodeToString([]byte(scriptfile)),
-			Type: "Public",
+			Type:  "Public",
 		},
 		azureservice.ResourceExtensionParameterValue{
-			Key: "CustomScriptExtensionPrivateConfigParameter",
+			Key:   "CustomScriptExtensionPrivateConfigParameter",
 			Value: base64.StdEncoding.EncodeToString([]byte(account)),
-			Type: "Private",
+			Type:  "Private",
 		},
 	}
 
@@ -193,17 +192,17 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 	const statusSuccess = "Success"
 	const statusError = "Error"
 
-//	needUpdateStatus := true
+	//	needUpdateStatus := true
 
 	serviceName := c.config.ServiceName
 	vmName := c.config.VmName
 
-	const attemptLimit uint = 30;
+	const attemptLimit uint = 30
 
 	requestData := reqManager.GetDeployment(serviceName, vmName)
 	updateCount := attemptLimit
 
-	for ; updateCount > 0; updateCount--{
+	for ; updateCount > 0; updateCount-- {
 
 		repeatCount := attemptLimit
 		for ; repeatCount > 0; repeatCount-- {
@@ -252,11 +251,11 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 		extensionSettingStatus := res.ExtensionSettingStatus
 
 		if extensionSettingStatus.Status == statusError {
-			err = fmt.Errorf("CustomScriptExtension operation '%s' status: %s", extensionSettingStatus.Operation, extensionSettingStatus.FormattedMessage.Message )
+			err = fmt.Errorf("CustomScriptExtension operation '%s' status: %s", extensionSettingStatus.Operation, extensionSettingStatus.FormattedMessage.Message)
 			return
 		}
 
-		log.Printf("CustomScriptExtension INFO: operation '%s' status: %s",extensionSettingStatus.Operation, extensionSettingStatus.Status)
+		log.Printf("CustomScriptExtension INFO: operation '%s' status: %s", extensionSettingStatus.Operation, extensionSettingStatus.Status)
 
 		var stdOut, stdErr string
 
@@ -317,7 +316,7 @@ func (c *comm) pollCustomScriptIsUninstalled() error {
 	vmName := c.config.VmName
 
 	requestData := reqManager.GetDeployment(serviceName, vmName)
-	const attemptLimit uint = 30;
+	const attemptLimit uint = 30
 	repeatCount := attemptLimit
 	for ; repeatCount > 0; repeatCount-- {
 		resp, err := reqManager.Execute(requestData)
@@ -349,7 +348,7 @@ func (c *comm) pollCustomScriptIsUninstalled() error {
 	return nil
 }
 
-func (c *comm)Upload(string, io.Reader, *os.FileInfo) error {
+func (c *comm) Upload(string, io.Reader, *os.FileInfo) error {
 	return fmt.Errorf("Upload is not supported for azureVmCustomScriptExtension")
 }
 
@@ -364,7 +363,7 @@ func (c *comm) UploadDir(skipped string, src string, excl []string) error {
 	containerName := c.config.ContainerName
 
 	if info.IsDir() {
-		log.Println(fmt.Sprintf("Uploading files (only!) in the folder to Azure storage container '%s' => '%s'...",  src, containerName))
+		log.Println(fmt.Sprintf("Uploading files (only!) in the folder to Azure storage container '%s' => '%s'...", src, containerName))
 		err := c.uploadFolder("", src)
 		if err != nil {
 			return err
@@ -418,7 +417,7 @@ func (c *comm) uploadFile(dscPath string, srcPath string) error {
 	return err
 }
 
-func (c *comm) uploadFolder(dscPath string, srcPath string ) error {
+func (c *comm) uploadFolder(dscPath string, srcPath string) error {
 
 	srcPath = filepath.FromSlash(srcPath)
 
@@ -428,11 +427,11 @@ func (c *comm) uploadFolder(dscPath string, srcPath string ) error {
 	}
 
 	for _, f := range files {
-		if (f.IsDir()) {
+		if f.IsDir() {
 			continue
 		}
 
-		err := c.uploadFile("", filepath.Join(srcPath,f.Name()))
+		err := c.uploadFile("", filepath.Join(srcPath, f.Name()))
 		if err != nil {
 			return err
 		}
@@ -440,4 +439,3 @@ func (c *comm) uploadFolder(dscPath string, srcPath string ) error {
 
 	return err
 }
-

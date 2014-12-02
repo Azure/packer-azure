@@ -9,13 +9,13 @@ func (d *StorageServiceDriver) DeleteContainer(containerName string) (resp *http
 
 	verb := "DELETE"
 
-	uri := fmt.Sprintf("https://%s.blob.core.windows.net/%s?restype=container",  d.account, containerName)
+	uri := fmt.Sprintf("https://%s.blob.core.windows.net/%s?restype=container", d.account, containerName)
 
 	dateInRfc1123Format := currentTimeRfc1123Formatted()
 
 	headers := map[string]string{
-		"x-ms-version":  "2011-08-18",
-		"x-ms-date":  dateInRfc1123Format,
+		"x-ms-version": "2011-08-18",
+		"x-ms-date":    dateInRfc1123Format,
 	}
 
 	canonicalizedHeaders := d.buildCanonicalizedHeader(headers)

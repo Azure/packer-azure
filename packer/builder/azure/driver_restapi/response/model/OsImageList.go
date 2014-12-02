@@ -6,72 +6,74 @@ package model
 
 import (
 	"encoding/xml"
-//	"regexp"
+	//	"regexp"
+	"bytes"
+	"fmt"
 	"sort"
 	"strings"
-	"fmt"
-	"bytes"
 )
 
 type OsImageList struct {
-	XMLName   xml.Name `xml:"Images"`
-	Xmlns	  	string `xml:"xmlns,attr"`
+	XMLName  xml.Name  `xml:"Images"`
+	Xmlns    string    `xml:"xmlns,attr"`
 	OSImages []OSImage `xml:"OSImage"`
 }
 
 type OSImage struct {
-	AffinityGroup  		string
-	Category			string
-	Label				string
-	Location			string
-	LogicalSizeInGB		string
-	MediaLink			string
-	Name				string
-	OS					string
-	Eula				string
-	Description			string
-	ImageFamily			string
-	ShowInGui			string
-	PublishedDate		string
-	IsPremium			string
-	PrivacyUri			string
-	RecommendedVMSize	string
-	PublisherName		string
-	PricingDetailLink	string
-	SmallIconUri		string
-	Language			string
+	AffinityGroup     string
+	Category          string
+	Label             string
+	Location          string
+	LogicalSizeInGB   string
+	MediaLink         string
+	Name              string
+	OS                string
+	Eula              string
+	Description       string
+	ImageFamily       string
+	ShowInGui         string
+	PublishedDate     string
+	IsPremium         string
+	PrivacyUri        string
+	RecommendedVMSize string
+	PublisherName     string
+	PricingDetailLink string
+	SmallIconUri      string
+	Language          string
 }
 
 func (l *OsImageList) Filter(label, location string) []OSImage {
 	dgb_output := false
 
 	origLen := len(l.OSImages)
-	filtered  := make([]OSImage, 0, origLen)
+	filtered := make([]OSImage, 0, origLen)
 
 	var matchImageLabel bool
 	var matchImageFamily bool
 
-	for _, im := range(l.OSImages) {
+	for _, im := range l.OSImages {
 
 		matchImageLocation := false
-		for _, loc := range strings.Split(im.Location, ";")	{
+		for _, loc := range strings.Split(im.Location, ";") {
 			if loc == location {
-				matchImageLocation = true;
+				matchImageLocation = true
 				break
 			}
 		}
-		if !matchImageLocation { continue }
+		if !matchImageLocation {
+			continue
+		}
 
 		matchImageLabel = strings.Contains(im.Label, label)
-		matchImageFamily =  strings.Contains(im.ImageFamily, label)
+		matchImageFamily = strings.Contains(im.ImageFamily, label)
 
 		if dgb_output {
 			fmt.Printf("label: '%s'\nfamily: '%s'\nlocations: '%s'\nPublishedDate: '%s'\nl-f: '%v-%v'\n\n",
 				im.Label, im.ImageFamily, im.Location, im.PublishedDate, matchImageLabel, matchImageFamily)
 		}
 
-		if matchImageLabel || matchImageFamily  {
-			filtered = append( filtered, im)
+		if matchImageLabel || matchImageFamily {
+			filtered = append(filtered, im)
 		}
 	}
 
@@ -92,17 +94,17 @@ func (l *OsImageList) SortByDateDesc(images []OSImage) {
 	}
 }
 
-func PrintOsImages(images []OSImage){
+func PrintOsImages(images []OSImage) {
 	var output bytes.Buffer
-	for _, im := range(images) {
+	for _, im := range images {
 		output.Reset()
-		output.WriteString("Label: " + 			im.Label 			+ "\n")
-		output.WriteString("Location: " + 		im.Location 		+ "\n")
-		output.WriteString("Name: " + 			im.Name 			+ "\n")
-		output.WriteString("ImageFamily: " + 	im.ImageFamily 		+ "\n")
-		output.WriteString("PublishedDate: " +	im.PublishedDate 	+ "\n")
-		output.WriteString("Category: " + 		im.Category 		+ "\n")
-		output.WriteString("MediaLink: " + 		im.MediaLink 		+ "\n")
+		output.WriteString("Label: " + im.Label + "\n")
+		output.WriteString("Location: " + im.Location + "\n")
+		output.WriteString("Name: " + im.Name + "\n")
+		output.WriteString("ImageFamily: " + im.ImageFamily + "\n")
+		output.WriteString("PublishedDate: " + im.PublishedDate + "\n")
+		output.WriteString("Category: " + im.Category + "\n")
+		output.WriteString("MediaLink: " + im.MediaLink + "\n")
 
 		fmt.Println(output.String())
 	}

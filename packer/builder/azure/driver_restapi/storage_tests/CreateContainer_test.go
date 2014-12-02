@@ -5,8 +5,8 @@
 package storage_tests
 
 import (
-	"testing"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
+	"testing"
 )
 
 func _TestCreateContainer(t *testing.T) {

@@ -6,24 +6,24 @@
 package cert
 
 import (
-	"fmt"
-	"crypto/x509"
 	"crypto/sha1"
-	"io/ioutil"
+	"crypto/x509"
 	"encoding/pem"
+	"fmt"
+	"io/ioutil"
 )
 
-func GetThumbprint(pemPath string)  (string, error){
+func GetThumbprint(pemPath string) (string, error) {
 	certs, err := loadX509Pem(pemPath)
 	if err != nil {
 		return "", err
 	}
 
-	for _, cert := range(certs) {
+	for _, cert := range certs {
 		tp := calcThumbprint(cert)
 		return tp.toString(), nil
 	}
-	
+
 	return "", fmt.Errorf("no cert found")
 }
 
@@ -47,7 +47,7 @@ func loadX509Pem(pemPath string) ([]*x509.Certificate, error) {
 
 func x509Pem(pemData []byte) (certs []*x509.Certificate, err error) {
 	var block *pem.Block
-//	var pemBytes []byte
+	//	var pemBytes []byte
 	for {
 		block, pemData = pem.Decode(pemData)
 		if block == nil {

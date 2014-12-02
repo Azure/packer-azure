@@ -5,10 +5,10 @@
 package storage_tests
 
 import (
-	"testing"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/response"
+	"testing"
 )
 
 func _TestListContainers(t *testing.T) {
@@ -22,7 +22,6 @@ func _TestListContainers(t *testing.T) {
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}
-
 
 	list, err := response.ParseContainersList(resp.Body)
 	if err != nil {

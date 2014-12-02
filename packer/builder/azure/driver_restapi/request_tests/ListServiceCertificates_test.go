@@ -6,9 +6,9 @@
 package request_tests
 
 import (
-	"testing"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/cert"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
+	"testing"
 )
 
 func _TestListServiceCertificates(t *testing.T) {
@@ -36,7 +36,7 @@ func _TestListServiceCertificates(t *testing.T) {
 
 	t.Logf("ServiceCertificateList:\n\n")
 
-	for _, val := range(list.Certificates){
+	for _, val := range list.Certificates {
 		t.Logf("%v\n\n", val)
 	}
 

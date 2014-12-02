@@ -6,26 +6,26 @@
 package request
 
 import (
-	"io"
+	"fmt"
 	"github.com/MSOpenTech/packer-azure/mod/pkg/net/http"
 	restapi "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/driver"
-	"fmt"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
-	"time"
-	"log"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/settings"
+	"io"
+	"log"
+	"time"
 )
 
 type Data struct {
-	Verb string
-	Uri string
+	Verb    string
+	Uri     string
 	Headers map[string]string
-	Body io.Reader
+	Body    io.Reader
 }
 
 type Manager struct {
 	SubscrId string
-	Driver restapi.IDriverRest
+	Driver   restapi.IDriverRest
 }
 
 func (m *Manager) Execute(req *Data) (resp *http.Response, err error) {
@@ -37,7 +37,7 @@ func (m *Manager) Execute(req *Data) (resp *http.Response, err error) {
 	return
 }
 
-func (m *Manager) ExecuteSync(req *Data) (error) {
+func (m *Manager) ExecuteSync(req *Data) error {
 	if settings.LogRequestData {
 		log.Printf("Manager.ExecuteSync Request Data:\n %v", req)
 	}
@@ -71,7 +71,7 @@ func (m *Manager) ExecuteSync(req *Data) (error) {
 		log.Println(fmt.Sprintf("operation: %v", operation))
 
 		if operation.Status == "Succeeded" {
-			break;
+			break
 		}
 
 		if operation.Status == "Failed" {
@@ -84,13 +84,10 @@ func (m *Manager) ExecuteSync(req *Data) (error) {
 		count--
 	}
 
-	if(count == 0){
+	if count == 0 {
 		err := fmt.Errorf(errorMsg, "timeout")
 		return err
 	}
 
 	return nil
 }
-
-
-

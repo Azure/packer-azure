@@ -5,8 +5,8 @@
 package main
 
 import (
-	"github.com/mitchellh/packer/packer/plugin"
 	"github.com/MSOpenTech/packer-azure/packer/provisioner/azureVmCustomScriptExtension"
+	"github.com/mitchellh/packer/packer/plugin"
 )
 
 func main() {

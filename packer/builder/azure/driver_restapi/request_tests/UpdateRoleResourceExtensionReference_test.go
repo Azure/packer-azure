@@ -6,11 +6,11 @@
 package request_tests
 
 import (
-	"testing"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
-	"fmt"
 	"encoding/base64"
+	"fmt"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
+	"testing"
 )
 
 func _TestUpdateRoleResourceExtensionReference(t *testing.T) {
@@ -68,22 +68,22 @@ func _TestUpdateRoleResourceExtensionReference(t *testing.T) {
 	versionOfExtension := ext.Version
 	state := "enable"
 
-	account := "{\"storageAccountName\":\"" + storageAccountName + "\",\"storageAccountKey\": \"" + storageAccountKey + "\"}";
+	account := "{\"storageAccountName\":\"" + storageAccountName + "\",\"storageAccountKey\": \"" + storageAccountKey + "\"}"
 	runScript := "hello.ps1"
-//https://packervhds.blob.core.windows.net/vhds/hello.ps1
+	//https://packervhds.blob.core.windows.net/vhds/hello.ps1
 	uri := fmt.Sprintf("https://%s.blob.core.windows.net/vhds/%s", storageAccountName, runScript)
 	scriptfile := "{\"fileUris\": [\"" + uri + "\"], \"commandToExecute\":\"powershell -ExecutionPolicy Unrestricted -file " + runScript + "\"}"
 
-	params := []request.ResourceExtensionParameterValue {
+	params := []request.ResourceExtensionParameterValue{
 		request.ResourceExtensionParameterValue{
-			Key: "CustomScriptExtensionPublicConfigParameter",
+			Key:   "CustomScriptExtensionPublicConfigParameter",
 			Value: base64.StdEncoding.EncodeToString([]byte(scriptfile)),
-			Type: "Public",
+			Type:  "Public",
 		},
 		request.ResourceExtensionParameterValue{
-			Key: "CustomScriptExtensionPrivateConfigParameter",
+			Key:   "CustomScriptExtensionPrivateConfigParameter",
 			Value: base64.StdEncoding.EncodeToString([]byte(account)),
-			Type: "Private",
+			Type:  "Private",
 		},
 	}
 

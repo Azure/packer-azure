@@ -5,14 +5,14 @@
 package driver
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/mitchellh/packer/packer"
 	"log"
 	"os/exec"
-	"strings"
 	"runtime"
 	"strconv"
-	"bytes"
-	"github.com/mitchellh/packer/packer"
+	"strings"
 )
 
 type PS4Driver struct {
@@ -28,7 +28,7 @@ func NewPS4Driver() (*PS4Driver, error) {
 		return nil, err
 	}
 
-	ps4Driver := &PS4Driver{ ExecPath: "powershell"}
+	ps4Driver := &PS4Driver{ExecPath: "powershell"}
 
 	if err := ps4Driver.Verify(); err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (d *PS4Driver) verifyPSVersion() error {
 
 	ver, err := strconv.ParseInt(versionOutput, 10, 32)
 
-	if  err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -108,7 +108,7 @@ func (d *PS4Driver) verifyElevatedMode() error {
 	res := strings.TrimSpace(string(cmdOut))
 	log.Printf("cmdOut: " + string(res))
 
-	if(res == "False"){
+	if res == "False" {
 		err := fmt.Errorf("%s", "Please restart your shell in elevated mode")
 		return err
 	}
@@ -141,7 +141,7 @@ func (d *PS4Driver) VerifyPSAzureModule() error {
 
 	res := strings.TrimSpace(string(cmdOut))
 
-	if(res== "False"){
+	if res == "False" {
 		err := fmt.Errorf("%s", "Azure PowerShell not found. Try this link to install Azure PowerShell: http://go.microsoft.com/?linkid=9811175&clcid=0x409 and restart the shell.")
 		return err
 	}
@@ -225,4 +225,3 @@ func (d *PS4Driver) ExecRemote(cmd *packer.RemoteCmd) error {
 
 	return err
 }
-

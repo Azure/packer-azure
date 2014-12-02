@@ -6,9 +6,9 @@
 package request_tests
 
 import (
+	"fmt"
 	"testing"
 	"time"
-	"fmt"
 )
 
 func _TestAddOSImage(t *testing.T) {
@@ -25,19 +25,19 @@ func _TestAddOSImage(t *testing.T) {
 
 	mediaLoc := "https://packervhds.blob.core.windows.net/from-user-im/guflyify.qew201409241811330266.vhd"
 	os := "Windows"
-	y,m,d := now.Date()
+	y, m, d := now.Date()
 
-	userImageName 		:= fmt.Sprintf("%s_%v-%v-%v_%v-%v",label,  y,m,d, now.Hour(), now.Minute() )
-	userImageLabel 		:= "paker made image label"
-	description 		:= "paker made image description"
-	imageFamily 		:= "TestCreateVmImage"
-	recommendedVMSize 	:= "Small"
+	userImageName := fmt.Sprintf("%s_%v-%v-%v_%v-%v", label, y, m, d, now.Hour(), now.Minute())
+	userImageLabel := "paker made image label"
+	description := "paker made image description"
+	imageFamily := "TestCreateVmImage"
+	recommendedVMSize := "Small"
 
 	const dateLayout = "Mon, 02 Jan 2006 15:04:05 GMT"
 	pt := time.Now().UTC()
-	publishedDate 	:= pt.Format(dateLayout)
+	publishedDate := pt.Format(dateLayout)
 
-	requestData := reqManager.AddOSImage(mediaLoc, os,  userImageName, userImageLabel, description, imageFamily, recommendedVMSize, publishedDate )
+	requestData := reqManager.AddOSImage(mediaLoc, os, userImageName, userImageLabel, description, imageFamily, recommendedVMSize, publishedDate)
 
 	fmt.Println(requestData)
 	err = reqManager.ExecuteSync(requestData)

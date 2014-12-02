@@ -4,15 +4,12 @@
 // See License.txt in the project root for license information.
 package model
 
-
 type StorageService struct {
-	Url 					string
-	StorageServiceKeys 		StorageServiceKeys
+	Url                string
+	StorageServiceKeys StorageServiceKeys
 }
 
 type StorageServiceKeys struct {
-	Primary 		string
-	Secondary 		string
+	Primary   string
+	Secondary string
 }
-
-

@@ -5,18 +5,18 @@
 package target
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"path/filepath"
 )
 
 type StepUploadCertificate struct {
-	CertFileName string
+	CertFileName   string
 	TmpServiceName string
-	Username string
+	Username       string
 }
 
 func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepAction {
@@ -48,7 +48,7 @@ func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepActi
 	blockBuffer.WriteString("$cert.Thumbprint;")
 	blockBuffer.WriteString("}")
 
-	res, err := driver.ExecRet( blockBuffer.String() )
+	res, err := driver.ExecRet(blockBuffer.String())
 
 	if err != nil {
 		err = fmt.Errorf("Can't get certificate thumbprint '%s'", certPath)
@@ -57,7 +57,7 @@ func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepActi
 		return multistep.ActionHalt
 	}
 
-	if(res == "") {
+	if res == "" {
 		err = fmt.Errorf("Can't get certificate thumbprint '%s'", certPath)
 		state.Put("error", err)
 		ui.Error(err.Error())
@@ -73,7 +73,7 @@ func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepActi
 	blockBuffer.WriteString("Add-AzureCertificate -serviceName $tmpServiceName -certToDeploy $certPath;")
 	blockBuffer.WriteString("}")
 
-	err = driver.Exec( blockBuffer.String() )
+	err = driver.Exec(blockBuffer.String())
 
 	if err != nil {
 		err := fmt.Errorf(errorMsg, err)

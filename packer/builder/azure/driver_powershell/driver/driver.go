@@ -22,12 +22,8 @@ type Driver interface {
 
 	ExecRemote(cmd *packer.RemoteCmd) error
 
-
 	// Verify checks to make sure that this driver should function
 	// properly. If there is any indication the driver can't function,
 	// this will return an error.
 	Verify() error
-
 }
-
-

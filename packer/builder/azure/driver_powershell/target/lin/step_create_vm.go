@@ -5,22 +5,22 @@
 package lin
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepCreateVm struct {
-	OsType string
+	OsType         string
 	StorageAccount string
-	OsImageLabel string
-	TmpVmName string
+	OsImageLabel   string
+	TmpVmName      string
 	TmpServiceName string
-	InstanceSize string
-	Username string
-	ContainerUrl string
+	InstanceSize   string
+	Username       string
+	ContainerUrl   string
 }
 
 func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
@@ -37,14 +37,13 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 		return multistep.ActionHalt
 	}
 
-
 	ui.Say("Creating Temporary Azure VM...")
 
 	var blockBuffer bytes.Buffer
 	blockBuffer.WriteString("Invoke-Command -scriptblock {")
 	blockBuffer.WriteString("$storageAccount = '" + s.StorageAccount + "';")
 	blockBuffer.WriteString("$osImageLabel = '" + s.OsImageLabel + "';")
-//	blockBuffer.WriteString("$location = '" + s.location + "';")
+	//	blockBuffer.WriteString("$location = '" + s.location + "';")
 	blockBuffer.WriteString("$tmpVmName = '" + s.TmpVmName + "';")
 	blockBuffer.WriteString("$tmpServiceName = '" + s.TmpServiceName + "';")
 	blockBuffer.WriteString("$instanceSize = '" + s.InstanceSize + "';")
@@ -53,19 +52,19 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 	blockBuffer.WriteString("$containerUrl = '" + s.ContainerUrl + "';")
 	blockBuffer.WriteString("$mediaLoc = \"$containerUrl/$tmpVmName.vhd\";")
 
-//	blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.Label -eq $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
+	//	blockBuffer.WriteString("$image = Get-AzureVMImage | where { $_.Label -eq $osImageLabel } | where { $_.Location.Split(';') -contains $location} | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
 	blockBuffer.WriteString("$image = Get-AzureVMImage | where { ($_.Label -like $osImageLabel) -or ($_.ImageFamily -like $osImageLabel) } | Sort-Object -Descending -Property PublishedDate | Select -First 1;")
 
 	blockBuffer.WriteString("$certThumbprint = '" + certThumbprint + "';")
 	blockBuffer.WriteString("$sshkey = New-AzureSSHKey -PublicKey -Fingerprint $certThumbprint -Path \"/home/$username/.ssh/authorized_keys\";")
 	blockBuffer.WriteString("$myVM = New-AzureVMConfig -Name $tmpVmName -InstanceSize $instanceSize -ImageName $image.ImageName -DiskLabel 'PackerMade' -MediaLocation $mediaLoc | Add-AzureProvisioningConfig -Linux -NoSSHPassword -LinuxUser $username -SSHPublicKeys $sshKey;")
-//	blockBuffer.WriteString("$myVM = New-AzureVMConfig -Name $tmpVmName -InstanceSize $instanceSize -ImageName $image.ImageName -DiskLabel 'PackerMade' -MediaLocation $mediaLoc | Add-AzureProvisioningConfig -Linux -Password $password -LinuxUser $username;")
+	//	blockBuffer.WriteString("$myVM = New-AzureVMConfig -Name $tmpVmName -InstanceSize $instanceSize -ImageName $image.ImageName -DiskLabel 'PackerMade' -MediaLocation $mediaLoc | Add-AzureProvisioningConfig -Linux -Password $password -LinuxUser $username;")
 
-//	blockBuffer.WriteString("New-AzureVM -ServiceName $tmpServiceName -VMs $myVM -Location $location -WaitForBoot;")
+	//	blockBuffer.WriteString("New-AzureVM -ServiceName $tmpServiceName -VMs $myVM -Location $location -WaitForBoot;")
 	blockBuffer.WriteString("New-AzureVM -ServiceName $tmpServiceName -VMs $myVM -WaitForBoot;")
 	blockBuffer.WriteString("}")
 
-	err := driver.Exec( blockBuffer.String() )
+	err := driver.Exec(blockBuffer.String())
 
 	if err != nil {
 		err := fmt.Errorf(errorMsg, err)
@@ -76,7 +75,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 
 	state.Put("vmRunning", 1)
 	state.Put("vmExists", 1)
-//	state.Put("srvExists", 1)
+	//	state.Put("srvExists", 1)
 	state.Put("diskExists", 1)
 
 	return multistep.ActionContinue
@@ -102,7 +101,7 @@ func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 		blockBuffer.WriteString("Stop-AzureVM -ServiceName $tmpServiceName -Name $tmpVmName -Force;")
 		blockBuffer.WriteString("}")
 
-		err = driver.Exec( blockBuffer.String() )
+		err = driver.Exec(blockBuffer.String())
 
 		if err != nil {
 			err := fmt.Errorf(errorMsg, err)

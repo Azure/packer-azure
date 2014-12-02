@@ -11,24 +11,24 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/cert"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/mitchellh/multistep"
+	"github.com/mitchellh/packer/packer"
+	"io/ioutil"
 	"log"
 	"math/big"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
-	"io/ioutil"
-	"path/filepath"
-	"github.com/mitchellh/multistep"
-	"github.com/mitchellh/packer/packer"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/cert"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
 )
 
 type StepCreateCert struct {
-	CertFileName string
-	KeyFileName string
-	TempDir string
+	CertFileName   string
+	KeyFileName    string
+	TempDir        string
 	TmpServiceName string
 }
 
@@ -37,7 +37,7 @@ func (s *StepCreateCert) Run(state multistep.StateBag) multistep.StepAction {
 
 	ui.Say("Creating Temporary Certificate...")
 
-	if(len(s.TempDir) == 0){
+	if len(s.TempDir) == 0 {
 		//Creating temporary directory
 		ui.Message("Creating Temporary Directory...")
 		tempDir := os.TempDir()
@@ -49,7 +49,7 @@ func (s *StepCreateCert) Run(state multistep.StateBag) multistep.StepAction {
 			return multistep.ActionHalt
 		}
 
-		s.TempDir = packerTempDir;
+		s.TempDir = packerTempDir
 	}
 
 	certPath := filepath.Join(s.TempDir, s.CertFileName)
@@ -63,7 +63,7 @@ func (s *StepCreateCert) Run(state multistep.StateBag) multistep.StepAction {
 		return multistep.ActionHalt
 	}
 
-	thumbprint, err :=  cert.GetThumbprint(certPath)
+	thumbprint, err := cert.GetThumbprint(certPath)
 	ui.Message("thumbprint: " + thumbprint)
 
 	if err != nil {
@@ -98,16 +98,16 @@ func (s *StepCreateCert) Cleanup(state multistep.StateBag) {
 	}
 }
 
-func (s *StepCreateCert)createCert(state multistep.StateBag) error {
+func (s *StepCreateCert) createCert(state multistep.StateBag) error {
 
-	if(len(s.TempDir) == 0){
+	if len(s.TempDir) == 0 {
 		return fmt.Errorf("StepCreateCert CertPath is empty")
 	}
 
-	host  := fmt.Sprintf("%s.cloudapp.net", s.TmpServiceName)
-	validFor  := 365*24*time.Hour
-	isCA      := false
-	rsaBits   := 2048
+	host := fmt.Sprintf("%s.cloudapp.net", s.TmpServiceName)
+	validFor := 365 * 24 * time.Hour
+	isCA := false
+	rsaBits := 2048
 
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
@@ -194,4 +194,3 @@ func (s *StepCreateCert)createCert(state multistep.StateBag) error {
 
 	return nil
 }
-
