@@ -6,7 +6,5 @@ import (
 )
 
 func BuildContainerName() string {
-	now := time.Now()
-	y, m, d := now.Date()
-	return fmt.Sprintf("packer-provision-%d-%d-%d-%d-%d-%d", now.Hour(), now.Minute(), now.Second(), d, m, y)
+	return fmt.Sprintf("packer-provision-%s", RandomString("abcdefghijklmnopqrstuvwxyz0123456789", 10))
 }
