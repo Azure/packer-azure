@@ -325,7 +325,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	} else if b.config.OsType == "Windows" {
 		//		b.config.tmpVmName = "PkrVM-95129190"
 		//		b.config.tmpServiceName = "PkrSrv-95129190"
-		password := "Zxcv1234"
+		password := utils.RandomPassword()
 		steps = []multistep.Step{
 			&target.StepSelectSubscription{
 				SubscriptionName: b.config.SubscriptionName,
