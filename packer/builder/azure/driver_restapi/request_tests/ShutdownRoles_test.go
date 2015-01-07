@@ -19,7 +19,7 @@ func _TestShutdownRoles(t *testing.T) {
 		t.Errorf(errMassage, err.Error())
 	}
 
-	requestData := 	reqManager.ShutdownRoles(g_tmpServiceName, g_tmpVmName)
+	requestData := reqManager.ShutdownRoles(g_tmpServiceName, g_tmpVmName)
 	fmt.Println(fmt.Sprintf("requestData:\n %v", requestData))
 	_, err = reqManager.Execute(requestData)
 

@@ -5,16 +5,16 @@
 package target
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepGetEndpoint struct {
-	OsType string
-	TmpVmName string
+	OsType         string
+	TmpVmName      string
 	TmpServiceName string
 }
 
@@ -33,7 +33,7 @@ func (s *StepGetEndpoint) Run(state multistep.StateBag) multistep.StepAction {
 	if s.OsType == Linux {
 		blockBuffer.WriteString("$ep = Get-AzureVM –ServiceName $tmpServiceName –Name $tmpVmName | Get-AzureEndpoint;")
 		blockBuffer.WriteString("[string]::Format(\"{0}:{1}\", $ep.Vip, $ep.Port)")
-	} else if  s.OsType == Windows {
+	} else if s.OsType == Windows {
 		blockBuffer.WriteString("$uri = Get-AzureWinRMUri -ServiceName $tmpServiceName -Name $tmpVmName;")
 		blockBuffer.WriteString("$uri.AbsoluteUri;")
 	} else {
@@ -47,7 +47,7 @@ func (s *StepGetEndpoint) Run(state multistep.StateBag) multistep.StepAction {
 	var res string
 	var err error
 
-	res, err = driver.ExecRet( blockBuffer.String() )
+	res, err = driver.ExecRet(blockBuffer.String())
 
 	if err != nil {
 		err := fmt.Errorf(errorMsg, err)
@@ -56,7 +56,7 @@ func (s *StepGetEndpoint) Run(state multistep.StateBag) multistep.StepAction {
 		return multistep.ActionHalt
 	}
 
-	if(len(res) == 0 ){
+	if len(res) == 0 {
 		err := fmt.Errorf(errorMsg, "stdout is empty")
 		state.Put("error", err)
 		ui.Error(err.Error())

@@ -6,10 +6,10 @@ package targets
 
 import (
 	"fmt"
-	"github.com/mitchellh/multistep"
-	"github.com/mitchellh/packer/packer"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
+	"github.com/mitchellh/multistep"
+	"github.com/mitchellh/packer/packer"
 )
 
 type StepRemoveService struct {

@@ -5,19 +5,19 @@
 package target
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepCreateService struct {
-	Location string
+	Location       string
 	TmpServiceName string
 	StorageAccount string
-	TmpVmName string
-	ContainerUrl string
+	TmpVmName      string
+	ContainerUrl   string
 }
 
 func (s *StepCreateService) Run(state multistep.StateBag) multistep.StepAction {
@@ -35,7 +35,7 @@ func (s *StepCreateService) Run(state multistep.StateBag) multistep.StepAction {
 	blockBuffer.WriteString("New-AzureService -ServiceName $tmpServiceName -Location $location;")
 	blockBuffer.WriteString("}")
 
-	err := driver.Exec( blockBuffer.String() )
+	err := driver.Exec(blockBuffer.String())
 
 	if err != nil {
 		err := fmt.Errorf(errorMsg, err)
@@ -66,7 +66,7 @@ func (s *StepCreateService) Cleanup(state multistep.StateBag) {
 		blockBuffer.WriteString("Remove-AzureService -ServiceName $tmpServiceName -Force;")
 		blockBuffer.WriteString("}")
 
-		err = driver.Exec( blockBuffer.String() )
+		err = driver.Exec(blockBuffer.String())
 
 		if err != nil {
 			err := fmt.Errorf(errorMsg, err)
@@ -91,7 +91,7 @@ func (s *StepCreateService) Cleanup(state multistep.StateBag) {
 		blockBuffer.WriteString("Remove-AzureDisk -DiskName $disk.DiskName;")
 		blockBuffer.WriteString("}")
 
-		err = driver.Exec( blockBuffer.String() )
+		err = driver.Exec(blockBuffer.String())
 
 		if err != nil {
 			err := fmt.Errorf(errorMsg, err)

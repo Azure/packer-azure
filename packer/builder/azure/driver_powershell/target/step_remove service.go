@@ -5,11 +5,11 @@
 package target
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepRemoveService struct {
@@ -30,7 +30,7 @@ func (s *StepRemoveService) Run(state multistep.StateBag) multistep.StepAction {
 	blockBuffer.WriteString("Remove-AzureService -ServiceName $tmpServiceName -Force;")
 	blockBuffer.WriteString("}")
 
-	err := driver.Exec( blockBuffer.String() )
+	err := driver.Exec(blockBuffer.String())
 
 	if err != nil {
 		err := fmt.Errorf(errorMsg, err)

@@ -5,12 +5,12 @@
 package powershell
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
-	"os"
-	"bytes"
 	"log"
+	"os"
 	"path/filepath"
 )
 
@@ -20,11 +20,11 @@ type config struct {
 	common.PackerConfig `mapstructure:",squash"`
 
 	// The local path of the script.
-	ScriptPath string `mapstructure:"script_path"`
-	DistrSrcPath string `mapstructure:"distr_src_path"`
-	DistrDstPath string `mapstructure:"distr_dst_dir_path"`
-	Inline []string		`mapstructure:"inline"`
-	tpl *packer.ConfigTemplate
+	ScriptPath   string   `mapstructure:"script_path"`
+	DistrSrcPath string   `mapstructure:"distr_src_path"`
+	DistrDstPath string   `mapstructure:"distr_dst_dir_path"`
+	Inline       []string `mapstructure:"inline"`
+	tpl          *packer.ConfigTemplate
 }
 
 type Provisioner struct {
@@ -50,12 +50,12 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 		p.config.Inline = nil
 	}
 
-	if(p.config.DistrDstPath == "" ){
+	if p.config.DistrDstPath == "" {
 		p.config.DistrDstPath = DistrDstPathDefault
 	}
 
 	sliceTemplates := map[string][]string{
-		"inline":           p.config.Inline,
+		"inline": p.config.Inline,
 	}
 
 	for n, slice := range sliceTemplates {
@@ -69,13 +69,12 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 		}
 	}
 
-	log.Println(fmt.Sprintf("%s: %v","inline", p.config.ScriptPath))
-
+	log.Println(fmt.Sprintf("%s: %v", "inline", p.config.ScriptPath))
 
 	templates := map[string]*string{
-		"script_path":      &p.config.ScriptPath,
-		"distr_src_path": 	&p.config.DistrSrcPath,
-		"distr_dst_path": 	&p.config.DistrDstPath,
+		"script_path":    &p.config.ScriptPath,
+		"distr_src_path": &p.config.DistrSrcPath,
+		"distr_dst_path": &p.config.DistrDstPath,
 	}
 
 	for n, ptr := range templates {
@@ -87,7 +86,7 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 		}
 	}
 
-	log.Println(fmt.Sprintf("%s: %v","script_path", p.config.DistrDstPath))
+	log.Println(fmt.Sprintf("%s: %v", "script_path", p.config.DistrDstPath))
 
 	if len(p.config.ScriptPath) == 0 && p.config.Inline == nil {
 		errs = packer.MultiErrorAppend(errs,
@@ -100,7 +99,7 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 				fmt.Errorf("script_path: '%v' check the path is correct.", p.config.ScriptPath))
 		}
 	}
-	log.Println(fmt.Sprintf("%s: %v","script_path", p.config.ScriptPath))
+	log.Println(fmt.Sprintf("%s: %v", "script_path", p.config.ScriptPath))
 
 	if len(p.config.DistrSrcPath) != 0 {
 		if _, err := os.Stat(p.config.DistrSrcPath); err != nil {
@@ -108,7 +107,7 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 				fmt.Errorf("distr_src_path: '%v' check the path is correct.", p.config.DistrSrcPath))
 		}
 	}
-	log.Println(fmt.Sprintf("%s: %v","distr_src_path", p.config.DistrSrcPath))
+	log.Println(fmt.Sprintf("%s: %v", "distr_src_path", p.config.DistrSrcPath))
 
 	if errs != nil && len(errs.Errors) > 0 {
 		return errs
@@ -143,8 +142,8 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		var stdoutBuff bytes.Buffer
 		var stderrBuff bytes.Buffer
 		var cmd packer.RemoteCmd
-		cmd.Stdout = &stdoutBuff;
-		cmd.Stderr = &stderrBuff;
+		cmd.Stdout = &stdoutBuff
+		cmd.Stderr = &stderrBuff
 
 		cmd.Command = "-ScriptBlock " + blockBuffer.String()
 
@@ -154,13 +153,13 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		}
 
 		stderrString := stderrBuff.String()
-		if(len(stderrString)>0) {
+		if len(stderrString) > 0 {
 			err = fmt.Errorf(errorMsg, stderrString)
 			log.Printf("Provision Inline stderr: %s", stderrString)
 		}
 
 		stdoutString := stdoutBuff.String()
-		if(len(stdoutString)>0) {
+		if len(stdoutString) > 0 {
 			log.Printf("Provision Inline stdout: %s", stdoutString)
 			ui.Message(stdoutString)
 		}
@@ -170,8 +169,8 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		var stdoutBuff bytes.Buffer
 		var stderrBuff bytes.Buffer
 		var cmd packer.RemoteCmd
-		cmd.Stdout = &stdoutBuff;
-		cmd.Stderr = &stderrBuff;
+		cmd.Stdout = &stdoutBuff
+		cmd.Stderr = &stderrBuff
 		cmd.Command = "-filepath " + filepath.FromSlash(p.config.ScriptPath)
 
 		err = comm.Start(&cmd)
@@ -180,13 +179,13 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		}
 
 		stderrString := stderrBuff.String()
-		if(len(stderrString)>0) {
+		if len(stderrString) > 0 {
 			err = fmt.Errorf(errorMsg, stderrString)
 			log.Printf("Provision from file stderr: %s", stderrString)
 		}
 
 		stdoutString := stdoutBuff.String()
-		if(len(stdoutString)>0) {
+		if len(stdoutString) > 0 {
 			log.Printf("Provision from file stdout: %s", stdoutString)
 			ui.Message(stdoutString)
 		}

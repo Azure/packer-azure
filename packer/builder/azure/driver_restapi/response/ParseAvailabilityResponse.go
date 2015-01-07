@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-func ParseAvailabilityResponse(body io.ReadCloser) (*model.AvailabilityResponse, error ) {
+func ParseAvailabilityResponse(body io.ReadCloser) (*model.AvailabilityResponse, error) {
 	data, err := toModel(body, &model.AvailabilityResponse{})
 
 	if err != nil {
@@ -20,4 +20,3 @@ func ParseAvailabilityResponse(body io.ReadCloser) (*model.AvailabilityResponse,
 
 	return m, nil
 }
-

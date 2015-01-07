@@ -5,13 +5,13 @@
 package win
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	"time"
 	"log"
 	"strings"
+	"time"
 )
 
 type StepCheckRemoting struct {
@@ -27,13 +27,13 @@ func (s *StepCheckRemoting) Run(state multistep.StateBag) multistep.StepAction {
 	magicWord := "Ready!"
 
 	var blockBuffer bytes.Buffer
-	blockBuffer.WriteString("{ Write-Host '"+ magicWord +"' }")
+	blockBuffer.WriteString("{ Write-Host '" + magicWord + "' }")
 
 	var stdoutBuff bytes.Buffer
 	var stderrBuff bytes.Buffer
 	var cmd packer.RemoteCmd
-	cmd.Stdout = &stdoutBuff;
-	cmd.Stderr = &stderrBuff;
+	cmd.Stdout = &stdoutBuff
+	cmd.Stderr = &stderrBuff
 	cmd.Command = "-ScriptBlock " + blockBuffer.String()
 
 	count := 5
@@ -55,7 +55,7 @@ func (s *StepCheckRemoting) Run(state multistep.StateBag) multistep.StepAction {
 		stderrString := stderrBuff.String()
 		log.Printf("StepCheckRemoting stderr: %s", stderrString)
 
-		if(len(stderrString)>0) {
+		if len(stderrString) > 0 {
 			err = fmt.Errorf(errorMsg, stderrString)
 			log.Printf(errorMsg, stderrString)
 			state.Put("error", err)
@@ -67,7 +67,7 @@ func (s *StepCheckRemoting) Run(state multistep.StateBag) multistep.StepAction {
 		log.Printf("StepCheckRemoting stdout: '%s'", stdoutString)
 		if stdoutString == magicWord {
 			ui.Say(stdoutString)
-			break;
+			break
 		}
 
 		log.Println(fmt.Sprintf("Waiting %v minutes for the remote connection to get ready...", uint(duration)))

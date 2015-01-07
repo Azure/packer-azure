@@ -5,8 +5,8 @@
 package storage_tests
 
 import (
-	"testing"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
+	"testing"
 )
 
 func _TestPutBlob(t *testing.T) {
@@ -24,8 +24,6 @@ func _TestPutBlob(t *testing.T) {
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}
-
-
 
 	t.Error("eom")
 }

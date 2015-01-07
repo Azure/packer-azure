@@ -9,13 +9,13 @@ func (d *StorageServiceDriver) ListContainers() (resp *http.Response, err error)
 
 	verb := "GET"
 
-	uri := fmt.Sprintf("https://%s.blob.core.windows.net/?comp=list&include=metadata",  d.account)
+	uri := fmt.Sprintf("https://%s.blob.core.windows.net/?comp=list&include=metadata", d.account)
 
 	dateInRfc1123Format := currentTimeRfc1123Formatted()
 
 	headers := map[string]string{
-		"x-ms-version":  "2009-09-19",
-		"x-ms-date":  dateInRfc1123Format,
+		"x-ms-version": "2009-09-19",
+		"x-ms-date":    dateInRfc1123Format,
 	}
 
 	canonicalizedHeaders := d.buildCanonicalizedHeader(headers)
@@ -47,9 +47,7 @@ func (d *StorageServiceDriver) ListContainers() (resp *http.Response, err error)
 
 	headers["Authorization"] = authHeader
 
-
-//	fmt.Printf("--------------------ListContainers headers:\n %v\n", headers)
-
+	//	fmt.Printf("--------------------ListContainers headers:\n %v\n", headers)
 
 	resp, err = d.Exec(verb, uri, headers, nil)
 	if err != nil {

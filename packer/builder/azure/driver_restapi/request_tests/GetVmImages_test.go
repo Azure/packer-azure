@@ -6,10 +6,10 @@
 package request_tests
 
 import (
-	"testing"
+	"fmt"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response/model"
-	"fmt"
+	"testing"
 )
 
 func TestGetVmImages(t *testing.T) {

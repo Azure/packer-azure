@@ -9,40 +9,40 @@ import (
 	"fmt"
 )
 
-func (m *Manager) DeleteDisk(diskName string) (*Data) {
+func (m *Manager) DeleteDisk(diskName string) *Data {
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/disks/%s", m.SubscrId, diskName)
 
 	headers := map[string]string{
-		"Content-Type":  "application/xml",
-		"x-ms-version":  "2012-08-01",
+		"Content-Type": "application/xml",
+		"x-ms-version": "2012-08-01",
 	}
 
 	data := &Data{
-		Verb: "DELETE",
-		Uri : uri,
+		Verb:    "DELETE",
+		Uri:     uri,
 		Headers: headers,
-		Body : nil,
+		Body:    nil,
 	}
 
 	return data
 }
+
 //the blob that is associated with the disk is also deleted
-func (m *Manager) DeleteDiskAndMedia(diskName string) (*Data) {
+func (m *Manager) DeleteDiskAndMedia(diskName string) *Data {
 
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/disks/%s?comp=media", m.SubscrId, diskName)
 
 	headers := map[string]string{
-		"Content-Type":  "application/xml",
-		"x-ms-version":  "2012-08-01",
+		"Content-Type": "application/xml",
+		"x-ms-version": "2012-08-01",
 	}
 
 	data := &Data{
-		Verb: "DELETE",
-		Uri : uri,
+		Verb:    "DELETE",
+		Uri:     uri,
 		Headers: headers,
-		Body : nil,
+		Body:    nil,
 	}
 
 	return data
 }
-

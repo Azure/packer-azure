@@ -11,8 +11,8 @@ const BuilderId = "MSOpenTech.azure"
 
 // Artifact is the result of running the azure builder.
 type artifact struct {
-	imageLabel string
-	imageName string
+	imageLabel    string
+	imageName     string
 	mediaLocation string
 }
 
@@ -29,7 +29,7 @@ func (a *artifact) Id() string {
 }
 
 func (a *artifact) State(name string) interface{} {
-	return "Not implemented"	
+	return "Not implemented"
 }
 
 func (a *artifact) String() string {
@@ -37,7 +37,7 @@ func (a *artifact) String() string {
 		fmt.Sprintf("imageLabel: '%s'", a.imageLabel),
 		fmt.Sprintf("imageName: '%s'", a.imageName),
 		fmt.Sprintf("mediaLocation: '%s'", a.mediaLocation),
-		)
+	)
 }
 
 func (a *artifact) Destroy() error {

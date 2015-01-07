@@ -1,13 +1,12 @@
 package utils
 
 import (
-	"time"
 	"fmt"
+	"time"
 )
 
-func BuildContainerName() string{
+func BuildContainerName() string {
 	now := time.Now()
-	y,m,d := now.Date()
-	return fmt.Sprintf("packer-provision-%d-%d-%d-%d-%d-%d", now.Hour(), now.Minute(), now.Second(), d,m,y )
+	y, m, d := now.Date()
+	return fmt.Sprintf("packer-provision-%d-%d-%d-%d-%d-%d", now.Hour(), now.Minute(), now.Second(), d, m, y)
 }
-

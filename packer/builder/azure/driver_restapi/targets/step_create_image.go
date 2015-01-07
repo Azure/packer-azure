@@ -6,20 +6,20 @@ package targets
 
 import (
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
+	"github.com/mitchellh/multistep"
+	"github.com/mitchellh/packer/packer"
 	"log"
 	"strings"
 	"time"
-	"github.com/mitchellh/multistep"
-	"github.com/mitchellh/packer/packer"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 )
 
 type StepCreateImage struct {
-	TmpServiceName string
-	TmpVmName string
-	UserImageLabel string
-	UserImageName string
+	TmpServiceName    string
+	TmpVmName         string
+	UserImageLabel    string
+	UserImageName     string
 	RecommendedVMSize string
 }
 
@@ -34,7 +34,7 @@ func (s *StepCreateImage) Run(state multistep.StateBag) multistep.StepAction {
 	description := "paker made image"
 	imageFamily := "PackerMade"
 
-	requestData := reqManager.CaptureVMImage(s.TmpServiceName, s.TmpVmName, s.UserImageName, s.UserImageLabel,description, imageFamily, s.RecommendedVMSize )
+	requestData := reqManager.CaptureVMImage(s.TmpServiceName, s.TmpVmName, s.UserImageName, s.UserImageLabel, description, imageFamily, s.RecommendedVMSize)
 	err := reqManager.ExecuteSync(requestData)
 
 	if err != nil {
@@ -87,7 +87,7 @@ func (s *StepCreateImage) Cleanup(state multistep.StateBag) {
 					break
 				}
 
-				patterns := []string {
+				patterns := []string{
 					"is currently performing an operation on deployment",
 					"is currently in use by virtual machine",
 				}
@@ -102,7 +102,7 @@ func (s *StepCreateImage) Cleanup(state multistep.StateBag) {
 				}
 
 				if needToRetry {
-					stepNumber++;
+					stepNumber++
 					if stepNumber == stepsLimit {
 						err := fmt.Errorf(errorMsg, err)
 						ui.Error(err.Error())
@@ -111,7 +111,7 @@ func (s *StepCreateImage) Cleanup(state multistep.StateBag) {
 
 					const p = 30
 					log.Println(fmt.Sprintf("Disk is in use. Waiting for %d sec (%d of %d)", uint(p), stepNumber, stepsLimit))
-					time.Sleep(time.Second*p)
+					time.Sleep(time.Second * p)
 					continue
 				}
 

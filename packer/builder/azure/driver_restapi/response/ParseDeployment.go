@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-func ParseDeployment(body io.ReadCloser) (*model.Deployment, error ) {
+func ParseDeployment(body io.ReadCloser) (*model.Deployment, error) {
 	data, err := toModel(body, &model.Deployment{})
 
 	if err != nil {

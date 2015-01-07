@@ -5,17 +5,17 @@
 package target
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepRemoveDisk struct {
 	StorageAccount string
-	TmpVmName string
-	ContainerUrl string
+	TmpVmName      string
+	ContainerUrl   string
 }
 
 func (s *StepRemoveDisk) Run(state multistep.StateBag) multistep.StepAction {
@@ -38,7 +38,7 @@ func (s *StepRemoveDisk) Run(state multistep.StateBag) multistep.StepAction {
 	blockBuffer.WriteString("Remove-AzureDisk -DiskName $disk.DiskName;")
 	blockBuffer.WriteString("}")
 
-	err := driver.Exec( blockBuffer.String() )
+	err := driver.Exec(blockBuffer.String())
 
 	if err != nil {
 		err := fmt.Errorf(errorMsg, err)

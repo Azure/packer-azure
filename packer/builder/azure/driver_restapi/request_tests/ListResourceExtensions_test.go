@@ -6,9 +6,9 @@
 package request_tests
 
 import (
-	"testing"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
+	"testing"
 )
 
 func _TestListResourceExtensions(t *testing.T) {
@@ -35,14 +35,13 @@ func _TestListResourceExtensions(t *testing.T) {
 
 	fmt.Printf("ResourceExtensionList:\n\n")
 
-	for _, val := range(list.ResourceExtensions){
-//		fmt.Printf("Name: %s\nLabel: %s\nDescription: %s\n\n\n", val.Name, val.Label, val.Description)
+	for _, val := range list.ResourceExtensions {
+		//		fmt.Printf("Name: %s\nLabel: %s\nDescription: %s\n\n\n", val.Name, val.Label, val.Description)
 		fmt.Printf("CustomScriptExtension:\n%v\n\n\n", val)
 	}
 
 	ext := list.FirstOrNull("CustomScriptExtension")
 	fmt.Printf("CustomScriptExtension: %v\n\n", ext)
-
 
 	t.Error("eom")
 }

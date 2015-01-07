@@ -1,35 +1,34 @@
 package response
 
 import (
-	"io"
 	"encoding/xml"
+	"io"
 )
 
 type ContainersList struct {
-	XMLName   			xml.Name `xml:"EnumerationResults"`
-	ServiceEndpoint	  	string `xml:"ServiceEndpoint,attr"`
-	Prefix  			string
-	Marker  			string
-	MaxResults  		int
+	XMLName         xml.Name `xml:"EnumerationResults"`
+	ServiceEndpoint string   `xml:"ServiceEndpoint,attr"`
+	Prefix          string
+	Marker          string
+	MaxResults      int
 
-	Containers 			[]Container `xml:"Containers>Container"`
-	NextMarker  		string
+	Containers []Container `xml:"Containers>Container"`
+	NextMarker string
 }
 
 type Container struct {
-	Name  			string
-	Url  			string
-	Properties		[]Property
-	Metadata		string
+	Name       string
+	Url        string
+	Properties []Property
+	Metadata   string
 }
 
 type Property struct {
-	LastModified  	string	`xml:"Last-Modified"`
-	Etag  			string
+	LastModified string `xml:"Last-Modified"`
+	Etag         string
 }
 
-
-func ParseContainersList(body io.ReadCloser) (*ContainersList, error ) {
+func ParseContainersList(body io.ReadCloser) (*ContainersList, error) {
 	data, err := toModel(body, &ContainersList{})
 
 	if err != nil {

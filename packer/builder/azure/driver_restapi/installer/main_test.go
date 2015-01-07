@@ -6,15 +6,15 @@
 package main
 
 import (
-	"testing"
-	"io/ioutil"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"testing"
 )
 
 const (
-	srcPathTest string = "d:/Packer.io/PackerLinux/installer/config-template"
-	dstPathTest string = "d:/Packer.io/PackerLinux/installer/.packerconfig"
+	srcPathTest    string = "d:/Packer.io/PackerLinux/installer/config-template"
+	dstPathTest    string = "d:/Packer.io/PackerLinux/installer/.packerconfig"
 	dstPathModTest string = "d:/Packer.io/PackerLinux/installer/.packerconfigMod"
 )
 
@@ -53,8 +53,8 @@ func _TestJSON(t *testing.T) {
 		if ok && sv == dv {
 			continue
 		}
-		if dstConf.Builders == nil{
-			dstConf.Builders = map[string]string{sk:sv}
+		if dstConf.Builders == nil {
+			dstConf.Builders = map[string]string{sk: sv}
 		} else {
 			dstConf.Builders[sk] = sv
 		}
@@ -66,8 +66,8 @@ func _TestJSON(t *testing.T) {
 		if ok && sv == dv {
 			continue
 		}
-		if dstConf.Provisioners == nil{
-			dstConf.Provisioners = map[string]string{sk:sv}
+		if dstConf.Provisioners == nil {
+			dstConf.Provisioners = map[string]string{sk: sv}
 		} else {
 			dstConf.Provisioners[sk] = sv
 		}

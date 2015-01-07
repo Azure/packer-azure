@@ -5,8 +5,8 @@
 package lin
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
 	"log"
@@ -42,8 +42,8 @@ func (s *StepGeneralizeOs) Run(state multistep.StateBag) multistep.StepAction {
 	// If the command failed to run, notify the user in some way.
 	if cmd.ExitStatus != 0 {
 		state.Put("error", fmt.Errorf(
-				"OS generalization has non-zero exit status.\n\nStdout: %s\n\nStderr: %s",
-				stdout.String(), stderr.String()))
+			"OS generalization has non-zero exit status.\n\nStdout: %s\n\nStderr: %s",
+			stdout.String(), stderr.String()))
 		return multistep.ActionHalt
 	}
 

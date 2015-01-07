@@ -6,20 +6,20 @@ package target
 
 // Target sizes
 const (
-	ExtraSmall string 	= "ExtraSmall"
-	Small string 		= "Small"
-	Medium string 		= "Medium"
-	Large string 		= "Large"
-	ExtraLarge string 	= "ExtraLarge"
-	A5 string 			= "A5"
-	A6 string 			= "A6"
-	A7 string 			= "A7"
-	A8 string 			= "A8"
-	A9 string 			= "A9"
+	ExtraSmall string = "ExtraSmall"
+	Small      string = "Small"
+	Medium     string = "Medium"
+	Large      string = "Large"
+	ExtraLarge string = "ExtraLarge"
+	A5         string = "A5"
+	A6         string = "A6"
+	A7         string = "A7"
+	A8         string = "A8"
+	A9         string = "A9"
 )
 
 // Target types
 const (
-	Linux string = "Linux"
+	Linux   string = "Linux"
 	Windows string = "Windows"
 )

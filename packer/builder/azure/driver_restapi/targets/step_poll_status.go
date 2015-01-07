@@ -7,32 +7,32 @@ package targets
 import (
 	"fmt"
 
-	"github.com/mitchellh/multistep"
-	"github.com/mitchellh/packer/packer"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"log"
-	"time"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response/model"
+	"github.com/mitchellh/multistep"
+	"github.com/mitchellh/packer/packer"
+	"log"
+	"time"
 )
 
-const(
-	powerState_Started string = "Started"
-	powerState_Stopping string = "Stopping"
-	powerState_Stopped string = "Stopped"
-	powerState_Unknown string = "Unknown"
-	instanceStatus_ReadyRole = "ReadyRole"
-	instanceStatus_FailedStartingRole = "FailedStartingRole"
-	instanceStatus_FailedStartingVM = "FailedStartingVM"
-	instanceStatus_ProvisioningFailed = "ProvisioningFailed"
-	instanceStatus_UnresponsiveRole = "UnresponsiveRole"
+const (
+	powerState_Started                string = "Started"
+	powerState_Stopping               string = "Stopping"
+	powerState_Stopped                string = "Stopped"
+	powerState_Unknown                string = "Unknown"
+	instanceStatus_ReadyRole                 = "ReadyRole"
+	instanceStatus_FailedStartingRole        = "FailedStartingRole"
+	instanceStatus_FailedStartingVM          = "FailedStartingVM"
+	instanceStatus_ProvisioningFailed        = "ProvisioningFailed"
+	instanceStatus_UnresponsiveRole          = "UnresponsiveRole"
 )
 
 type StepPollStatus struct {
 	TmpServiceName string
-	TmpVmName string
-	OsType string
+	TmpVmName      string
+	OsType         string
 }
 
 func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
@@ -58,7 +58,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 	var count uint = 60
 	var duration time.Duration = 40
 	sleepTime := time.Second * duration
-	total := count*uint(duration)
+	total := count * uint(duration)
 
 	//	var err error
 	var deployment *model.Deployment
@@ -75,21 +75,21 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 		}
 
 		deployment, err = response.ParseDeployment(resp.Body)
-//		log.Printf("deployment:\n%v", deployment)
+		//		log.Printf("deployment:\n%v", deployment)
 
 		if len(deployment.RoleInstanceList) > 0 {
 			powerState := deployment.RoleInstanceList[0].PowerState
 			instanceStatus := deployment.RoleInstanceList[0].InstanceStatus
 
 			if powerState == powerState_Started && instanceStatus == instanceStatus_ReadyRole {
-				break;
+				break
 			}
 
 			if instanceStatus == instanceStatus_FailedStartingRole ||
 				instanceStatus == instanceStatus_FailedStartingVM ||
 				instanceStatus == instanceStatus_ProvisioningFailed ||
 				instanceStatus == instanceStatus_UnresponsiveRole {
-				err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].instanceStatus is " + instanceStatus)
+				err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].instanceStatus is "+instanceStatus)
 				state.Put("error", err)
 				ui.Error(err.Error())
 				return multistep.ActionHalt
@@ -97,7 +97,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 			if powerState == powerState_Stopping ||
 				powerState == powerState_Stopped ||
 				powerState == powerState_Unknown {
-				err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].PowerState is " + powerState)
+				err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].PowerState is "+powerState)
 				state.Put("error", err)
 				ui.Error(err.Error())
 				return multistep.ActionHalt
@@ -110,7 +110,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 		count--
 	}
 
-	if(count == 0){
+	if count == 0 {
 		err := fmt.Errorf(errorMsg, fmt.Sprintf("time is up (%d seconds)", total))
 		state.Put("error", err)
 		ui.Error(err.Error())
@@ -123,7 +123,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 
 	if s.OsType == Linux {
 		endpoints := deployment.RoleInstanceList[0].InstanceEndpoints
-		if len(endpoints) == 0{
+		if len(endpoints) == 0 {
 			err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].InstanceEndpoints list is empty")
 			state.Put("error", err)
 			ui.Error(err.Error())
@@ -139,7 +139,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 	}
 
 	roleList := deployment.RoleList
-	if len(roleList) == 0{
+	if len(roleList) == 0 {
 		err := fmt.Errorf(errorMsg, "deployment.RoleList is empty")
 		state.Put("error", err)
 		ui.Error(err.Error())

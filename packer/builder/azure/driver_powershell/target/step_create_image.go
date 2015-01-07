@@ -5,20 +5,20 @@
 package target
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
+	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 )
 
 type StepCreateImage struct {
 	StorageAccount string
-	TmpVmName string
+	TmpVmName      string
 	UserImageLabel string
-	UserImageName string
-	OsType string
-	ContainerUrl string
+	UserImageName  string
+	OsType         string
+	ContainerUrl   string
 }
 
 func (s *StepCreateImage) Run(state multistep.StateBag) multistep.StepAction {
@@ -41,7 +41,7 @@ func (s *StepCreateImage) Run(state multistep.StateBag) multistep.StepAction {
 	blockBuffer.WriteString("Add-AzureVMImage -ImageName $userImageName -MediaLocation $mediaLoc -OS $osType -Label $userImageLabel;")
 	blockBuffer.WriteString("}")
 
-	err := driver.Exec( blockBuffer.String() )
+	err := driver.Exec(blockBuffer.String())
 
 	if err != nil {
 		err := fmt.Errorf(errorMsg, err)

@@ -9,8 +9,8 @@ package http
 import (
 	"bufio"
 	"bytes"
-	"github.com/MSOpenTech/packer-azure/mod/pkg/crypto/tls"
 	"errors"
+	"github.com/MSOpenTech/packer-azure/mod/pkg/crypto/tls"
 	"io"
 	"net/textproto"
 	"net/url"

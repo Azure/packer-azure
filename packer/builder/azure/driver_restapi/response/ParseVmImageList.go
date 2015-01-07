@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-func ParseVmImageList(body io.ReadCloser) (*model.VmImageList, error ) {
+func ParseVmImageList(body io.ReadCloser) (*model.VmImageList, error) {
 	data, err := toModel(body, &model.VmImageList{})
 
 	if err != nil {
@@ -20,4 +20,3 @@ func ParseVmImageList(body io.ReadCloser) (*model.VmImageList, error ) {
 
 	return m, nil
 }
-

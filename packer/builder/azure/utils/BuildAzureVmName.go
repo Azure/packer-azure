@@ -7,8 +7,8 @@ package utils
 import (
 	"math/rand"
 	"os"
-	"time"
 	"sync"
+	"time"
 )
 
 const availableSymbols = "0123456789abcdefghijklmnopqrstuvwxyz"

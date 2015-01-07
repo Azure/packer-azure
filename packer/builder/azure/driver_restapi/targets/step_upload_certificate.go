@@ -5,14 +5,14 @@
 package targets
 
 import (
+	"encoding/base64"
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
 	"io/ioutil"
-	"encoding/base64"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 	"log"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
 )
 
 type StepUploadCertificate struct {

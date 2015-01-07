@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-func ParseOsImageList(body io.ReadCloser) (*model.OsImageList, error ) {
+func ParseOsImageList(body io.ReadCloser) (*model.OsImageList, error) {
 	data, err := toModel(body, &model.OsImageList{})
 
 	if err != nil {
@@ -20,4 +20,3 @@ func ParseOsImageList(body io.ReadCloser) (*model.OsImageList, error ) {
 
 	return m, nil
 }
-
