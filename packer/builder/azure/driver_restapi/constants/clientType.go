@@ -6,6 +6,6 @@
 package constants
 
 const (
-	Linux string = "linux"
+	Linux   string = "linux"
 	Windows string = "windows"
 )

@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-func ParseResourceExtensionList(body io.ReadCloser) (*model.ResourceExtensionList, error ) {
+func ParseResourceExtensionList(body io.ReadCloser) (*model.ResourceExtensionList, error) {
 	data, err := toModel(body, &model.ResourceExtensionList{})
 
 	if err != nil {

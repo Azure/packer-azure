@@ -6,12 +6,12 @@
 package request_tests
 
 import (
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/driver"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"runtime"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi"
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/driver"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
+	"runtime"
 )
 
 const (
@@ -54,8 +54,8 @@ func getRequestManager() (*request.Manager, error) {
 
 	g_reqManager = &request.Manager{
 		SubscrId: subscriptionInfo.Id,
-		Driver : d,
-		}
+		Driver:   d,
+	}
 
 	return g_reqManager, err
 }

@@ -6,25 +6,25 @@
 package cert
 
 import (
+	"bytes"
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
-	"bytes"
-//	"os"
+	//	"os"
 )
 
 func ToX509(base64X509 string) (*x509.Certificate, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-func ToX509File(base64X509, certPath string) (error) {
+func ToX509File(base64X509, certPath string) error {
 
 	var err error
 	var errMsg = "ToX509File error %s"
 
-//	if _, err = os.Stat(certPath); err != nil {
-//		return fmt.Errorf(errMsg, "check the certPath is correct.")
-//	}
+	//	if _, err = os.Stat(certPath); err != nil {
+	//		return fmt.Errorf(errMsg, "check the certPath is correct.")
+	//	}
 
 	var lineLen int = 64
 	var output bytes.Buffer
@@ -35,9 +35,9 @@ func ToX509File(base64X509, certPath string) (error) {
 	for offset := 0; offset < dataLen; offset += lineLen {
 		remaining := dataLen - offset
 		if remaining < lineLen {
-			output.WriteString(base64X509[offset:offset+remaining]+"\n")
+			output.WriteString(base64X509[offset:offset+remaining] + "\n")
 		} else {
-			output.WriteString(base64X509[offset:offset+lineLen]+"\n")
+			output.WriteString(base64X509[offset:offset+lineLen] + "\n")
 		}
 	}
 	output.WriteString("-----END CERTIFICATE-----\n")
@@ -50,4 +50,3 @@ func ToX509File(base64X509, certPath string) (error) {
 
 	return nil
 }
-

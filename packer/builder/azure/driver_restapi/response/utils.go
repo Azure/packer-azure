@@ -5,15 +5,15 @@
 package response
 
 import (
+	"encoding/xml"
+	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/settings"
 	"io"
 	"io/ioutil"
-	"fmt"
-	"encoding/xml"
 	"log"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/settings"
 )
 
-func readBody(body io.ReadCloser) ([]byte, error ) {
+func readBody(body io.ReadCloser) ([]byte, error) {
 	bodyData, err := ioutil.ReadAll(body)
 	if err != nil {
 		return nil, err
@@ -21,15 +21,15 @@ func readBody(body io.ReadCloser) ([]byte, error ) {
 	return bodyData, nil
 }
 
-func toModel(body io.ReadCloser, model interface {}) (interface {}, error ) {
+func toModel(body io.ReadCloser, model interface{}) (interface{}, error) {
 
-	if (body == nil){
+	if body == nil {
 		return nil, fmt.Errorf("response body is nil")
 	}
 
-	bodyData , err := readBody(body)
+	bodyData, err := readBody(body)
 	if err != nil {
-	return nil, err
+		return nil, err
 	}
 
 	if settings.LogRawResponseBody {
@@ -38,9 +38,8 @@ func toModel(body io.ReadCloser, model interface {}) (interface {}, error ) {
 
 	err = xml.Unmarshal(bodyData, model)
 	if err != nil {
-	return nil, err
+		return nil, err
 	}
 
 	return model, nil
 }
-

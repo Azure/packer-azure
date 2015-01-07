@@ -19,7 +19,5 @@ import (
 type IDriverRest interface {
 
 	// Exec executes
-	Exec(verb string, url string, headers  map[string]string, body io.Reader) (*http.Response, error)
+	Exec(verb string, url string, headers map[string]string, body io.Reader) (*http.Response, error)
 }
-
-

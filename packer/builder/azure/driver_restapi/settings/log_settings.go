@@ -5,13 +5,13 @@
 package settings
 
 const (
-// request
-	LogRequestData 			bool = true
+	// request
+	LogRequestData bool = true
 
-// response
-	LogRawResponseBody 		bool = true
-	LogRawResponseError 	bool = true
+	// response
+	LogRawResponseBody  bool = true
+	LogRawResponseError bool = true
 
-// azure storage
-	LogCanonicalizedString 	bool = false
+	// azure storage
+	LogCanonicalizedString bool = false
 )

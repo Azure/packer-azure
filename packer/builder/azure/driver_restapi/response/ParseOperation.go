@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-func ParseOperation(body io.ReadCloser) (*model.Operation, error ) {
+func ParseOperation(body io.ReadCloser) (*model.Operation, error) {
 	data, err := toModel(body, &model.Operation{})
 
 	if err != nil {
@@ -20,4 +20,3 @@ func ParseOperation(body io.ReadCloser) (*model.Operation, error ) {
 
 	return m, nil
 }
-

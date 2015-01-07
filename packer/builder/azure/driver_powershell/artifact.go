@@ -12,8 +12,8 @@ const BuilderId = "MSOpenTech.azure"
 // Artifact is the result of running the HyperV builder, namely a set
 // of files associated with the resulting machine.
 type artifact struct {
-	imageLabel string
-	imageName string
+	imageLabel    string
+	imageName     string
 	mediaLocation string
 }
 
@@ -38,7 +38,7 @@ func (a *artifact) String() string {
 		fmt.Sprintf("imageLabel: '%s'", a.imageLabel),
 		fmt.Sprintf("imageName: '%s'", a.imageName),
 		fmt.Sprintf("mediaLocation: '%s'", a.mediaLocation),
-		)
+	)
 }
 
 func (a *artifact) Destroy() error {

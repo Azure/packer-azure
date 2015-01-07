@@ -1,12 +1,12 @@
 package request
 
 import (
-	"fmt"
-	"net/http"
 	"bytes"
+	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"path/filepath"
-	"log"
 )
 
 func (d *StorageServiceDriver) PutBlob(containerName, filePath string) (resp *http.Response, err error) {
@@ -37,10 +37,10 @@ func (d *StorageServiceDriver) PutBlob(containerName, filePath string) (resp *ht
 	dateInRfc1123Format := currentTimeRfc1123Formatted()
 
 	headers := map[string]string{
-		"Content-Length":  	blobSize,
-		"x-ms-version":  	"2011-08-18",
-		"x-ms-date":  		dateInRfc1123Format,
-		"x-ms-blob-type":  	"BlockBlob",
+		"Content-Length": blobSize,
+		"x-ms-version":   "2011-08-18",
+		"x-ms-date":      dateInRfc1123Format,
+		"x-ms-blob-type": "BlockBlob",
 	}
 
 	log.Printf("headers: %v\n", headers)

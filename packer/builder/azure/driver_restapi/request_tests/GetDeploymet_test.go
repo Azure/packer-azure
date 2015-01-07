@@ -6,16 +6,15 @@
 package request_tests
 
 import (
-	"testing"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 	"fmt"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
+	"testing"
 )
 
 const extPublisher = "Microsoft.Compute"
 const extName = "CustomScriptExtension"
 const extRefName = "CustomScriptExtension"
-
 
 func _TestGetDeploymet(t *testing.T) {
 
@@ -28,8 +27,6 @@ func _TestGetDeploymet(t *testing.T) {
 
 	serviceName := "pkrsrvkqtw0mqcm4"
 	vmName := "PkrVMkqtw0mqcm4"
-
-
 
 	requestData := reqManager.GetDeployment(serviceName, vmName)
 	resp, err := reqManager.Execute(requestData)
@@ -65,7 +62,6 @@ func _TestGetDeploymet(t *testing.T) {
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}
-
 
 	deployment, err = response.ParseDeployment(resp.Body)
 

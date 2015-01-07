@@ -9,20 +9,20 @@ import (
 	"fmt"
 )
 
-func (m *Manager) CheckStorageAccountNameAvailability(storageAccountName string) (*Data) {
+func (m *Manager) CheckStorageAccountNameAvailability(storageAccountName string) *Data {
 
-	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/storageservices/operations/isavailable/%s",  m.SubscrId, storageAccountName)
+	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/storageservices/operations/isavailable/%s", m.SubscrId, storageAccountName)
 
 	headers := map[string]string{
-		"Content-Type":  "application/xml",
-		"x-ms-version":  "2013-03-01",
+		"Content-Type": "application/xml",
+		"x-ms-version": "2013-03-01",
 	}
 
-	data := &Data {
-		Verb: "GET",
-		Uri : uri,
+	data := &Data{
+		Verb:    "GET",
+		Uri:     uri,
 		Headers: headers,
-		Body : nil,
+		Body:    nil,
 	}
 
 	return data
