@@ -260,8 +260,8 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
   * export PACKER_LOG_PATH=$HOME/packer.log
 
 * Known Issues
-  * It was discovered that some Linux distributions behave strangely as a target. in particular, if a user 
-    1. creates a VM from a **OpenLogin image** using **certificate authentication only**;
+  * It was discovered that some Linux distributions behave strangely as a target. In particular, if a user 
+    1. creates a VM from an **OpenLogic image** using **certificate authentication only**;
     2. captures the VM to an user image;
     3. creates a VM from the captured image using **password and certificate authentication** - password authentication won't work.
 
