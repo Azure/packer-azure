@@ -11,7 +11,7 @@ import (
 	"fmt"
 )
 
-func (m *Manager) CreateCloudService(serviceName, location string) *Data {
+func (m *Manager) CreateCloudService(serviceName, location string, vnet string) *Data {
 
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/hostedservices", m.SubscrId)
 
@@ -28,7 +28,11 @@ func (m *Manager) CreateCloudService(serviceName, location string) *Data {
 	buff.WriteString("<ServiceName>" + serviceName + "</ServiceName>")
 	buff.WriteString("<Label>" + serviceNameLabel + "</Label>")
 	buff.WriteString("<Description></Description>")
-	buff.WriteString("<Location>" + location + "</Location>")
+	if vnet == "" {
+		buff.WriteString("<Location>" + location + "</Location>")
+	} else {
+		buff.WriteString("<AffinityGroup>" + vnet + "</AffinityGroup>")
+	}
 	buff.WriteString("</CreateHostedService>")
 
 	data := &Data{

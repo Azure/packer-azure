@@ -16,6 +16,7 @@ import (
 type StepCreateService struct {
 	Location       string
 	TmpServiceName string
+	VNet           string
 }
 
 func (s *StepCreateService) Run(state multistep.StateBag) multistep.StepAction {
@@ -26,7 +27,7 @@ func (s *StepCreateService) Run(state multistep.StateBag) multistep.StepAction {
 
 	ui.Say("Creating Temporary Azure Service...")
 
-	requestData := reqManager.CreateCloudService(s.TmpServiceName, s.Location)
+	requestData := reqManager.CreateCloudService(s.TmpServiceName, s.Location, s.VNet)
 	err := reqManager.ExecuteSync(requestData)
 
 	if err != nil {
