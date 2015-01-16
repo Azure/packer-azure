@@ -163,7 +163,6 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		targets.A7,
 		targets.A8,
 		targets.A9,
-		targets.D14,
 	}
 
 	log.Println(fmt.Sprintf("%s: %v", "instance_size", b.config.InstanceSize))
