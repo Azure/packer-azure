@@ -300,6 +300,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&targets.StepCreateService{
 				Location:       b.config.Location,
 				TmpServiceName: b.config.tmpServiceName,
+				VNet:           b.config.VNet,
 			},
 			&targets.StepUploadCertificate{
 				TmpServiceName: b.config.tmpServiceName,
