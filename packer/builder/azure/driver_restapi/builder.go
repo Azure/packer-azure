@@ -102,6 +102,10 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	}
 	log.Println(fmt.Sprintf("%s: %v", "subscription_name", b.config.SubscriptionName))
 
+	if b.config.Subnet == "" {
+		errs = packer.MultiErrorAppend(errs, errors.New("subnet: The option can't be missed"))
+	}
+
 	if b.config.PublishSettingsPath == "" {
 		errs = packer.MultiErrorAppend(errs, errors.New("publish_settings_path: The option can't be missed."))
 	}
