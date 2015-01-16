@@ -16,6 +16,7 @@ const (
 	A7         string = "A7"
 	A8         string = "A8"
 	A9         string = "A9"
+	D14        string = "Standard_D14"
 )
 
 // Target types

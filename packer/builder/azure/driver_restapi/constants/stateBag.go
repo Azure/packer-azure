@@ -28,6 +28,8 @@ const (
 	AzureVmAddr        string = "azureVmAddr"
 	HardDiskName       string = "hardDiskName"
 	MediaLink          string = "mediaLink"
+	Subnet             string = "subnet"
+	VNet               string = "vnet"
 
 //	TmpServiceName 		string = "tmpServiceName"
 )

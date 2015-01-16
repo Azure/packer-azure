@@ -10,6 +10,10 @@ import (
 	"fmt"
 	"log"
 
+	"os"
+	"regexp"
+	"time"
+
 	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/target/lin"
@@ -18,9 +22,6 @@ import (
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
-	"os"
-	"regexp"
-	"time"
 )
 
 // Builder implements packer.Builder and builds the actual Azure
@@ -40,6 +41,8 @@ type azure_config struct {
 	Location                string `mapstructure:"location"`
 	InstanceSize            string `mapstructure:"instance_size"`
 	UserImageLabel          string `mapstructure:"user_image_label"`
+	VNet                    string `mapstructure:"vnet"`
+	Subnet                  string `mapstructure:"subnet"`
 	common.PackerConfig     `mapstructure:",squash"`
 	tpl                     *packer.ConfigTemplate
 
@@ -80,6 +83,8 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		"location":                  &b.config.Location,
 		"instance_size":             &b.config.InstanceSize,
 		"user_image_label":          &b.config.UserImageLabel,
+		"vnet":                      &b.config.VNet,
+		"subnet":                    &b.config.Subnet,
 	}
 
 	for n, ptr := range templates {

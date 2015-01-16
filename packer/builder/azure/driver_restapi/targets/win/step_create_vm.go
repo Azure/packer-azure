@@ -6,6 +6,7 @@ package win
 
 import (
 	"fmt"
+
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 	"github.com/mitchellh/multistep"
@@ -22,6 +23,8 @@ type StepCreateVm struct {
 	InstanceSize            string
 	Username                string
 	Password                string
+	Subnet                  string
+	VNet                    string
 }
 
 func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {

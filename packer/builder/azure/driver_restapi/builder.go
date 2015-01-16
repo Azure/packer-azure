@@ -7,6 +7,11 @@ package driver_restapi
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
+	"regexp"
+	"time"
+
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/driver"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
@@ -18,10 +23,6 @@ import (
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
-	"log"
-	"os"
-	"regexp"
-	"time"
 )
 
 // Builder implements packer.Builder and builds the actual Azure
@@ -41,6 +42,8 @@ type azure_config struct {
 	Location                string `mapstructure:"location"`
 	InstanceSize            string `mapstructure:"instance_size"`
 	UserImageLabel          string `mapstructure:"user_image_label"`
+	Subnet                  string `mapstructure:"subnet"`
+	VNet                    string `mapstructure:"vnet"`
 	common.PackerConfig     `mapstructure:",squash"`
 	tpl                     *packer.ConfigTemplate
 
@@ -82,6 +85,8 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		"location":                  &b.config.Location,
 		"instance_size":             &b.config.InstanceSize,
 		"user_image_label":          &b.config.UserImageLabel,
+		"subnet":                    &b.config.Subnet,
+		"vnet":                      &b.config.VNet,
 	}
 
 	for n, ptr := range templates {
@@ -158,6 +163,7 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		targets.A7,
 		targets.A8,
 		targets.A9,
+		targets.D14,
 	}
 
 	log.Println(fmt.Sprintf("%s: %v", "instance_size", b.config.InstanceSize))
@@ -266,6 +272,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put(constants.DiskExists, 0)
 	state.Put(constants.VmRunning, 0)
 	state.Put(constants.ImageCreated, 0)
+	state.Put(constants.Subnet, 0)
+	state.Put(constants.VNet, 0)
 
 	ui.Say("Validating Azure Options...")
 	err = b.validateAzureOptions(ui, state, reqManager)
@@ -301,6 +309,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TmpServiceName:          b.config.tmpServiceName,
 				InstanceSize:            b.config.InstanceSize,
 				Username:                b.config.username,
+				Subnet:                  b.config.Subnet,
+				VNet:                    b.config.VNet,
 			},
 
 			&targets.StepPollStatus{
@@ -350,6 +360,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				InstanceSize:            b.config.InstanceSize,
 				Username:                b.config.username,
 				Password:                utils.RandomPassword(),
+				Subnet:                  b.config.Subnet,
+				VNet:                    b.config.VNet,
 			},
 			&targets.StepPollStatus{
 				TmpServiceName: b.config.tmpServiceName,
