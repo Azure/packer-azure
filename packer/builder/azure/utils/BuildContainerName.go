@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"time"
 )
 
 func BuildContainerName() string {
