@@ -15,7 +15,7 @@ func _TestListResourceExtensions(t *testing.T) {
 
 	errMassage := "TestListResourceExtensions: %s\n"
 
-	reqManager, err := getRequestManager()
+	reqManager, err := getRequestManager(t)
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}

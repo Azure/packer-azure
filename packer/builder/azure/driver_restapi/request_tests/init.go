@@ -7,22 +7,21 @@ package request_tests
 
 import (
 	"fmt"
+	"os"
+	"testing"
+
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/driver"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
-	"runtime"
-)
-
-const (
-	psPathLin = "/home/azure/publish_setttings/ps.publishsettings"
-	psPathWin = "d:\\Packer.io\\PackerLinux\\ps.publishsettings"
 )
 
 var g_reqManager *request.Manager
 
-func getRequestManager() (*request.Manager, error) {
-
+func getRequestManager(t *testing.T) (*request.Manager, error) {
+	psPath := os.Getenv("PUBLISHSETTINGS")
+	if psPath == "" {
+		t.Skip("PUBLISHSETTINGS environment variable not set, skipping this test.")
+	}
 	if g_reqManager != nil {
 		return g_reqManager, nil
 	}
@@ -30,15 +29,7 @@ func getRequestManager() (*request.Manager, error) {
 	var d driver.IDriverRest
 	var err error
 
-	var psPath string
-
-	if runtime.GOOS == constants.Linux {
-		psPath = psPathLin
-	} else if runtime.GOOS == constants.Windows {
-		psPath = psPathWin
-	}
-
-	subscriptionInfo, err := driver_restapi.ParsePublishSettings(psPath, "Snesha-PuppetLabs")
+	subscriptionInfo, err := driver_restapi.ParsePublishSettings(psPath, "PackerTestSubscription")
 
 	if err != nil {
 		return nil, fmt.Errorf("ParsePublishSettings error: %s\n", err.Error())

@@ -15,7 +15,7 @@ func _TestListServiceCertificates(t *testing.T) {
 
 	errMassage := "TestListServiceCertificates: %s\n"
 
-	reqManager, err := getRequestManager()
+	reqManager, err := getRequestManager(t)
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}

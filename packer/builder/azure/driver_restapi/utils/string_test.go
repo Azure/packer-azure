@@ -16,6 +16,4 @@ func TestClue(t *testing.T) {
 	a = Clue(a, b)
 
 	t.Logf("a: '%s'", a)
-
-	t.Error("eom")
 }
