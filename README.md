@@ -1,4 +1,4 @@
-packer-azure
+packer-azure [![Build Status](https://travis-ci.org/MSOpenTech/packer-azure.svg)](https://travis-ci.org/MSOpenTech/packer-azure)
 =============
 
 Packer is an open source tool for creating identical machine images for multiple platforms from a single source configuration. For an introduction to Packer, check out documentation at http://www.packer.io/intro/index.html.
