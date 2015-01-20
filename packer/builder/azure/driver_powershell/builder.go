@@ -286,6 +286,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				InstanceSize:   b.config.InstanceSize,
 				Username:       b.config.username,
 				ContainerUrl:   containerUrl,
+				Subnet:         b.config.Subnet,
+				VNet:           b.config.VNet,
 			},
 			&target.StepGetEndpoint{
 				OsType:         b.config.OsType,
@@ -348,6 +350,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				Username:       b.config.username,
 				Password:       password,
 				ContainerUrl:   containerUrl,
+				Subnet:         b.config.Subnet,
+				VNet:           b.config.VNet,
 			},
 
 			&win.StepInstallCertificate{

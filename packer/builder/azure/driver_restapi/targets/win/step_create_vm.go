@@ -48,7 +48,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 
 	mediaLoc := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s.vhd", s.StorageAccount, s.StorageAccountContainer, s.TmpVmName)
 
-	requestData := reqManager.CreateVirtualMachineDeploymentWin(isOSImage, s.TmpServiceName, s.TmpVmName, s.InstanceSize, s.Username, s.Password, osImageName, mediaLoc)
+	requestData := reqManager.CreateVirtualMachineDeploymentWin(isOSImage, s.TmpServiceName, s.TmpVmName, s.InstanceSize, s.Username, s.Password, osImageName, mediaLoc, s.Subnet, s.VNet)
 
 	err = reqManager.ExecuteSync(requestData)
 

@@ -7,6 +7,7 @@ package lin
 import (
 	"bytes"
 	"fmt"
+
 	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
@@ -21,6 +22,8 @@ type StepCreateVm struct {
 	InstanceSize   string
 	Username       string
 	ContainerUrl   string
+	Subnet         string
+	VNet           string
 }
 
 func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
@@ -61,7 +64,14 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 	//	blockBuffer.WriteString("$myVM = New-AzureVMConfig -Name $tmpVmName -InstanceSize $instanceSize -ImageName $image.ImageName -DiskLabel 'PackerMade' -MediaLocation $mediaLoc | Add-AzureProvisioningConfig -Linux -Password $password -LinuxUser $username;")
 
 	//	blockBuffer.WriteString("New-AzureVM -ServiceName $tmpServiceName -VMs $myVM -Location $location -WaitForBoot;")
-	blockBuffer.WriteString("New-AzureVM -ServiceName $tmpServiceName -VMs $myVM -WaitForBoot;")
+	if s.Subnet != "" && s.VNet != "" {
+		blockBuffer.WriteString("$subnet = '" + s.Subnet + "';")
+		blockBuffer.WriteString("$vnet = '" + s.VNet + "';")
+		blockBuffer.WriteString("New-AzureVM -ServiceName $tmpServiceName -VMs $myVM -VNetName $vnet -AffinityGroup $vnet -WaitForBoot;")
+		blockBuffer.WriteString("Set-AzureSubnet '$subnet'")
+	} else {
+		blockBuffer.WriteString("New-AzureVM -ServiceName $tmpServiceName -VMs $myVM -WaitForBoot;")
+	}
 	blockBuffer.WriteString("}")
 
 	err := driver.Exec(blockBuffer.String())

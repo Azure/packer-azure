@@ -271,8 +271,6 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put(constants.DiskExists, 0)
 	state.Put(constants.VmRunning, 0)
 	state.Put(constants.ImageCreated, 0)
-	state.Put(constants.Subnet, 0)
-	state.Put(constants.VNet, 0)
 
 	ui.Say("Validating Azure Options...")
 	err = b.validateAzureOptions(ui, state, reqManager)
