@@ -16,6 +16,14 @@ const (
 	A7         string = "A7"
 	A8         string = "A8"
 	A9         string = "A9"
+	D1         string = "Standard_D1"
+	D2         string = "Standard_D2"
+	D3         string = "Standard_D3"
+	D4         string = "Standard_D4"
+	D11        string = "Standard_D11"
+	D12        string = "Standard_D12"
+	D13        string = "Standard_D13"
+	D14        string = "Standard_D14"
 )
 
 // Target types
