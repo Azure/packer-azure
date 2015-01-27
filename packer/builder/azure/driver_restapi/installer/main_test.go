@@ -9,26 +9,35 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"testing"
 )
 
 const (
-	srcPathTest    string = "d:/Packer.io/PackerLinux/installer/config-template"
-	dstPathTest    string = "d:/Packer.io/PackerLinux/installer/.packerconfig"
-	dstPathModTest string = "d:/Packer.io/PackerLinux/installer/.packerconfigMod"
+	srcPathTest    string = "/config-template"
+	dstPathTest    string = "/.packerconfig"
+	dstPathModTest string = "/.packerconfigMod"
 )
 
 func TestModifyCoreConfig(t *testing.T) {
-	err := ModifyCoreConfig(srcPathTest, dstPathTest)
+	path := os.Getenv("CONFIGTESTPATH")
+	if path == "" {
+		t.Skip("CONFIGTESTPATH environment variable not set, skipping this test.")
+	}
+
+	err := ModifyCoreConfig(path+srcPathTest, path+dstPathTest)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	t.Error("eom")
 }
 
 func _TestJSON(t *testing.T) {
+	path := os.Getenv("CONFIGTESTPATH")
+	if path == "" {
+		t.Skip("CONFIGTESTPATH environment variable not set, skipping this test.")
+	}
 
-	srcData, err := ioutil.ReadFile(srcPathTest)
+	srcData, err := ioutil.ReadFile(path + srcPathTest)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -37,7 +46,7 @@ func _TestJSON(t *testing.T) {
 	fmt.Println(srcConf)
 	fmt.Println(srcConf.Builders["azure1"])
 
-	dstData, err := ioutil.ReadFile(dstPathTest)
+	dstData, err := ioutil.ReadFile(path + dstPathTest)
 	if err != nil {
 		t.Error(err.Error())
 
@@ -82,11 +91,9 @@ func _TestJSON(t *testing.T) {
 			t.Error(err.Error())
 		}
 
-		err = ioutil.WriteFile(dstPathModTest, dstDataMod, 0600)
+		err = ioutil.WriteFile(path+dstPathModTest, dstDataMod, 0600)
 		if err != nil {
 			t.Error(err.Error())
 		}
 	}
-
-	t.Error("eom")
 }

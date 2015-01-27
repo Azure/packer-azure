@@ -16,7 +16,7 @@ func _TestGetOsImages(t *testing.T) {
 
 	errMassage := "GetOsImages: %s\n"
 
-	reqManager, err := getRequestManager()
+	reqManager, err := getRequestManager(t)
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}

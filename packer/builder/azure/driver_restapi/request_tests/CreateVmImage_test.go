@@ -15,7 +15,7 @@ func _TestCreateVmImage(t *testing.T) {
 
 	errMassage := "TestCreateVmImage: %s\n"
 
-	reqManager, err := getRequestManager()
+	reqManager, err := getRequestManager(t)
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}

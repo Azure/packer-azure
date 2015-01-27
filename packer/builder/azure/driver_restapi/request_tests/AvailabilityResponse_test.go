@@ -14,7 +14,7 @@ func _TestAvailabilityResponse(t *testing.T) {
 	t.Log("+++TestAvailabilityResponse")
 	errMassage := "AvailabilityResponse: %s\n"
 
-	reqManager, err := getRequestManager()
+	reqManager, err := getRequestManager(t)
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}

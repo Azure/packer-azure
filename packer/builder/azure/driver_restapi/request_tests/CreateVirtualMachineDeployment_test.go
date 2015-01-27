@@ -14,7 +14,7 @@ func _TestCreateVirtualMachineDeployment(t *testing.T) {
 
 	errMassage := "TestCreateVirtualMachineDeployment: %s\n"
 
-	reqManager, err := getRequestManager()
+	reqManager, err := getRequestManager(t)
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}

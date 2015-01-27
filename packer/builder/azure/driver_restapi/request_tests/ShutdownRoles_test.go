@@ -14,7 +14,7 @@ func _TestShutdownRoles(t *testing.T) {
 
 	errMassage := "TestCaptureVmImage: %s\n"
 
-	reqManager, err := getRequestManager()
+	reqManager, err := getRequestManager(t)
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}

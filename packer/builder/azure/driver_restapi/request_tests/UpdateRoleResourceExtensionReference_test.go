@@ -17,7 +17,7 @@ func _TestUpdateRoleResourceExtensionReference(t *testing.T) {
 
 	errMassage := "TestUpdateRoleResourceExtensionReference: %s\n"
 
-	reqManager, err := getRequestManager()
+	reqManager, err := getRequestManager(t)
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}

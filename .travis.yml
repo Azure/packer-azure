@@ -1,0 +1,14 @@
+language: go
+
+go:
+  - 1.4
+  - tip
+
+env:
+  - GOTAGS=restapi
+
+install:
+  - go get -d -v -t -tags "$GOTAGS" ./...
+  - go build -v -tags "$GOTAGS" ./...
+
+script: go test -v -tags "$GOTAGS" ./...

@@ -15,7 +15,7 @@ func _TestGetStorageAccountKeys(t *testing.T) {
 
 	errMassage := "TestGetStorageAccountKeys: %s\n"
 
-	reqManager, err := getRequestManager()
+	reqManager, err := getRequestManager(t)
 	if err != nil {
 		t.Errorf(errMassage, err.Error())
 	}
