@@ -11,11 +11,11 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/mitchellh/go-homedir"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -114,21 +114,10 @@ func ParsePublishSettings(path string, subscriptionName string) (*SubscriptionIn
 
 	packerSubscriptionStoreDirName := ".packer_azure"
 
-	var usrHome string
-
-	if runtime.GOOS == constants.Windows {
-		usrHome = os.TempDir()
-	} else {
-		log.Println(fmt.Sprintf("getting user home dir..."))
-		// on Windows this operation takes too long (3+ minutes)
-		usr, err := user.Current()
-		if err != nil {
-			return nil, err
-		}
-
-		usrHome = usr.HomeDir
+	usrHome, err := homedir.Dir()
+	if err != nil {
+		return nil, err
 	}
-
 	log.Println(usrHome)
 
 	packerSubscriptionStoreDirPath := filepath.Join(usrHome, packerSubscriptionStoreDirName)
