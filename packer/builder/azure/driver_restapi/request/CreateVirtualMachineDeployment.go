@@ -10,7 +10,7 @@ import (
 	"fmt"
 )
 
-func (m *Manager) CreateVirtualMachineDeploymentLin(isOSImage bool, serviceName, vmName, vmSize, certThumbprint, userName, osImageName, mediaLoc string) *Data {
+func (m *Manager) CreateVirtualMachineDeploymentLin(isOSImage bool, serviceName, vmName, vmSize, certThumbprint, userName, osImageName, mediaLoc string, subnet string, vnet string) *Data {
 
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/hostedservices/%s/deployments", m.SubscrId, serviceName)
 
@@ -58,6 +58,11 @@ func (m *Manager) CreateVirtualMachineDeploymentLin(isOSImage bool, serviceName,
 	buff.WriteString("<Protocol>tcp</Protocol>")
 	buff.WriteString("</InputEndpoint>")
 	buff.WriteString("</InputEndpoints>")
+	if subnet != "" && vnet != "" {
+		buff.WriteString("<SubnetNames>")
+		buff.WriteString("<SubnetName>" + subnet + "</SubnetName>")
+		buff.WriteString("</SubnetNames>")
+	}
 	buff.WriteString("</ConfigurationSet>")
 	buff.WriteString("</ConfigurationSets>")
 	if !isOSImage {
@@ -72,6 +77,9 @@ func (m *Manager) CreateVirtualMachineDeploymentLin(isOSImage bool, serviceName,
 	buff.WriteString("<ProvisionGuestAgent>true</ProvisionGuestAgent>")
 	buff.WriteString("</Role>")
 	buff.WriteString("</RoleList>")
+	if subnet != "" && vnet != "" {
+		buff.WriteString("<VirtualNetworkName>" + vnet + "</VirtualNetworkName>")
+	}
 	buff.WriteString("</Deployment>")
 
 	data := &Data{
@@ -84,7 +92,7 @@ func (m *Manager) CreateVirtualMachineDeploymentLin(isOSImage bool, serviceName,
 	return data
 }
 
-func (m *Manager) CreateVirtualMachineDeploymentWin(isOSImage bool, serviceName, vmName, vmSize, userName, userPassword, osImageName, mediaLoc string) *Data {
+func (m *Manager) CreateVirtualMachineDeploymentWin(isOSImage bool, serviceName, vmName, vmSize, userName, userPassword, osImageName, mediaLoc string, subnet string, vnet string) *Data {
 
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/hostedservices/%s/deployments", m.SubscrId, serviceName)
 
@@ -109,6 +117,11 @@ func (m *Manager) CreateVirtualMachineDeploymentWin(isOSImage bool, serviceName,
 	buff.WriteString("<AdminPassword>" + userPassword + "</AdminPassword>")
 	buff.WriteString("<EnableAutomaticUpdates>true</EnableAutomaticUpdates>")
 	buff.WriteString("<AdminUsername>" + userName + "</AdminUsername>")
+	if subnet != "" && vnet != "" {
+		buff.WriteString("<SubnetNames>")
+		buff.WriteString("<SubnetName>" + subnet + "</SubnetName>")
+		buff.WriteString("</SubnetNames>")
+	}
 	buff.WriteString("</ConfigurationSet>")
 	buff.WriteString("</ConfigurationSets>")
 	if !isOSImage {
@@ -124,6 +137,9 @@ func (m *Manager) CreateVirtualMachineDeploymentWin(isOSImage bool, serviceName,
 	buff.WriteString("<ProvisionGuestAgent>true</ProvisionGuestAgent>")
 	buff.WriteString("</Role>")
 	buff.WriteString("</RoleList>")
+	if subnet != "" && vnet != "" {
+		buff.WriteString("<VirtualNetworkName>" + vnet + "</VirtualNetworkName>")
+	}
 	buff.WriteString("</Deployment>")
 
 	data := &Data{
