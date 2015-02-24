@@ -1,0 +1,1 @@
+This folder can contain extra assets that you need to set up your image.
