@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MSOpenTech/azure-sdk-for-go/management"
+	"github.com/Azure/azure-sdk-for-go/management"
 )
 
 func newDefaultRetryPolicy() retryPolicy {

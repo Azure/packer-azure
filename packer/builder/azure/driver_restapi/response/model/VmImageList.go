@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"regexp"
 	"sort"
 	"strings"
 )
@@ -62,18 +61,6 @@ type DataDiskConfiguration struct {
 	Lun                 string
 	MediaLink           string
 	LogicalDiskSizeInGB string
-}
-
-func (l *VmImageList) First(name string) *VMImage {
-	pattern := name
-	for _, im := range l.VMImages {
-		matchName, _ := regexp.MatchString(pattern, im.Name)
-		if matchName {
-			return &im
-		}
-	}
-
-	return nil
 }
 
 func (l *VmImageList) Filter(label, location string) []VMImage {

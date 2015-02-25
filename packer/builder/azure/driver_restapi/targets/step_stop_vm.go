@@ -6,10 +6,15 @@ package targets
 
 import (
 	"fmt"
+
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/retry"
+
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
+
+	"github.com/Azure/azure-sdk-for-go/management"
+	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"
 )
 
 type StepStopVm struct {
@@ -18,17 +23,16 @@ type StepStopVm struct {
 }
 
 func (s *StepStopVm) Run(state multistep.StateBag) multistep.StepAction {
-	reqManager := state.Get(constants.RequestManager).(*request.Manager)
+	client := state.Get(constants.RequestManager).(management.Client)
 	ui := state.Get(constants.Ui).(packer.Ui)
 
 	errorMsg := "Error Stopping Temporary Azure VM: %s"
 
 	ui.Say("Stopping Temporary Azure VM...")
 
-	requestData := reqManager.ShutdownRoles(s.TmpServiceName, s.TmpVmName)
-	err := reqManager.ExecuteSync(requestData)
-
-	if err != nil {
+	if err := retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
+		return vm.NewClient(client).ShutdownRole(s.TmpServiceName, s.TmpVmName, s.TmpVmName)
+	}); err != nil {
 		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)
 		ui.Error(err.Error())

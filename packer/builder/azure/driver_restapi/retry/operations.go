@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/MSOpenTech/azure-sdk-for-go/management"
+	"github.com/Azure/azure-sdk-for-go/management"
 )
 
 // ExecuteAsyncOperation blocks until the provided asyncOperation is
@@ -12,7 +12,7 @@ import (
 // errors are retried and additional retry rules can be specified.
 // If the operation was successful, nothing is returned, otherwise
 // an error is returned.
-func ExecuteAsyncOperation(client management.Client, asyncOperation func() (management.OperationId, error), extraRules ...RetryRule) error {
+func ExecuteAsyncOperation(client management.Client, asyncOperation func() (management.OperationID, error), extraRules ...RetryRule) error {
 	if asyncOperation == nil {
 		return fmt.Errorf("Parameter not specified: %s", "asyncOperation")
 	}
@@ -23,7 +23,7 @@ func ExecuteAsyncOperation(client management.Client, asyncOperation func() (mana
 
 		operationId, err := asyncOperation()
 		if err == nil {
-			err = client.WaitAsyncOperation(operationId)
+			err = client.WaitForOperation(operationId, nil)
 		}
 		if err != nil {
 			// need to remove the pointer receiver in Azure SDK to make these *'s go away

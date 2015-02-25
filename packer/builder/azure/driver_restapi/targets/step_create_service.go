@@ -5,12 +5,17 @@
 package targets
 
 import (
+	"encoding/base64"
 	"fmt"
 
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/retry"
+
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
+
+	"github.com/Azure/azure-sdk-for-go/management"
+	"github.com/Azure/azure-sdk-for-go/management/hostedservice"
 )
 
 type StepCreateService struct {
@@ -19,17 +24,19 @@ type StepCreateService struct {
 }
 
 func (s *StepCreateService) Run(state multistep.StateBag) multistep.StepAction {
-	reqManager := state.Get(constants.RequestManager).(*request.Manager)
+	client := state.Get(constants.RequestManager).(management.Client)
+	hsc := hostedservice.NewClient(client)
 	ui := state.Get(constants.Ui).(packer.Ui)
 
-	errorMsg := "Error Creating Temporary Azure Service: %s"
+	errorMsg := "Error creating temporary Azure service: %s"
 
-	ui.Say("Creating Temporary Azure Service...")
+	ui.Say("Creating temporary Azure service...")
 
-	requestData := reqManager.CreateCloudService(s.TmpServiceName, s.Location)
-	err := reqManager.ExecuteSync(requestData)
-
-	if err != nil {
+	if err := hsc.CreateHostedService(hostedservice.CreateHostedServiceParameters{
+		ServiceName: s.TmpServiceName,
+		Location:    s.Location,
+		Label:       base64.StdEncoding.EncodeToString([]byte(s.TmpServiceName)),
+	}); err != nil {
 		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)
 		ui.Error(err.Error())
@@ -42,24 +49,18 @@ func (s *StepCreateService) Run(state multistep.StateBag) multistep.StepAction {
 }
 
 func (s *StepCreateService) Cleanup(state multistep.StateBag) {
-	reqManager := state.Get(constants.RequestManager).(*request.Manager)
+	client := state.Get(constants.RequestManager).(management.Client)
+	hsc := hostedservice.NewClient(client)
 	ui := state.Get(constants.Ui).(packer.Ui)
 
-	var err error
-	var res int
+	if res := state.Get(constants.SrvExists).(int); res == 1 {
+		ui.Say("Removing temporary Azure service and its deployments, if any...")
+		errorMsg := "Error removing temporary Azure service: %s"
 
-	if res = state.Get(constants.SrvExists).(int); res == 1 {
-		ui.Say("Removing Temporary Azure Service and It's Deployments If Any...")
-		errorMsg := "Error Removing Temporary Azure Service: %s"
-
-		var requestData *request.Data
-		requestData = reqManager.DeleteCloudServiceAndMedia(s.TmpServiceName)
-
-		err = reqManager.ExecuteSync(requestData)
-
-		if err != nil {
-			err := fmt.Errorf(errorMsg, err)
-			ui.Error(err.Error())
+		if err := retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
+			return hsc.DeleteHostedService(s.TmpServiceName, true)
+		}); err != nil {
+			ui.Error(fmt.Sprintf(errorMsg, err))
 			return
 		}
 	}

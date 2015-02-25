@@ -6,14 +6,16 @@ package win
 
 import (
 	"fmt"
+
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	azureservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
-	storageservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
 	"github.com/MSOpenTech/packer-azure/packer/communicator/azureVmCustomScriptExtension"
+
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	"log"
+
+	"github.com/Azure/azure-sdk-for-go/management"
+	"github.com/Azure/azure-sdk-for-go/management/storageservice"
+	"github.com/Azure/azure-sdk-for-go/storage"
 )
 
 type StepSetProvisionInfrastructure struct {
@@ -21,52 +23,42 @@ type StepSetProvisionInfrastructure struct {
 	ServiceName              string
 	StorageAccountName       string
 	TempContainerName        string
-	storageServiceDriver     *storageservice.StorageServiceDriver
+	storageClient            storage.Client
 	flagTempContainerCreated bool
 }
 
 func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
-	reqManager := state.Get(constants.RequestManager).(*azureservice.Manager)
+	client := state.Get(constants.RequestManager).(management.Client)
 
 	errorMsg := "Error StepRemoteSession: %s"
 	ui.Say("Preparing infrastructure for provision...")
 
 	// get key for storage account
 	ui.Message("Getting key for storage account...")
-	storageAccountName := s.StorageAccountName
-	requestData := reqManager.GetStorageAccountKeys(storageAccountName)
-	resp, err := reqManager.Execute(requestData)
 
+	keys, err := storageservice.NewClient(client).GetStorageServiceKeys(s.StorageAccountName)
 	if err != nil {
 		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
-
-	storageService, err := response.ParseStorageService(resp.Body)
-
-	if err != nil {
-		err := fmt.Errorf(errorMsg, err)
-		state.Put("error", err)
-		ui.Error(err.Error())
-		return multistep.ActionHalt
-	}
-
-	log.Printf("storageService: %v\n\n", storageService)
-
-	storageAccountKey := storageService.StorageServiceKeys.Primary
 
 	//create storage driver
-	storageServiceDriver := storageservice.NewStorageServiceDriver(storageAccountName, storageAccountKey)
-	s.storageServiceDriver = storageServiceDriver
+	s.storageClient, err = storage.NewBasicClient(s.StorageAccountName, keys.PrimaryKey)
+	if err != nil {
+		err := fmt.Errorf(errorMsg, err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
 
 	//create temporary container
 	s.flagTempContainerCreated = false
 
-	ui.Message("Creating Azure Temporaty container...")
-	_, err = storageServiceDriver.CreateContainer(s.TempContainerName)
+	ui.Message("Creating Azure temporary container...")
+	err = s.storageClient.GetBlobService().CreateContainer(s.TempContainerName, storage.ContainerAccessTypePrivate)
 	if err != nil {
 		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)
@@ -79,14 +71,15 @@ func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep
 	isOSImage := state.Get(constants.IsOSImage).(bool)
 
 	comm, err := azureVmCustomScriptExtension.New(
-		&azureVmCustomScriptExtension.Config{
-			ServiceName:                s.ServiceName,
-			VmName:                     s.VmName,
-			StorageServiceDriver:       storageServiceDriver,
-			AzureServiceRequestManager: reqManager,
-			ContainerName:              s.TempContainerName,
-			Ui:                         ui,
-			IsOSImage:                  isOSImage,
+		azureVmCustomScriptExtension.Config{
+			ServiceName:        s.ServiceName,
+			VmName:             s.VmName,
+			StorageAccountName: s.StorageAccountName,
+			StorageAccountKey:  keys.PrimaryKey,
+			ContainerName:      s.TempContainerName,
+			Ui:                 ui,
+			IsOSImage:          isOSImage,
+			ManagementClient:   client,
 		})
 
 	if err != nil {
@@ -108,11 +101,11 @@ func (s *StepSetProvisionInfrastructure) Cleanup(state multistep.StateBag) {
 	ui.Say("Cleaning Up Infrastructure for provision...")
 
 	if s.flagTempContainerCreated {
-		ui.Message("Removing Azure Temporaty container...")
+		ui.Message("Removing Azure temporary container...")
 
-		_, err := s.storageServiceDriver.DeleteContainer(s.TempContainerName)
+		err := s.storageClient.GetBlobService().DeleteContainer(s.TempContainerName)
 		if err != nil {
-			ui.Message("Error removing temporaty container: " + err.Error())
+			ui.Message("Error removing temporary container: " + err.Error())
 		}
 	}
 }

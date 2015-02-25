@@ -13,39 +13,50 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"code.google.com/p/go-uuid/uuid"
-	azureservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response/model"
-	storageservice "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/storage_service/request"
+
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/retry"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/utils"
-	"time"
+
+	"github.com/Azure/azure-sdk-for-go/management"
+	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"
+	"github.com/Azure/azure-sdk-for-go/management/vmutils"
+	"github.com/Azure/azure-sdk-for-go/storage"
 )
 
 const extPublisher = "Microsoft.Compute"
 const extName = "CustomScriptExtension"
 
 type comm struct {
-	config *Config
+	config Config
 	uris   string
 }
 
 type Config struct {
-	ServiceName                string
-	VmName                     string
-	StorageServiceDriver       *storageservice.StorageServiceDriver
-	AzureServiceRequestManager *azureservice.Manager
-	ContainerName              string
-	Ui                         packer.Ui
-	IsOSImage                  bool
+	ServiceName        string
+	VmName             string
+	StorageAccountName string
+	StorageAccountKey  string
+	ContainerName      string
+	Ui                 packer.Ui
+	IsOSImage          bool
+	ManagementClient   management.Client
+
+	blobClient storage.BlobStorageClient
 }
 
-func New(config *Config) (result *comm, err error) {
+func New(config Config) (result *comm, err error) {
+	storageClient, err := storage.NewBasicClient(config.StorageAccountName, config.StorageAccountKey)
+	if err != nil {
+		return nil, err
+	}
+	config.blobClient = storageClient.GetBlobService()
+
 	result = &comm{
 		config: config,
 	}
-
 	return
 }
 
@@ -110,85 +121,77 @@ func (c *comm) sleepSec(d time.Duration) {
 	time.Sleep(time.Second * d)
 }
 
-func (c *comm) requestCustomScriptExtension() (*model.ResourceExtension, error) {
-	reqManager := c.config.AzureServiceRequestManager
+func (c *comm) requestCustomScriptExtension() (*vm.ResourceExtension, error) {
 
 	log.Println("Requesting resource extensions...")
-	requestData := reqManager.ListResourceExtensions()
-	resp, err := reqManager.Execute(requestData)
 
-	if err != nil {
-		return nil, err
-	}
-
-	list, err := response.ParseResourceExtensionList(resp.Body)
-
+	list, err := vm.NewClient(c.config.ManagementClient).GetResourceExtensions()
 	if err != nil {
 		return nil, err
 	}
 
 	log.Println("Searching for CustomScriptExtension...")
-	ext := list.FirstOrNull("CustomScriptExtension")
-	log.Printf("CustomScriptExtension: %v\n\n", ext)
-
-	if ext == nil {
-		err = fmt.Errorf("CustomScriptExtension is nil")
-		return nil, err
+	for _, ext := range list {
+		if ext.Name == "CustomScriptExtension" {
+			log.Printf("CustomScriptExtension: %v\n\n", ext)
+			return &ext, nil
+		}
 	}
 
-	return ext, nil
+	return nil, fmt.Errorf("Couldn't find CustomScriptExtension, am I too old or is Azure broken?")
 }
 
 func (c *comm) updateRoleResourceExtension(
 	nameOfReference, nameOfPublisher, nameOfExtension, versionOfExtension, state string,
-	params []azureservice.ResourceExtensionParameterValue) error {
+	params []vm.ResourceExtensionParameter) error {
 
-	reqManager := c.config.AzureServiceRequestManager
+	client := c.config.ManagementClient
 
 	serviceName := c.config.ServiceName
 	vmName := c.config.VmName
 
 	log.Println("Updating Role Resource Extension...")
 
-	requestData := reqManager.UpdateRoleResourceExtensionReference(serviceName, vmName, nameOfReference, nameOfPublisher, nameOfExtension, versionOfExtension, state, params)
-	err := reqManager.ExecuteSync(requestData)
+	role := vm.Role{}
+	vmutils.AddAzureVMExtensionConfiguration(&role,
+		nameOfExtension, nameOfPublisher, versionOfExtension, nameOfReference, state, []byte{}, []byte{})
+	// HACK-paulmey: clean up later
+	(*role.ResourceExtensionReferences)[0].ParameterValues = params
 
-	if err != nil {
+	if err := retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
+		return vm.NewClient(client).UpdateRole(serviceName, vmName, vmName, role)
+	}); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (c *comm) buildParams(runScript string) (params []azureservice.ResourceExtensionParameterValue) {
-	storageAccountName, storageAccountKey := c.config.StorageServiceDriver.GetProps()
-
-	account := "{\"storageAccountName\":\"" + storageAccountName + "\",\"storageAccountKey\": \"" + storageAccountKey + "\"}"
+func (c *comm) buildParams(runScript string) []vm.ResourceExtensionParameter {
 
 	scriptfile := "{\"fileUris\": [" + c.uris + "], \"commandToExecute\":\"powershell -ExecutionPolicy Unrestricted -file " + runScript + "\"}"
+	account := "{\"storageAccountName\":\"" + c.config.StorageAccountName + "\",\"storageAccountKey\": \"" + c.config.StorageAccountKey + "\"}"
 
-	params = []azureservice.ResourceExtensionParameterValue{
-		azureservice.ResourceExtensionParameterValue{
+	return []vm.ResourceExtensionParameter{
+		vm.ResourceExtensionParameter{
 			Key:   "CustomScriptExtensionPublicConfigParameter",
 			Value: base64.StdEncoding.EncodeToString([]byte(scriptfile)),
 			Type:  "Public",
 		},
-		azureservice.ResourceExtensionParameterValue{
+		vm.ResourceExtensionParameter{
 			Key:   "CustomScriptExtensionPrivateConfigParameter",
 			Value: base64.StdEncoding.EncodeToString([]byte(account)),
 			Type:  "Private",
 		},
 	}
-
-	return
 }
 
 func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string, err error) {
-	reqManager := c.config.AzureServiceRequestManager
+	client := c.config.ManagementClient
 	log.Println("Polling CustomScriptExtension is ready. It may take some time...")
 
-	var deployment *model.Deployment
-	var res *model.ResourceExtensionStatus
+	var deployment vm.DeploymentResponse
+	var extStatus *vm.ResourceExtensionStatus // paulmey-BUG #58: should not be pointer
 	const statusSuccess = "Success"
 	const statusError = "Error"
 
@@ -199,27 +202,19 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 
 	const attemptLimit uint = 30
 
-	requestData := reqManager.GetDeployment(serviceName, vmName)
 	updateCount := attemptLimit
 
 	for ; updateCount > 0; updateCount-- {
 
 		repeatCount := attemptLimit
 		for ; repeatCount > 0; repeatCount-- {
-			resp, errEx := reqManager.Execute(requestData)
-
-			if errEx != nil {
-				err = errEx
-				return
-			}
-
-			deployment, err = response.ParseDeployment(resp.Body)
+			deployment, err = vm.NewClient(client).GetDeployment(serviceName, vmName)
 
 			if err != nil {
 				return
 			}
 
-			if deployment.RoleInstanceList[0].InstanceStatus == "ReadyRole" {
+			if deployment.RoleInstanceList[0].InstanceStatus == vm.InstanceStatusReadyRole {
 				if len(deployment.RoleInstanceList[0].ResourceExtensionStatusList) > 0 {
 					break
 				}
@@ -237,18 +232,18 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 
 		for _, s := range deployment.RoleInstanceList[0].ResourceExtensionStatusList {
 			if s.HandlerName == extHandlerName {
-				res = &s
+				extStatus = &s
 			}
 		}
 
-		if res == nil {
+		if extStatus == nil {
 			err = fmt.Errorf("CustomScriptExtension status not found")
 			return
 		}
 
-		log.Printf("CustomScriptExtension status: %v", res)
+		log.Printf("CustomScriptExtension status: %v", extStatus)
 
-		extensionSettingStatus := res.ExtensionSettingStatus
+		extensionSettingStatus := extStatus.ExtensionSettingStatus
 
 		if extensionSettingStatus.Status == statusError {
 			err = fmt.Errorf("CustomScriptExtension operation '%s' status: %s", extensionSettingStatus.Operation, extensionSettingStatus.FormattedMessage.Message)
@@ -259,7 +254,7 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 
 		var stdOut, stdErr string
 
-		for _, subStatus := range res.ExtensionSettingStatus.SubStatusList {
+		for _, subStatus := range extStatus.ExtensionSettingStatus.SubStatusList {
 			if subStatus.Name == "StdOut" {
 				if subStatus.Status != statusSuccess {
 					stdOut = fmt.Sprintf("StdOut failed with message: '%s'", subStatus.FormattedMessage.Message)
@@ -309,29 +304,21 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 }
 
 func (c *comm) pollCustomScriptIsUninstalled() error {
-	reqManager := c.config.AzureServiceRequestManager
+	client := c.config.ManagementClient
 	log.Println("Polling CustomScript is uninstalled. It may take some time...")
 
 	serviceName := c.config.ServiceName
 	vmName := c.config.VmName
 
-	requestData := reqManager.GetDeployment(serviceName, vmName)
 	const attemptLimit uint = 30
 	repeatCount := attemptLimit
 	for ; repeatCount > 0; repeatCount-- {
-		resp, err := reqManager.Execute(requestData)
-
+		deployment, err := vm.NewClient(client).GetDeployment(serviceName, vmName)
 		if err != nil {
 			return err
 		}
 
-		deployment, err := response.ParseDeployment(resp.Body)
-
-		if err != nil {
-			return err
-		}
-
-		if deployment.RoleInstanceList[0].InstanceStatus == "ReadyRole" {
+		if deployment.RoleInstanceList[0].InstanceStatus == vm.InstanceStatusReadyRole {
 			if len(deployment.RoleInstanceList[0].ResourceExtensionStatusList) == 0 {
 				break
 			}
@@ -394,9 +381,9 @@ func (c *comm) uploadFile(dscPath string, srcPath string) error {
 	}
 
 	ui := c.config.Ui
-	sa := c.config.StorageServiceDriver
+	sa := c.config.blobClient
 
-	storageAccountName, _ := c.config.StorageServiceDriver.GetProps()
+	storageAccountName := c.config.StorageAccountName
 	containerName := c.config.ContainerName
 
 	fileName := filepath.Base(srcPath)
@@ -412,7 +399,20 @@ func (c *comm) uploadFile(dscPath string, srcPath string) error {
 
 	ui.Message(fmt.Sprintf("Uploading file to to Azure storage container '%s' => '%s'...", srcPath, containerName))
 
-	_, err = sa.PutBlob(containerName, srcPath)
+	d, err := ioutil.ReadFile(srcPath)
+	if err != nil {
+		return fmt.Errorf("Error reading file %s: %v", srcPath, err)
+	}
+
+	err = sa.PutPageBlob(containerName, fileName, int64(len(d)))
+	if err != nil {
+		return fmt.Errorf("Error creating page blob of size %d in container %s for file %s: %v", len(d), containerName, fileName, err)
+	}
+
+	err = sa.PutPage(containerName, fileName, 0, int64(len(d)-1), storage.PageWriteTypeClear, d)
+	if err != nil {
+		return fmt.Errorf("Error writing page blob of size %d in container %s for file %s: %v", len(d), containerName, fileName, err)
+	}
 
 	return err
 }
