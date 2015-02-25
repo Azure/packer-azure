@@ -6,12 +6,9 @@
 package request_tests
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/driver"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 )
 
@@ -22,30 +19,14 @@ func getRequestManager(t *testing.T) (*request.Manager, error) {
 	if psPath == "" {
 		t.Skip("PUBLISHSETTINGS environment variable not set, skipping this test.")
 	}
+
 	if g_reqManager != nil {
 		return g_reqManager, nil
 	}
 
-	var d driver.IDriverRest
-	var err error
-
-	subscriptionInfo, err := driver_restapi.ParsePublishSettings(psPath, "PackerTestSubscription")
-
+	g_reqManager, err := request.NewManager(psPath, "PackerTestSubscription")
 	if err != nil {
-		return nil, fmt.Errorf("ParsePublishSettings error: %s\n", err.Error())
-	}
-
-	fmt.Println("id: " + subscriptionInfo.Id)
-
-	d, err = driver.NewTlsDriver(subscriptionInfo.CertData)
-
-	if err != nil {
-		return nil, fmt.Errorf("NewTlsDriver error: %s\n", err.Error())
-	}
-
-	g_reqManager = &request.Manager{
-		SubscrId: subscriptionInfo.Id,
-		Driver:   d,
+		panic(err)
 	}
 
 	return g_reqManager, err

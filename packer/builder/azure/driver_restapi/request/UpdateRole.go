@@ -20,11 +20,6 @@ func (m *Manager) UpdateRoleResourceExtensionReference(serviceName, vmName, name
 
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/hostedservices/%s/deployments/%s/roles/%s", m.SubscrId, serviceName, vmName, vmName)
 
-	headers := map[string]string{
-		"Content-Type": "application/xml",
-		"x-ms-version": "2014-06-01",
-	}
-
 	var buff bytes.Buffer
 	buff.WriteString("<PersistentVMRole xmlns='http://schemas.microsoft.com/windowsazure' xmlns:i='http://www.w3.org/2001/XMLSchema-instance'>")
 
@@ -56,10 +51,9 @@ func (m *Manager) UpdateRoleResourceExtensionReference(serviceName, vmName, name
 	buff.WriteString("</PersistentVMRole>")
 
 	data := &Data{
-		Verb:    "PUT",
-		Uri:     uri,
-		Headers: headers,
-		Body:    &buff,
+		Verb: "PUT",
+		Uri:  uri,
+		Body: buff.Bytes(),
 	}
 
 	return data

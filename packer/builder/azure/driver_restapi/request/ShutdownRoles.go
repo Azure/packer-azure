@@ -14,11 +14,6 @@ func (m *Manager) ShutdownRoles(serviceName string, vmName string) *Data {
 
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/hostedservices/%s/deployments/%s/roles/Operations", m.SubscrId, serviceName, vmName)
 
-	headers := map[string]string{
-		"Content-Type": "application/xml",
-		"x-ms-version": "2013-06-01",
-	}
-
 	var buff bytes.Buffer
 	buff.WriteString("<ShutdownRolesOperation xmlns='http://schemas.microsoft.com/windowsazure' xmlns:i='http://www.w3.org/2001/XMLSchema-instance'>")
 	buff.WriteString("<OperationType>ShutdownRolesOperation</OperationType>")
@@ -29,10 +24,9 @@ func (m *Manager) ShutdownRoles(serviceName string, vmName string) *Data {
 	buff.WriteString("</ShutdownRolesOperation>")
 
 	data := &Data{
-		Verb:    "POST",
-		Uri:     uri,
-		Headers: headers,
-		Body:    &buff,
+		Verb: "POST",
+		Uri:  uri,
+		Body: buff.Bytes(),
 	}
 
 	return data
