@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/driver"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/targets"
@@ -251,24 +250,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	var err error
 	ui.Say("Preparing builder...")
 
-	ui.Message("Getting subscr info...")
-	var subscriptionInfo *SubscriptionInfo
-	subscriptionInfo, err = ParsePublishSettings(b.config.PublishSettingsPath, b.config.SubscriptionName)
+	ui.Message("Creating a new request manager...")
+	reqManager, err := request.NewManager(b.config.PublishSettingsPath, b.config.SubscriptionName)
 	if err != nil {
-		return nil, fmt.Errorf("ParsePublishSettings error: %s\n", err.Error())
-	}
-
-	ui.Message("Creating a New Driver...")
-	var driverRest driver.IDriverRest
-	driverRest, err = driver.NewTlsDriver(subscriptionInfo.CertData)
-	if err != nil {
-		return nil, fmt.Errorf("Failed creating rest api driver: %s", err)
-	}
-
-	ui.Message("Creating a New Request Manager...")
-	reqManager := &request.Manager{
-		SubscrId: subscriptionInfo.Id,
-		Driver:   driverRest,
+		return nil, fmt.Errorf("Error creating request manager: %s", err)
 	}
 
 	// Set up the state.

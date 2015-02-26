@@ -15,11 +15,6 @@ func (m *Manager) CreateCloudService(serviceName, location string) *Data {
 
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/hostedservices", m.SubscrId)
 
-	headers := map[string]string{
-		"Content-Type": "application/xml",
-		"x-ms-version": "2010-10-28",
-	}
-
 	serviceNameLabel := base64.StdEncoding.EncodeToString([]byte(serviceName))
 
 	var buff bytes.Buffer
@@ -32,10 +27,9 @@ func (m *Manager) CreateCloudService(serviceName, location string) *Data {
 	buff.WriteString("</CreateHostedService>")
 
 	data := &Data{
-		Verb:    "POST",
-		Uri:     uri,
-		Headers: headers,
-		Body:    &buff,
+		Verb: "POST",
+		Uri:  uri,
+		Body: buff.Bytes(),
 	}
 
 	return data

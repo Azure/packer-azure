@@ -12,10 +12,5 @@ type Operation struct {
 	ID             string
 	Status         string
 	HttpStatusCode string
-	Error          Error `xml:"Error"`
-}
-
-type Error struct {
-	Code    string
-	Message string
+	Error          AzureError `xml:"Error"`
 }

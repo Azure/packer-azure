@@ -14,11 +14,6 @@ func (m *Manager) CaptureVMImage(serviceName, vmName, name, label, description, 
 	language := "english"
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/hostedservices/%s/deployments/%s/roleinstances/%s/Operations", m.SubscrId, serviceName, vmName, vmName)
 
-	headers := map[string]string{
-		"Content-Type": "application/xml",
-		"x-ms-version": "2014-05-01",
-	}
-
 	var buff bytes.Buffer
 	buff.WriteString("<CaptureRoleAsVMImageOperation xmlns='http://schemas.microsoft.com/windowsazure' xmlns:i='http://www.w3.org/2001/XMLSchema-instance'>")
 	buff.WriteString("<OperationType>CaptureRoleAsVMImageOperation</OperationType>")
@@ -32,10 +27,9 @@ func (m *Manager) CaptureVMImage(serviceName, vmName, name, label, description, 
 	buff.WriteString("</CaptureRoleAsVMImageOperation>")
 
 	data := &Data{
-		Verb:    "POST",
-		Uri:     uri,
-		Headers: headers,
-		Body:    &buff,
+		Verb: "POST",
+		Uri:  uri,
+		Body: buff.Bytes(),
 	}
 
 	return data

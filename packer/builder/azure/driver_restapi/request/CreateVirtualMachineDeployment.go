@@ -14,11 +14,6 @@ func (m *Manager) CreateVirtualMachineDeploymentLin(isOSImage bool, serviceName,
 
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/hostedservices/%s/deployments", m.SubscrId, serviceName)
 
-	headers := map[string]string{
-		"Content-Type": "application/xml",
-		"x-ms-version": "2014-02-01",
-	}
-
 	var buff bytes.Buffer
 	buff.WriteString("<Deployment xmlns:i='http://www.w3.org/2001/XMLSchema-instance' xmlns='http://schemas.microsoft.com/windowsazure'>")
 	buff.WriteString("<Name>" + vmName + "</Name>")
@@ -75,10 +70,9 @@ func (m *Manager) CreateVirtualMachineDeploymentLin(isOSImage bool, serviceName,
 	buff.WriteString("</Deployment>")
 
 	data := &Data{
-		Verb:    "POST",
-		Uri:     uri,
-		Headers: headers,
-		Body:    &buff,
+		Verb: "POST",
+		Uri:  uri,
+		Body: buff.Bytes(),
 	}
 
 	return data
@@ -87,11 +81,6 @@ func (m *Manager) CreateVirtualMachineDeploymentLin(isOSImage bool, serviceName,
 func (m *Manager) CreateVirtualMachineDeploymentWin(isOSImage bool, serviceName, vmName, vmSize, userName, userPassword, osImageName, mediaLoc string) *Data {
 
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/hostedservices/%s/deployments", m.SubscrId, serviceName)
-
-	headers := map[string]string{
-		"Content-Type": "application/xml",
-		"x-ms-version": "2014-05-01",
-	}
 
 	var buff bytes.Buffer
 	buff.WriteString("<Deployment xmlns:i='http://www.w3.org/2001/XMLSchema-instance' xmlns='http://schemas.microsoft.com/windowsazure'>")
@@ -127,10 +116,9 @@ func (m *Manager) CreateVirtualMachineDeploymentWin(isOSImage bool, serviceName,
 	buff.WriteString("</Deployment>")
 
 	data := &Data{
-		Verb:    "POST",
-		Uri:     uri,
-		Headers: headers,
-		Body:    &buff,
+		Verb: "POST",
+		Uri:  uri,
+		Body: buff.Bytes(),
 	}
 
 	return data

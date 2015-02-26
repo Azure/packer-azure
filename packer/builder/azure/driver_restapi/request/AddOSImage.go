@@ -13,11 +13,6 @@ import (
 func (m *Manager) AddOSImage(mediaLoc, os, name, label, description, imageFamily, recommendedVMSize, publishedDate string) *Data {
 	uri := fmt.Sprintf("https://management.core.windows.net/%s/services/images", m.SubscrId)
 
-	headers := map[string]string{
-		"Content-Type": "application/xml",
-		"x-ms-version": "2014-05-01",
-	}
-
 	language := "english"
 
 	var buff bytes.Buffer
@@ -40,10 +35,9 @@ func (m *Manager) AddOSImage(mediaLoc, os, name, label, description, imageFamily
 	buff.WriteString("</OSImage>")
 
 	data := &Data{
-		Verb:    "POST",
-		Uri:     uri,
-		Headers: headers,
-		Body:    &buff,
+		Verb: "POST",
+		Uri:  uri,
+		Body: buff.Bytes(),
 	}
 
 	return data
