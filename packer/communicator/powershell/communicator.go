@@ -7,7 +7,6 @@ package powershell
 import (
 	"bytes"
 	"fmt"
-	ps "github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_powershell/driver"
 	"github.com/mitchellh/packer/packer"
 	"io"
 	"os"
@@ -19,7 +18,7 @@ type comm struct {
 }
 
 type Config struct {
-	Driver        ps.Driver
+	Driver        Driver
 	Username      string
 	Password      string
 	RemoteHostUrl string
