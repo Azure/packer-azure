@@ -49,7 +49,7 @@ func TestWaitForOperation_returns_when_succeeded(t *testing.T) {
 
 	responseBody = "<Operation><Status>Succeeded</Status><ID>test</ID></Operation>"
 
-	if !b.WaitFor(defaultInterval + 5*time.Millisecond) {
+	if !b.WaitFor(defaultInterval + 15*time.Millisecond) {
 		t.Fatalf("Expected WaitForOperation to have returned, but it hasn't?")
 	}
 
@@ -92,7 +92,7 @@ func TestWaitForOperation_returns_when_failed(t *testing.T) {
 
 	responseBody = "<Operation><Status>Failed</Status><ID>test</ID><Error><Code>E1234</Code><Message>some error message</Message></Error></Operation>"
 
-	if !b.WaitFor(defaultInterval + 5*time.Millisecond) {
+	if !b.WaitFor(defaultInterval + 15*time.Millisecond) {
 		t.Fatalf("Expected WaitForOperation to have returned, but it hasn't?")
 	}
 

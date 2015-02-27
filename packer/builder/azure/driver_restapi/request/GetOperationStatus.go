@@ -31,7 +31,7 @@ func (m *Manager) GetOperationStatus(requestId string) (*model.Operation, error)
 	return response.ParseOperation(res.Body)
 }
 
-var defaultInterval = time.Duration(2 * time.Second)
+var defaultInterval = 2 * time.Second
 
 func (m *Manager) WaitForOperation(requestId string) (operation *model.Operation, err error) {
 	log.Printf("Manager.WaitForOperation (%s)", requestId)
