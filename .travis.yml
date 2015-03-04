@@ -1,14 +1,26 @@
+sudo: false
+
 language: go
 
 go:
   - 1.3
   - 1.4
 
-env:
-  - GOTAGS=restapi
-
-install:
-  - go get -d -v -t -tags "$GOTAGS" ./...
-  - go build -v -tags "$GOTAGS" ./...
-
-script: go test -v -tags "$GOTAGS" ./...
+before_deploy:
+  - go get github.com/mitchellh/gox
+  - gox -os="windows linux darwin" -arch="amd64" -build-toolchain 
+  - gox -arch="amd64" -os="windows linux darwin" -output "dist/{{.OS}}-{{.Arch}}/{{.Dir}}" ./...
+  - zip -j packer-azure-windows-amd64-${TRAVIS_TAG}.zip ./dist/windows-amd64/*
+  - tar -cvzf packer-azure-linux-amd64-${TRAVIS_TAG}.tar.gz -C dist/linux-amd64/ .
+  - tar -cvzf packer-azure-darwin-amd64-${TRAVIS_TAG}.tar.gz -C dist/darwin-amd64/ .
+deploy:
+  provider: releases
+  api_key:
+    secure: "hc/34PaDaoH8tvZ/gBD0bVJm01F2RS1kla4a07xnHZKOBAEfwhAkmteOCWc32qT6/yGEfm3CrhqDrYg3sbOkpxgYvL4ajEKwkQfhMUsrnZ4tESHMMOw4WBrVrwoVgTPIdT4H05kf5vcjmQNJvADPhJnvqqy826+WmQAH1W0FJ4s="
+  file:
+    - packer-azure-windows-amd64-${TRAVIS_TAG}.zip
+    - packer-azure-linux-amd64-${TRAVIS_TAG}.tar.gz
+    - packer-azure-darwin-amd64-${TRAVIS_TAG}.tar.gz
+  on:
+    tags: true
+    go: 1.4
