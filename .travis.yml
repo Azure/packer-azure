@@ -15,8 +15,7 @@ before_deploy:
   - tar -cvzf packer-azure-darwin-amd64-${TRAVIS_TAG}.tar.gz -C dist/darwin-amd64/ .
 deploy:
   provider: releases
-  api_key:
-    secure: "hc/34PaDaoH8tvZ/gBD0bVJm01F2RS1kla4a07xnHZKOBAEfwhAkmteOCWc32qT6/yGEfm3CrhqDrYg3sbOkpxgYvL4ajEKwkQfhMUsrnZ4tESHMMOw4WBrVrwoVgTPIdT4H05kf5vcjmQNJvADPhJnvqqy826+WmQAH1W0FJ4s="
+  api_key: ${GITHUB_TOKEN}
   file:
     - packer-azure-windows-amd64-${TRAVIS_TAG}.zip
     - packer-azure-linux-amd64-${TRAVIS_TAG}.tar.gz
