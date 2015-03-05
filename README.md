@@ -157,7 +157,7 @@ To launch a Windows instance in Azure:
     2. captures the VM to an user image;
     3. creates a VM from the captured image using **password and certificate authentication** - password authentication won't work.
 
-    - Sinse the Packer plugin uses the same scenario (steps 1-2) to provision images - be ready to use Packer created images with certificate authentication only.
+    - Since the Packer plugin uses the same scenario (steps 1-2) to provision images - be ready to use Packer created images with certificate authentication only.
     - **All Ubuntu distributions work fine**. 	
 
 
