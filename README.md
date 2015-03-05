@@ -15,6 +15,19 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 
 #### Packer version the plug-ins were tested is 0.7.2
 
+### Dependencies
+
+*	code.google.com/p/go.crypto
+*	code.google.com/p/go-uuid/uuid
+*	github.com/mitchellh/go-fs
+*	github.com/mitchellh/iochan
+*	github.com/mitchellh/mapstructure
+*	github.com/mitchellh/multistep
+*	github.com/mitchellh/packer
+*	github.com/hashicorp/go-version
+*	github.com/hashicorp/yamux
+*	github.com/hashicorp/go-msgpack/codec
+
 ### Windows dev-box
 
 * packer-azure for Windows implemented as a **PowerShell Azure** wrapper and consists of two plug-ins: **packer-builder-azure.exe** and **packer-provisioner-powershell-azure.exe** (for Windows targets); 
@@ -49,236 +62,102 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
   * go install github.com/MSOpenTech/packer-azure/packer/plugin/packer-provisioner-azure-custom-script-extension
   * copy built plugins from $GOPATH/bin to you Packer folder 
    
-* Quick Packer configuration examples:
- <table border="1" style="width:100%;font-size:medium;">
-     <tr>
-		<th>Linux target</th> 
-		<th>Windows target</th>
-     </tr>
-     <tr>
-		<td valign="top"  style="font-size:medium;" >
-			{<br>
-				<table align="left" border="0" style="font-size:medium;">
-				  <tr>
-					<td colspan=3>"builders":[{</td>
-				  </tr>
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"type":</td> 
-					<td>"azure",</td>
-				  </tr>
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"publish_settings_path":</td> 
-					<td>"your_path",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"subscription_name":</td> 
-					<td>"your_name",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"storage_account":</td> 
-					<td>"your_storage_account",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"storage_account_container":</td> 
-					<td>"my_images",</td>
-				  </tr> 
-			  
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"os_type":</td> 
-					<td>"Linux",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"os_image_label":</td> 
-					<td>"Ubuntu Server 14.04 LTS",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"location":</td> 
-					<td>"West US",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"instance_size":</td> 
-					<td>"Small",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"user_image_label":</td> 
-					<td>"PackerMade_Ubuntu_Serv14"</td>
-				  </tr> 
-				  <tr>
-					<td colspan=3>}],</td>
-				  </tr>
-				  <tr>
-					<td colspan=3>"provisioners":[{</td>
-				  </tr>
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"type":</td> 
-					<td>"shell",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"execute_command":</td> 
-					<td>"chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td valign="top">"inline": [</td> 
-					<td>
-						"sudo apt-get update",<br>
-						"sudo apt-get install -y mc",<br>
-						"sudo apt-get install -y nodejs",<br>
-						"sudo apt-get install -y npm",<br>
-						"sudo npm install azure-cli -g"
-					</td>
-				  </tr> 			  <tr>
-					<td>&nbsp;</td>
-					<td colspan=2>],</td> 
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"inline_shebang":</td> 
-					<td>"/bin/sh -x"</td>
-				  </tr> 
+### Mac OSX dev-box
+To build and install on a OS X dev machine you will need to install Go and the Mercurial packages, download dependencies, then build. 
 
-				  <tr>
-					<td colspan=3>}]</td>
-				  </tr>
-				</table> 
-			}
-		</td>
-		<td>
-			{<br>
-				<table align="left" border="0" style="font-size:medium;">
-				  <tr>
-					<td colspan=3>"builders":[{</td>
-				  </tr>
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"type":</td> 
-					<td>"azure",</td>
-				  </tr>
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"publish_settings_path":</td> 
-					<td>"your_path",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"subscription_name":</td> 
-					<td>"your_name",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"storage_account":</td> 
-					<td>"your_storage_account",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"storage_account_container":</td> 
-					<td>"my_images",</td>
-				  </tr> 
-			  
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"os_type":</td> 
-					<td>"Windows",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"os_image_label":</td> 
-					<td>"Windows Server 2012 R2 Datacenter",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"location":</td> 
-					<td>"West US",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"instance_size":</td> 
-					<td>"Small",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"user_image_label":</td> 
-					<td>"PackerMade_Windows2012R2DC"</td>
-				  </tr> 
-				  <tr>
-					<td colspan=3>}],</td>
-				  </tr>
-				  <tr>
-					<td colspan=3>"provisioners":[{</td>
-				  </tr>
-				  <tr>
-					<td>&nbsp;</td>
-					<td>"type":</td> 
-					<td>"azure-custom-script-extension",</td>
-				  </tr> 
-				  <tr>
-					<td>&nbsp;</td>
-					<td valign="top">"inline": [</td> 
-					<td>
-						"Write-Host 'Inline script!'",<br>
-						"Write-Host 'Installing Mozilla Firefox...'",<br>
-						"$filename = 'Firefox Setup 31.0.exe'",<br>
-						"$link = 'https://download.mozilla.org/?product=firefox-31.0-SSL&os=win&lang=en-US'",<br>
-						"$dstDir = 'c:/MyFileFolder'",<br>
-						"New-Item $dstDir -type directory -force | Out-Null",<br>
-						"$remotePath = Join-Path $dstDir $filename",<br>
-						"(New-Object System.Net.Webclient).downloadfile($link, $remotePath)",<br>
-						"Start-Process $remotePath -NoNewWindow -Wait -Argument '/S'",<br>
-						"Write-Host 'Inline script finished!'"
-					</td>
-				  </tr> 			  
-				  <tr>
-					<td>&nbsp;</td>
-					<td colspan=2>]</td> 
-				  </tr> 
-				  <tr>
-					<td colspan=3>}]</td>
-				  </tr>
-				</table> 
-			}
-		</td>
-	</tr>
-</table>
+* Install Go 1.3 from https://golang.org/dl/
+* Install the Mercurial package (required to fetch dependencies) http://mercurial.selenic.com/downloads
+* Open a Terminal session and run:
+	* mkdir $HOME/go
+  	* export PATH=$PATH:/usr/local/go/bin
+	* export GOROOT=/usr/local/go
+	* export GOPATH=$HOME/go
+	* export PATH=$PATH:$GOPATH/bin
+	* go get github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi
+	* go get github.com/hashicorp/yamux
+    * go get github.com/hashicorp/go-msgpack/codec
+  	* go install -tags 'restapi' github.com/MSOpenTech/packer-azure/packer/plugin/packer-builder-azure
+  	* go install github.com/MSOpenTech/packer-azure/packer/plugin/packer-provisioner-azure-custom-script-extension
+ * copy built plugins from $GOPATH/bin to you Packer folder
 
-* Quick steps to get Packer on Ubunty
+
+### Quick Packer configuration examples:
+
+To launch a Linux instance in Azure:
+
+```
+{
+"builders":[{
+ 	"type":	"azure",
+ 	"publish_settings_path":	"your_path",
+ 	"subscription_name":	"your_name",
+ 	"storage_account":	"your_storage_account",
+ 	"storage_account_container":	"my_images",
+ 	"os_type":	"Linux",
+ 	"os_image_label":	"Ubuntu Server 14.04 LTS",
+ 	"location":	"West US",
+ 	"instance_size":	"Small",
+ 	"user_image_label":	"PackerMade_Ubuntu_Serv14"
+}],
+"provisioners":[{
+ 	"type":	"shell",
+ 	"execute_command":	"chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+ 	"inline": [	"sudo apt-get update",
+				"sudo apt-get install -y mc",
+				"sudo apt-get install -y nodejs",
+				"sudo apt-get install -y npm",
+				"sudo npm install azure-cli -g"
+ 	],
+ 	"inline_shebang":	"/bin/sh -x"
+}] }
+```
+
+To launch a Windows instance in Azure:
+
+```
+{
+"builders":[{
+ 	"type":	"azure",
+ 	"publish_settings_path":	"your_path",
+ 	"subscription_name":	"your_name",
+ 	"storage_account":	"your_storage_account",
+ 	"storage_account_container":	"my_images",
+ 	"os_type":	"Windows",
+ 	"os_image_label":	"Windows Server 2012 R2 Datacenter",
+ 	"location":	"West US",
+ 	"instance_size":	"Small",
+ 	"user_image_label":	"PackerMade_Windows2012R2DC"
+}],
+"provisioners":[{
+ 	"type":	"azure-custom-script-extension",
+ 	"inline": [	"Write-Host 'Inline script!'",
+				"Write-Host 'Installing Mozilla Firefox...'",
+				"$filename = 'Firefox Setup 31.0.exe'",
+				"$link = 'https://download.mozilla.org/?product=firefox-31.0-SSL&os=win&lang=en-US'",
+				"$dstDir = 'c:/MyFileFolder'",
+				"New-Item $dstDir -type directory -force | Out-Null",
+				"$remotePath = Join-Path $dstDir $filename",
+				"(New-Object System.Net.Webclient).downloadfile($link, $remotePath)",
+				"Start-Process $remotePath -NoNewWindow -Wait -Argument '/S'",
+				"Write-Host 'Inline script finished!'"
+ 	]
+}] }
+```
+
+### Quick steps to get Packer on Ubunty
   * wget -P $HOME/downloads https://dl.bintray.com/mitchellh/packer/packer_0.7.2_linux_amd64.zip
   * unzip $HOME/downloads/packer_0.7.2_linux_amd64.zip -d $HOME/packer/
   * export PATH=$PATH:$HOME/packer/
   * export PACKER_LOG=1
   * export PACKER_LOG_PATH=$HOME/packer.log
 
-* Known Issues
+### Known Issues
   * It was discovered that some Linux distributions behave strangely as a target. In particular, if a user 
     1. creates a VM from an **OpenLogic image** using **certificate authentication only**;
     2. captures the VM to an user image;
     3. creates a VM from the captured image using **password and certificate authentication** - password authentication won't work.
 
-    - Sinse the Paker plugin uses the same scenario (steps 1-2) to provision images - be ready to use Packer created images with certificate authentication only.
+    - Sinse the Packer plugin uses the same scenario (steps 1-2) to provision images - be ready to use Packer created images with certificate authentication only.
     - **All Ubuntu distributions work fine**. 	
-
-### Dependencies
-
-*	code.google.com/p/go.crypto
-*	code.google.com/p/go-uuid/uuid
-*	github.com/mitchellh/go-fs
-*	github.com/mitchellh/iochan
-*	github.com/mitchellh/mapstructure
-*	github.com/mitchellh/multistep
-*	github.com/mitchellh/packer
-*	github.com/hashicorp/go-version
-*	github.com/hashicorp/yamux
-*	github.com/hashicorp/go-msgpack/codec
 
 
