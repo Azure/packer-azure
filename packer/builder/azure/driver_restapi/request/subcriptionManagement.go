@@ -196,7 +196,7 @@ func ParsePublishSettings(path string, subscriptionName string) (*SubscriptionIn
 			return nil, err
 		}
 
-		if runtime.GOOS == constants.Linux {
+		if runtime.GOOS == constants.Linux || runtime.GOOS == constants.Darwin {
 
 			log.Println("executing openssl")
 			err = Exec(binary, "pkcs12", "-in", certPfxPath, "-out", certPemPath, "-nodes", "-passin", "pass:")
