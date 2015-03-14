@@ -144,7 +144,7 @@ To launch a Windows instance in Azure:
 }] }
 ```
 
-### Quick steps to get Packer on Ubunty
+### Quick steps to get Packer on Ubuntu
   * wget -P $HOME/downloads https://dl.bintray.com/mitchellh/packer/packer_0.7.2_linux_amd64.zip
   * unzip $HOME/downloads/packer_0.7.2_linux_amd64.zip -d $HOME/packer/
   * export PATH=$PATH:$HOME/packer/
