@@ -133,7 +133,7 @@ func (s *StepCreateCert) createCert(state multistep.StateBag) error {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		err := fmt.Errorf("Failed to Generate Serial Number: %s: %s", err)
+		err := fmt.Errorf("Failed to Generate Serial Number: %v", err)
 		return err
 	}
 
@@ -175,7 +175,7 @@ func (s *StepCreateCert) createCert(state multistep.StateBag) error {
 
 	certOut, err := os.Create(filepath.Join(s.TempDir, s.CertFileName))
 	if err != nil {
-		err := fmt.Errorf("Failed to Open cert.pem for Writing: %s: %s", err)
+		err := fmt.Errorf("Failed to Open cert.pem for Writing: %v", err)
 		return err
 	}
 
