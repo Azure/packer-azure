@@ -132,7 +132,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 
 		vip := endpoints[0].Vip
 		port := endpoints[0].PublicPort
-		endpoint := fmt.Sprintf("%s:%d", vip, port)
+		endpoint := fmt.Sprintf("%s:%s", vip, port)
 
 		ui.Message("VM Endpoint: " + endpoint)
 		state.Put(constants.AzureVmAddr, endpoint)
