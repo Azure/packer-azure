@@ -29,7 +29,7 @@ func (s *StepCreateImage) Run(state multistep.StateBag) multistep.StepAction {
 
 	errorMsg := "Error Creating Azure Image: %s"
 
-	ui.Say("Creating Azure Image. If Succeed This Will Remove the Temorary VM...")
+	ui.Say("Creating Azure Image. If Successful, This Will Remove the Temporary VM...")
 
 	description := "paker made image"
 	imageFamily := "PackerMade"
