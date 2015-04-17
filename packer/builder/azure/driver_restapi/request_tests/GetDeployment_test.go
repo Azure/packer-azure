@@ -16,9 +16,9 @@ const extPublisher = "Microsoft.Compute"
 const extName = "CustomScriptExtension"
 const extRefName = "CustomScriptExtension"
 
-func _TestGetDeploymet(t *testing.T) {
+func _TestGetDeployment(t *testing.T) {
 
-	errMassage := "TestGetDeploymet: %s\n"
+	errMassage := "TestGetDeployment: %s\n"
 
 	reqManager, err := getRequestManager(t)
 	if err != nil {
