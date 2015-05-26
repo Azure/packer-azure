@@ -28,7 +28,7 @@ func (m *Manager) CreateVirtualMachineDeploymentLin(isOSImage bool, serviceName,
 	buff.WriteString("<ConfigurationSetType>LinuxProvisioningConfiguration</ConfigurationSetType>")
 	buff.WriteString("<HostName>" + vmName + "</HostName>")
 	buff.WriteString("<UserName>" + userName + "</UserName>")
-	buff.WriteString("<DisableSshPasswordAuthentication>true</DisableSshPasswordAuthentication>")
+	buff.WriteString("<DisableSshPasswordAuthentication>false</DisableSshPasswordAuthentication>")
 	buff.WriteString("<SSH>")
 	buff.WriteString("<PublicKeys>")
 	buff.WriteString("<PublicKey>")
