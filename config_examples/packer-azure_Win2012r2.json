@@ -14,7 +14,7 @@
       "storage_account_container": "images",
       "os_type": "Windows",
       "os_image_label": "Windows Server 2012 R2 Datacenter",
-      "location": "West US",
+      "location": "Central US",
       "instance_size": "Small",
       "user_image_label": "PackerMade_Windows2012R2DC"
     }
