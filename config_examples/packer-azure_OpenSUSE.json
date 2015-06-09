@@ -13,7 +13,7 @@
       "storage_account_container": "images",
       "os_type": "Linux",
       "os_image_label": "openSUSE 13.1",
-      "location": "West US",
+      "location": "Central US",
       "instance_size": "Small",
       "user_image_label": "PackerMade_OpenSUSEImage"
     }
