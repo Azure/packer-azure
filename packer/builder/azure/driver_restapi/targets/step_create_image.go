@@ -31,7 +31,7 @@ func (s *StepCreateImage) Run(state multistep.StateBag) multistep.StepAction {
 
 	ui.Say("Creating Azure Image. If Successful, This Will Remove the Temporary VM...")
 
-	description := "paker made image"
+	description := "packer made image"
 	imageFamily := "PackerMade"
 
 	requestData := reqManager.CaptureVMImage(s.TmpServiceName, s.TmpVmName, s.UserImageName, s.UserImageLabel, description, imageFamily, s.RecommendedVMSize)
