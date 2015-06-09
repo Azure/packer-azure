@@ -27,8 +27,8 @@ type Config struct {
 	Location            string `mapstructure:"location"`
 	InstanceSize        string `mapstructure:"instance_size"`
 	UserImageLabel      string `mapstructure:"user_image_label"`
+	UserName            string `mapstructure:"username"`
 
-	userName         string `mapstructure:"username"`
 	tmpVmName        string
 	tmpServiceName   string
 	tmpContainerName string
@@ -58,11 +58,11 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 		c.StorageContainer = "vhds"
 	}
 
-	if c.userName == "" {
-		c.userName = "packer"
+	if c.UserName == "" {
+		c.UserName = "packer"
 	}
 
-	c.Comm.SSHUsername = c.userName
+	c.Comm.SSHUsername = c.UserName
 	if c.Comm.SSHTimeout == 0 {
 		c.Comm.SSHTimeout = 20 * time.Minute
 	}
