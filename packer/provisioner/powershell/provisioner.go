@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/mitchellh/packer/common"
+	"github.com/mitchellh/packer/helper/config"
 	"github.com/mitchellh/packer/packer"
 	"log"
 	"os"
@@ -16,7 +17,7 @@ import (
 
 const DistrDstPathDefault = "C:/PackerDistr"
 
-type config struct {
+type Config struct {
 	common.PackerConfig `mapstructure:",squash"`
 
 	// The local path of the script.
@@ -24,28 +25,21 @@ type config struct {
 	DistrSrcPath string   `mapstructure:"distr_src_path"`
 	DistrDstPath string   `mapstructure:"distr_dst_dir_path"`
 	Inline       []string `mapstructure:"inline"`
-	tpl          *packer.ConfigTemplate
 }
 
 type Provisioner struct {
-	config config
+	config Config
 }
 
 func (p *Provisioner) Prepare(raws ...interface{}) error {
-	md, err := common.DecodeConfig(&p.config, raws...)
+	err := config.Decode(&p.config, &config.DecodeOpts{
+		Interpolate: true,
+	}, raws...)
 	if err != nil {
 		return err
 	}
 
-	p.config.tpl, err = packer.NewConfigTemplate()
-	if err != nil {
-		return err
-	}
-	p.config.tpl.UserVars = p.config.PackerUserVars
-
-	// Accumulate any errors
-	errs := common.CheckUnusedConfig(md)
-
+	// Defaults
 	if p.config.Inline != nil && len(p.config.Inline) == 0 {
 		p.config.Inline = nil
 	}
@@ -54,60 +48,32 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 		p.config.DistrDstPath = DistrDstPathDefault
 	}
 
-	sliceTemplates := map[string][]string{
-		"inline": p.config.Inline,
-	}
+	// Accumulate any errors
+	var errs *packer.MultiError
 
-	for n, slice := range sliceTemplates {
-		for i, elem := range slice {
-			var err error
-			slice[i], err = p.config.tpl.Process(elem, nil)
-			if err != nil {
-				errs = packer.MultiErrorAppend(
-					errs, fmt.Errorf("Error processing %s[%d]: %s", n, i, err))
-			}
-		}
-	}
+	log.Println(fmt.Sprintf("%s: %v", "inline", p.config.Inline))
+	log.Println(fmt.Sprintf("%s: %v", "script_path", p.config.ScriptPath))
+	log.Println(fmt.Sprintf("%s: %v", "distr_src_path", p.config.DistrSrcPath))
+	log.Println(fmt.Sprintf("%s: %v", "distr_dst_dir_path", p.config.DistrDstPath))
 
-	log.Println(fmt.Sprintf("%s: %v", "inline", p.config.ScriptPath))
-
-	templates := map[string]*string{
-		"script_path":    &p.config.ScriptPath,
-		"distr_src_path": &p.config.DistrSrcPath,
-		"distr_dst_path": &p.config.DistrDstPath,
-	}
-
-	for n, ptr := range templates {
-		var err error
-		*ptr, err = p.config.tpl.Process(*ptr, nil)
-		if err != nil {
-			errs = packer.MultiErrorAppend(
-				errs, fmt.Errorf("Error processing %s: %s", n, err))
-		}
-	}
-
-	log.Println(fmt.Sprintf("%s: %v", "script_path", p.config.DistrDstPath))
-
-	if len(p.config.ScriptPath) == 0 && p.config.Inline == nil {
+	if p.config.ScriptPath == "" && p.config.Inline == nil {
 		errs = packer.MultiErrorAppend(errs,
-			fmt.Errorf("Either a script file or inline script must be specified."))
+			fmt.Errorf("one of script_path or inline must be specified"))
 	}
 
-	if len(p.config.ScriptPath) != 0 {
+	if p.config.ScriptPath != "" {
 		if _, err := os.Stat(p.config.ScriptPath); err != nil {
 			errs = packer.MultiErrorAppend(errs,
-				fmt.Errorf("script_path: '%v' check the path is correct.", p.config.ScriptPath))
+				fmt.Errorf("script_path is not a valid path:", err))
 		}
 	}
-	log.Println(fmt.Sprintf("%s: %v", "script_path", p.config.ScriptPath))
 
-	if len(p.config.DistrSrcPath) != 0 {
+	if p.config.DistrSrcPath != "" {
 		if _, err := os.Stat(p.config.DistrSrcPath); err != nil {
 			errs = packer.MultiErrorAppend(errs,
-				fmt.Errorf("distr_src_path: '%v' check the path is correct.", p.config.DistrSrcPath))
+				fmt.Errorf("distr_src_path is not a valid path:", err))
 		}
 	}
-	log.Println(fmt.Sprintf("%s: %v", "distr_src_path", p.config.DistrSrcPath))
 
 	if errs != nil && len(errs.Errors) > 0 {
 		return errs

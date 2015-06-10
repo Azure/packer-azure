@@ -32,7 +32,7 @@ const (
 type StepPollStatus struct {
 	TmpServiceName string
 	TmpVmName      string
-	OsType         string
+	OSType         string
 }
 
 func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
@@ -43,8 +43,8 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 
 	ui.Say("Polling Temporary Azure VM is ready...")
 
-	if len(s.OsType) == 0 {
-		err := fmt.Errorf(errorMsg, "'OsType' param is empty")
+	if len(s.OSType) == 0 {
+		err := fmt.Errorf(errorMsg, "'OSType' param is empty")
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -119,9 +119,9 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 
 	state.Put(constants.VmRunning, 1)
 
-	log.Println("s.OsType = " + s.OsType)
+	log.Println("s.OSType = " + s.OSType)
 
-	if s.OsType == Linux {
+	if s.OSType == Linux {
 		endpoints := deployment.RoleInstanceList[0].InstanceEndpoints
 		if len(endpoints) == 0 {
 			err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].InstanceEndpoints list is empty")

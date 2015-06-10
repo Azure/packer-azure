@@ -18,227 +18,23 @@ import (
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
 	"log"
-	"os"
-	"regexp"
 	"time"
 )
 
 // Builder implements packer.Builder and builds the actual Azure
 // images.
 type Builder struct {
-	config azure_config
+	config *Config
 	runner multistep.Runner
-}
-
-type azure_config struct {
-	SubscriptionName        string `mapstructure:"subscription_name"`
-	PublishSettingsPath     string `mapstructure:"publish_settings_path"`
-	StorageAccount          string `mapstructure:"storage_account"`
-	StorageAccountContainer string `mapstructure:"storage_account_container"`
-	OsType                  string `mapstructure:"os_type"`
-	OsImageLabel            string `mapstructure:"os_image_label"`
-	Location                string `mapstructure:"location"`
-	InstanceSize            string `mapstructure:"instance_size"`
-	UserImageLabel          string `mapstructure:"user_image_label"`
-	common.PackerConfig     `mapstructure:",squash"`
-	tpl                     *packer.ConfigTemplate
-
-	username         string `mapstructure:"username"`
-	tmpVmName        string
-	tmpServiceName   string
-	tmpContainerName string
-	userImageName    string
 }
 
 // Prepare processes the build configuration parameters.
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
-
-	md, err := common.DecodeConfig(&b.config, raws...)
-	if err != nil {
-		return nil, err
-	}
-
-	b.config.tpl, err = packer.NewConfigTemplate()
-	if err != nil {
-		return nil, err
-	}
-
-	log.Println(fmt.Sprintf("%s: %v", "PackerUserVars", b.config.PackerUserVars))
-
-	b.config.tpl.UserVars = b.config.PackerUserVars
-
-	// Accumulate any errors and warnings
-	errs := common.CheckUnusedConfig(md)
-	warnings := make([]string, 0)
-
-	templates := map[string]*string{
-		"subscription_name":         &b.config.SubscriptionName,
-		"publish_settings_path":     &b.config.PublishSettingsPath,
-		"storage_account":           &b.config.StorageAccount,
-		"storage_account_container": &b.config.StorageAccountContainer,
-		"os_type":                   &b.config.OsType,
-		"os_image_label":            &b.config.OsImageLabel,
-		"location":                  &b.config.Location,
-		"instance_size":             &b.config.InstanceSize,
-		"user_image_label":          &b.config.UserImageLabel,
-	}
-
-	for n, ptr := range templates {
-		var err error
-		*ptr, err = b.config.tpl.Process(*ptr, nil)
-		if err != nil {
-			errs = packer.MultiErrorAppend(errs, fmt.Errorf("Error processing %s: %s", n, err))
-		}
-	}
-
-	if b.config.SubscriptionName == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("subscription_name: The option can't be missed."))
-	}
-	log.Println(fmt.Sprintf("%s: %v", "subscription_name", b.config.SubscriptionName))
-
-	if b.config.PublishSettingsPath == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("publish_settings_path: The option can't be missed."))
-	}
-	log.Println(fmt.Sprintf("%s: %v", "publish_settings_path", b.config.PublishSettingsPath))
-
-	if b.config.StorageAccount == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("storage_account: The option can't be missed."))
-	}
-
-	if _, err := os.Stat(b.config.PublishSettingsPath); err != nil {
-		errs = packer.MultiErrorAppend(errs, errors.New("publish_settings_path: Check the path is correct."))
-	}
-	log.Println(fmt.Sprintf("%s: %v", "storage_account", b.config.StorageAccount))
-
-	if b.config.StorageAccountContainer == "" {
-		b.config.StorageAccountContainer = "vhds"
-	}
-	log.Println(fmt.Sprintf("%s: %v", "storage_account", b.config.StorageAccountContainer))
-
-	osTypeIsValid := false
-	osTypeArr := []string{
-		targets.Linux,
-		targets.Windows,
-	}
-
-	log.Println(fmt.Sprintf("%s: %v", "os_type", b.config.OsType))
-
-	for _, osType := range osTypeArr {
-		if b.config.OsType == osType {
-			osTypeIsValid = true
-			break
-		}
-	}
-
-	if !osTypeIsValid {
-		errs = packer.MultiErrorAppend(errs,
-			fmt.Errorf("os_type: The value is invalid. Must be one of: %v", osTypeArr))
-	}
-
-	if b.config.OsImageLabel == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("os_image_label: The option can't be missed."))
-	}
-	log.Println(fmt.Sprintf("%s: %v", "os_image_label", b.config.OsImageLabel))
-
-	if b.config.Location == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("location: The option can't be missed."))
-	}
-	log.Println(fmt.Sprintf("%s: %v", "location", b.config.Location))
-
-	sizeIsValid := false
-	instanceSizeArr := []string{
-		targets.ExtraSmall,
-		targets.Small,
-		targets.Medium,
-		targets.Large,
-		targets.ExtraLarge,
-		targets.A5,
-		targets.A6,
-		targets.A7,
-		targets.A8,
-		targets.A9,
-		targets.Standard_D1,
-		targets.Standard_D2,
-		targets.Standard_D3,
-		targets.Standard_D4,
-		targets.Standard_D11,
-		targets.Standard_D12,
-		targets.Standard_D13,
-		targets.Standard_D14,
-		targets.Standard_DS1,
-		targets.Standard_DS2,
-		targets.Standard_DS3,
-		targets.Standard_DS4,
-		targets.Standard_DS11,
-		targets.Standard_DS12,
-		targets.Standard_DS13,
-		targets.Standard_DS14,
-		targets.Standard_G1,
-		targets.Standard_G2,
-		targets.Standard_G3,
-		targets.Standard_G4,
-		targets.Standard_G5,
-	}
-
-	log.Println(fmt.Sprintf("%s: %v", "instance_size", b.config.InstanceSize))
-
-	for _, instanceSize := range instanceSizeArr {
-		if b.config.InstanceSize == instanceSize {
-			sizeIsValid = true
-			break
-		}
-	}
-
-	if !sizeIsValid {
-		errs = packer.MultiErrorAppend(errs,
-			fmt.Errorf("instance_size: The value is invalid. Must be one of: %v", instanceSizeArr))
-	}
-
-	if b.config.UserImageLabel == "" {
-		errs = packer.MultiErrorAppend(errs, errors.New("user_image_label: The option can't be missed."))
-	}
-
-	// check
-	pattern := "^[A-Za-z][A-Za-z0-9-_.]*[A-Za-z0-9]$"
-	value := b.config.UserImageLabel
-
-	match, _ := regexp.MatchString(pattern, value)
-	if !match {
-		errs = packer.MultiErrorAppend(errs, errors.New("user_image_label: '"+value+"'. The first and last characters should be letter or digit the others should follow the pattern [A-Za-z0-9-_.]*."))
-	}
-
-	//	log.Println(fmt.Sprintf("%s: %v","user_image_label", b.config.UserImageLabel))
-
-	b.config.userImageName = utils.DecorateImageName(b.config.UserImageLabel)
-	log.Println(fmt.Sprintf("%s: %v", "user_image_name", b.config.userImageName))
-
-	b.config.tmpContainerName = utils.BuildContainerName()
-
-	log.Println(fmt.Sprintf("%s: %v", "user_image_label", b.config.UserImageLabel))
-
-	// for Win  - the computer name cannot be more than 15 characters long
-	const tmpServiceNamePrefix = "PkrSrv"
-	const tmpVmNamePrefix = "PkrVM"
-	randSuffix := utils.BuildAzureVmNameRandomSuffix(tmpVmNamePrefix)
-
-	if b.config.tmpVmName == "" {
-		b.config.tmpVmName = fmt.Sprintf("%s%s", tmpVmNamePrefix, randSuffix)
-	}
-	log.Println(fmt.Sprintf("%s: %v", "tmpVmName", b.config.tmpVmName))
-
-	if b.config.tmpServiceName == "" {
-		b.config.tmpServiceName = fmt.Sprintf("%s%s", tmpServiceNamePrefix, randSuffix)
-	}
-	log.Println(fmt.Sprintf("%s: %v", "tmpServiceName", b.config.tmpServiceName))
-
-	if b.config.username == "" {
-		b.config.username = fmt.Sprintf("%s", "packer")
-	}
-	log.Println(fmt.Sprintf("%s: %v", "username", b.config.username))
-
-	if errs != nil && len(errs.Errors) > 0 {
+	c, warnings, errs := newConfig(raws...)
+	if errs != nil {
 		return warnings, errs
 	}
+	b.config = c
 
 	return warnings, nil
 }
@@ -281,7 +77,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	var steps []multistep.Step
 
-	if b.config.OsType == targets.Linux {
+	if b.config.OSType == targets.Linux {
 		certFileName := "cert.pem"
 		keyFileName := "key.pem"
 
@@ -299,25 +95,23 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TmpServiceName: b.config.tmpServiceName,
 			},
 			&lin.StepCreateVm{
-				OsType:                  b.config.OsType,
-				StorageAccount:          b.config.StorageAccount,
-				StorageAccountContainer: b.config.StorageAccountContainer,
-				OsImageLabel:            b.config.OsImageLabel,
-				TmpVmName:               b.config.tmpVmName,
-				TmpServiceName:          b.config.tmpServiceName,
-				InstanceSize:            b.config.InstanceSize,
-				Username:                b.config.username,
+				StorageAccount:   b.config.StorageAccount,
+				StorageContainer: b.config.StorageContainer,
+				TmpVmName:        b.config.tmpVmName,
+				TmpServiceName:   b.config.tmpServiceName,
+				InstanceSize:     b.config.InstanceSize,
+				Username:         b.config.userName,
 			},
 
 			&targets.StepPollStatus{
 				TmpServiceName: b.config.tmpServiceName,
 				TmpVmName:      b.config.tmpVmName,
-				OsType:         b.config.OsType,
+				OSType:         b.config.OSType,
 			},
 
 			&common.StepConnectSSH{
 				SSHAddress:     lin.SSHAddress,
-				SSHConfig:      lin.SSHConfig(b.config.username),
+				SSHConfig:      lin.SSHConfig(b.config.userName),
 				SSHWaitTimeout: 20 * time.Minute,
 			},
 			&common.StepProvision{},
@@ -337,7 +131,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				RecommendedVMSize: b.config.InstanceSize,
 			},
 		}
-	} else if b.config.OsType == targets.Windows {
+	} else if b.config.OSType == targets.Windows {
 		//		b.config.tmpVmName = "shchTemp"
 		//		b.config.tmpServiceName = "shchTemp"
 		steps = []multistep.Step{
@@ -347,20 +141,18 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TmpServiceName: b.config.tmpServiceName,
 			},
 			&win.StepCreateVm{
-				OsType:                  b.config.OsType,
-				StorageAccount:          b.config.StorageAccount,
-				StorageAccountContainer: b.config.StorageAccountContainer,
-				OsImageLabel:            b.config.OsImageLabel,
-				TmpVmName:               b.config.tmpVmName,
-				TmpServiceName:          b.config.tmpServiceName,
-				InstanceSize:            b.config.InstanceSize,
-				Username:                b.config.username,
-				Password:                utils.RandomPassword(),
+				StorageAccount:   b.config.StorageAccount,
+				StorageContainer: b.config.StorageContainer,
+				TmpVmName:        b.config.tmpVmName,
+				TmpServiceName:   b.config.tmpServiceName,
+				InstanceSize:     b.config.InstanceSize,
+				Username:         b.config.userName,
+				Password:         utils.RandomPassword(),
 			},
 			&targets.StepPollStatus{
 				TmpServiceName: b.config.tmpServiceName,
 				TmpVmName:      b.config.tmpVmName,
-				OsType:         b.config.OsType,
+				OSType:         b.config.OSType,
 			},
 			&win.StepSetProvisionInfrastructure{
 				VmName:             b.config.tmpVmName,
@@ -383,7 +175,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		}
 
 	} else {
-		return nil, fmt.Errorf("Unkonwn OS type: %s", b.config.OsType)
+		return nil, fmt.Errorf("Unkonwn OS type: %s", b.config.OSType)
 	}
 
 	// Run the steps.
@@ -482,7 +274,7 @@ func (b *Builder) validateAzureOptions(ui packer.Ui, state *multistep.BasicState
 		}
 
 		if exists == false {
-			err = fmt.Errorf("Can't Find OS Image '%s' Located at '%s'", b.config.OsImageLabel, b.config.Location)
+			err = fmt.Errorf("Can't Find OS Image '%s' Located at '%s'", b.config.OSImageLabel, b.config.Location)
 			return err
 		}
 	}
@@ -491,7 +283,7 @@ func (b *Builder) validateAzureOptions(ui packer.Ui, state *multistep.BasicState
 }
 
 func (b *Builder) checkOsImageExists(ui packer.Ui, state *multistep.BasicStateBag, reqManager *request.Manager) (bool, error) {
-	ui.Message("Checking OS image with the label '" + b.config.OsImageLabel + "' exists...")
+	ui.Message("Checking OS image with the label '" + b.config.OSImageLabel + "' exists...")
 	requestData := reqManager.GetOsImages()
 	resp, err := reqManager.Execute(requestData)
 
@@ -505,7 +297,7 @@ func (b *Builder) checkOsImageExists(ui packer.Ui, state *multistep.BasicStateBa
 		return false, err
 	}
 
-	filteredImageList := imageList.Filter(b.config.OsImageLabel, b.config.Location)
+	filteredImageList := imageList.Filter(b.config.OSImageLabel, b.config.Location)
 
 	if len(filteredImageList) != 0 {
 
@@ -530,7 +322,7 @@ func (b *Builder) checkOsImageExists(ui packer.Ui, state *multistep.BasicStateBa
 
 func (b *Builder) checkOsUserImageExists(ui packer.Ui, state *multistep.BasicStateBag, reqManager *request.Manager) (bool, error) {
 	// check user images
-	ui.Message("Checking VM image with the label '" + b.config.OsImageLabel + "' exists...")
+	ui.Message("Checking VM image with the label '" + b.config.OSImageLabel + "' exists...")
 
 	requestData := reqManager.GetVmImages()
 	resp, err := reqManager.Execute(requestData)
@@ -545,7 +337,7 @@ func (b *Builder) checkOsUserImageExists(ui packer.Ui, state *multistep.BasicSta
 		return false, err
 	}
 
-	filteredImageList := imageList.Filter(b.config.OsImageLabel, b.config.Location)
+	filteredImageList := imageList.Filter(b.config.OSImageLabel, b.config.Location)
 
 	if len(filteredImageList) != 0 {
 
