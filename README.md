@@ -13,7 +13,7 @@ You can execute the plugin from both Windows and Linux dev-boxes (clients).
 
 **The bin directory contains binaries and example configurations for Packer-Azure.**
 
-#### Packer version the plug-ins were tested is 0.7.2
+#### Packer version the plug-ins were tested is 0.7.5
 
 ### Dependencies
 

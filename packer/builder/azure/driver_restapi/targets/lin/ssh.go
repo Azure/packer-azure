@@ -5,10 +5,10 @@
 package lin
 
 import (
-	"code.google.com/p/go.crypto/ssh"
 	"fmt"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
 	"github.com/mitchellh/multistep"
+	"golang.org/x/crypto/ssh"
 )
 
 // SSHAddress returns a function that can be given to the SSH communicator

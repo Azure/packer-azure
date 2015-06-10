@@ -13,14 +13,12 @@ import (
 )
 
 type StepCreateVm struct {
-	OsType                  string
-	StorageAccount          string
-	StorageAccountContainer string
-	OsImageLabel            string
-	TmpVmName               string
-	TmpServiceName          string
-	InstanceSize            string
-	Username                string
+	StorageAccount   string
+	StorageContainer string
+	TmpVmName        string
+	TmpServiceName   string
+	InstanceSize     string
+	Username         string
 }
 
 func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
@@ -50,7 +48,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 
 	isOSImage := state.Get(constants.IsOSImage).(bool)
 
-	mediaLoc := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s.vhd", s.StorageAccount, s.StorageAccountContainer, s.TmpVmName)
+	mediaLoc := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s.vhd", s.StorageAccount, s.StorageContainer, s.TmpVmName)
 
 	requestData := reqManager.CreateVirtualMachineDeploymentLin(isOSImage, s.TmpServiceName, s.TmpVmName, s.InstanceSize, certThumbprint, s.Username, osImageName, mediaLoc)
 	err = reqManager.ExecuteSync(requestData)

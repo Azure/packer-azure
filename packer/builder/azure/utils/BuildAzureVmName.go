@@ -10,20 +10,10 @@ import (
 	"time"
 )
 
-const availableSymbols = "0123456789abcdefghijklmnopqrstuvwxyz"
-
 var pwSymbols = []string{
 	"abcdefghijklmnopqrstuvwxyz",
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 	"0123456789",
-}
-
-const allowedVmNameLength = 15
-
-func BuildAzureVmNameRandomSuffix(prefix string) (suffix string) {
-	genLen := allowedVmNameLength - len(prefix)
-	suffix += RandomString(availableSymbols, genLen)
-	return
 }
 
 var rnd = rand.New(rand.NewSource(time.Now().UnixNano() + int64(os.Getpid())))
