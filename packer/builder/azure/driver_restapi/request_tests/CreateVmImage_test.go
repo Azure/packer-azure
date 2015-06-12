@@ -28,8 +28,8 @@ func _TestCreateVmImage(t *testing.T) {
 	y, m, d := now.Date()
 
 	userImageName := fmt.Sprintf("%s_%v-%v-%v_%v-%v", label, y, m, d, now.Hour(), now.Minute())
-	userImageLabel := "paker made image label"
-	description := "paker made image description"
+	userImageLabel := "packer made image label"
+	description := "packer made image description"
 	imageFamily := "TestCreateVmImage"
 	recommendedVMSize := "Small"
 

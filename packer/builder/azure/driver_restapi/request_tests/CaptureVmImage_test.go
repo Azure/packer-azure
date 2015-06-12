@@ -28,8 +28,8 @@ func _TestCaptureVmImage(t *testing.T) {
 	tmpServiceName := g_tmpServiceName
 	tmpVmName := g_tmpVmName
 	userImageName := fmt.Sprintf("%s_%v-%v-%v_%v-%v", label, y, m, d, now.Hour(), now.Minute())
-	userImageLabel := "paker made image"
-	description := "paker made image"
+	userImageLabel := "packer made image"
+	description := "packer made image"
 	imageFamily := "PackerMade"
 	recommendedVMSize := "Small"
 
