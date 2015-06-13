@@ -6,10 +6,16 @@ package lin
 
 import (
 	"fmt"
+
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/retry"
+
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
+
+	"github.com/Azure/azure-sdk-for-go/management"
+	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"
+	"github.com/Azure/azure-sdk-for-go/management/vmutils"
 )
 
 type StepCreateVm struct {
@@ -22,11 +28,10 @@ type StepCreateVm struct {
 }
 
 func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
-	reqManager := state.Get(constants.RequestManager).(*request.Manager)
+	client := state.Get(constants.RequestManager).(management.Client)
 	ui := state.Get("ui").(packer.Ui)
 
 	errorMsg := "Error Creating Temporary Azure VM: %s"
-	var err error
 
 	certThumbprint := state.Get(constants.UserCertThumbprint).(string)
 	if len(certThumbprint) == 0 {
@@ -50,10 +55,10 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 
 	mediaLoc := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s.vhd", s.StorageAccount, s.StorageContainer, s.TmpVmName)
 
-	requestData := reqManager.CreateVirtualMachineDeploymentLin(isOSImage, s.TmpServiceName, s.TmpVmName, s.InstanceSize, certThumbprint, s.Username, osImageName, mediaLoc)
-	err = reqManager.ExecuteSync(requestData)
-
-	if err != nil {
+	role := createRole(isOSImage, s.TmpVmName, s.InstanceSize, certThumbprint, s.Username, osImageName, mediaLoc)
+	if err := retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
+		return vm.NewClient(client).CreateDeployment(role, s.TmpServiceName, vm.CreateDeploymentOptions{})
+	}); err != nil {
 		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)
 		ui.Error(err.Error())
@@ -68,4 +73,16 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 
 func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 	// do nothing
+}
+
+func createRole(isOSImage bool, vmName, vmSize, certThumbprint, userName, osImageName, mediaLoc string) (role vm.Role) {
+	role = vmutils.NewVMConfiguration(vmName, vmSize)
+	vmutils.ConfigureForLinux(&role, vmName, userName, "", certThumbprint)
+	vmutils.ConfigureWithPublicSSH(&role)
+	if isOSImage {
+		vmutils.ConfigureDeploymentFromPlatformImage(&role, osImageName, mediaLoc, "")
+	} else {
+		vmutils.ConfigureDeploymentFromVMImage(&role, osImageName, mediaLoc, true)
+	}
+	return role
 }

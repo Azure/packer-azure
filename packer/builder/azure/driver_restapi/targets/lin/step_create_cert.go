@@ -64,14 +64,13 @@ func (s *StepCreateCert) Run(state multistep.StateBag) multistep.StepAction {
 	}
 
 	thumbprint, err := cert.GetThumbprint(certPath)
-	ui.Message("thumbprint: " + thumbprint)
-
 	if err != nil {
 		err = fmt.Errorf("Can't get certificate thumbprint '%s'", certPath)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
+	ui.Message("thumbprint: " + thumbprint)
 
 	state.Put(constants.UserCertPath, certPath)
 	state.Put(constants.UserCertThumbprint, thumbprint)

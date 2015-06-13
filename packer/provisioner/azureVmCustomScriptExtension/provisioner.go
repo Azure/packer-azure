@@ -67,7 +67,7 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 	if p.config.DistrSrcPath != "" {
 		if _, err := os.Stat(p.config.DistrSrcPath); err != nil {
 			errs = packer.MultiErrorAppend(errs,
-				fmt.Errorf("distr_src_pathis not a valid path: %s", err))
+				fmt.Errorf("distr_src_path is not a valid path: %s", err))
 		}
 	}
 

@@ -64,14 +64,14 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 	if p.config.ScriptPath != "" {
 		if _, err := os.Stat(p.config.ScriptPath); err != nil {
 			errs = packer.MultiErrorAppend(errs,
-				fmt.Errorf("script_path is not a valid path:", err))
+				fmt.Errorf("script_path is not a valid path: %v", err))
 		}
 	}
 
 	if p.config.DistrSrcPath != "" {
 		if _, err := os.Stat(p.config.DistrSrcPath); err != nil {
 			errs = packer.MultiErrorAppend(errs,
-				fmt.Errorf("distr_src_path is not a valid path:", err))
+				fmt.Errorf("distr_src_path is not a valid path: %v", err))
 		}
 	}
 

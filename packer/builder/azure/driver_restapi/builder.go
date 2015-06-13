@@ -7,9 +7,15 @@ package driver_restapi
 import (
 	"errors"
 	"fmt"
+	"log"
+	"time"
+
+	"github.com/Azure/azure-sdk-for-go/management"
+	"github.com/Azure/azure-sdk-for-go/management/osimage"
+	"github.com/Azure/azure-sdk-for-go/management/storageservice"
+	vmimage "github.com/Azure/azure-sdk-for-go/management/virtualmachineimage"
+
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/targets"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/targets/lin"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/targets/win"
@@ -17,8 +23,6 @@ import (
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
-	"log"
-	"time"
 )
 
 // Builder implements packer.Builder and builds the actual Azure
@@ -26,6 +30,7 @@ import (
 type Builder struct {
 	config *Config
 	runner multistep.Runner
+	client management.Client
 }
 
 // Prepare processes the build configuration parameters.
@@ -40,22 +45,26 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 }
 
 // Run executes a Packer build and returns a packer.Artifact representing
-// a PS Azure appliance.
+// a Azure VM image.
 func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
 
 	var err error
 	ui.Say("Preparing builder...")
 
-	ui.Message("Creating a new request manager...")
-	reqManager, err := request.NewManager(b.config.PublishSettingsPath, b.config.SubscriptionName)
+	ui.Message("Creating Azure Service Management client...")
+	subscriptionID, err := findSubscriptionID(b.config.PublishSettingsPath, b.config.SubscriptionName)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating request manager: %s", err)
+		return nil, fmt.Errorf("Error creating new Azure client: %v", err)
+	}
+	b.client, err = management.ClientFromPublishSettingsFile(b.config.PublishSettingsPath, subscriptionID)
+	if err != nil {
+		return nil, fmt.Errorf("Error creating new Azure client: %v", err)
 	}
 
 	// Set up the state.
 	state := new(multistep.BasicStateBag)
 	state.Put(constants.Config, &b.config)
-	state.Put(constants.RequestManager, reqManager)
+	state.Put(constants.RequestManager, b.client)
 	state.Put("hook", hook)
 	state.Put(constants.Ui, ui)
 
@@ -70,7 +79,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put(constants.ImageCreated, 0)
 
 	ui.Say("Validating Azure Options...")
-	err = b.validateAzureOptions(ui, state, reqManager)
+	err = b.validateAzureOptions(ui, state)
 	if err != nil {
 		return nil, fmt.Errorf("Some Azure options failed: %s", err)
 	}
@@ -203,32 +212,22 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		return nil, errors.New("Build was halted.")
 	}
 
-	requestData := reqManager.GetVmImages()
-	resp, err := reqManager.Execute(requestData)
-
+	vmImageList, err := vmimage.NewClient(b.client).ListVirtualMachineImages()
 	if err != nil {
-		log.Printf("reqManager.GetVmImages returned error: %s", err.Error())
+		log.Printf("VM image client returned error: %s", err)
 		return nil, fmt.Errorf("Can't create artifact")
 	}
 
-	vmImageList, err := response.ParseVmImageList(resp.Body)
-
-	if err != nil {
-		log.Printf("response.ParseVmImageList returned error: %s", err.Error())
+	if userImage, found := FindVmImage(vmImageList.VMImages, b.config.userImageName, b.config.UserImageLabel, b.config.Location); found {
+		return &artifact{
+			imageLabel:    userImage.Label,
+			imageName:     userImage.Name,
+			mediaLocation: userImage.OSDiskConfiguration.MediaLink,
+		}, nil
+	} else {
+		log.Printf("could not find image %s", b.config.userImageName)
 		return nil, fmt.Errorf("Can't create artifact")
 	}
-
-	userImage := vmImageList.First(b.config.userImageName)
-	if userImage == nil {
-		log.Printf("vmImageList.First returned nil")
-		return nil, fmt.Errorf("Can't create artifact")
-	}
-
-	return &artifact{
-		imageLabel:    userImage.Label,
-		imageName:     userImage.Name,
-		mediaLocation: userImage.OSDiskConfiguration.MediaLink,
-	}, nil
 }
 
 // Cancel.
@@ -239,137 +238,45 @@ func (b *Builder) Cancel() {
 	}
 }
 
-func (b *Builder) validateAzureOptions(ui packer.Ui, state *multistep.BasicStateBag, reqManager *request.Manager) error {
+func (b *Builder) validateAzureOptions(ui packer.Ui, state *multistep.BasicStateBag) error {
 
 	var err error
 
 	// Check Storage account (& container)
 	ui.Message("Checking Storage Account...")
-
-	requestData := reqManager.CheckStorageAccountNameAvailability(b.config.StorageAccount)
-	resp, err := reqManager.Execute(requestData)
-
+	availabilityResponse, err := storageservice.NewClient(b.client).CheckStorageAccountNameAvailability(b.config.StorageAccount)
 	if err != nil {
 		return err
 	}
 
-	availabilityResponse, err := response.ParseAvailabilityResponse(resp.Body)
-
-	log.Printf("availabilityResponse:\n %v", availabilityResponse)
-
-	if availabilityResponse.Result == "true" {
+	if availabilityResponse.Result {
 		return fmt.Errorf("Can't Find Storage Account '%s'", b.config.StorageAccount)
 	}
 
 	// Check image exists
-	exists, err := b.checkOsImageExists(ui, state, reqManager)
+	imageList, err := osimage.NewClient(b.client).ListOSImages()
 	if err != nil {
+		log.Printf("OS image client returned error: %s", err)
 		return err
 	}
 
-	if exists == false {
-		exists, err = b.checkOsUserImageExists(ui, state, reqManager)
-		if err != nil {
-			return err
-		}
-
-		if exists == false {
-			err = fmt.Errorf("Can't Find OS Image '%s' Located at '%s'", b.config.OSImageLabel, b.config.Location)
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (b *Builder) checkOsImageExists(ui packer.Ui, state *multistep.BasicStateBag, reqManager *request.Manager) (bool, error) {
-	ui.Message("Checking OS image with the label '" + b.config.OSImageLabel + "' exists...")
-	requestData := reqManager.GetOsImages()
-	resp, err := reqManager.Execute(requestData)
-
-	if err != nil {
-		return false, err
-	}
-
-	imageList, err := response.ParseOsImageList(resp.Body)
-
-	if err != nil {
-		return false, err
-	}
-
-	filteredImageList := imageList.Filter(b.config.OSImageLabel, b.config.Location)
-
-	if len(filteredImageList) != 0 {
-
-		ui.Message(fmt.Sprintf("Found %v image(s).", len(filteredImageList)))
-		ui.Message("Take the most recent:")
-
-		imageList.SortByDateDesc(filteredImageList)
-
-		osImageName := filteredImageList[0].Name
-		ui.Message("OS Image Label: " + filteredImageList[0].Label)
-		ui.Message("OS Image Family: " + filteredImageList[0].ImageFamily)
-		ui.Message("OS Image Name: " + osImageName)
-		ui.Message("OS Image PublishedDate: " + filteredImageList[0].PublishedDate)
-		state.Put(constants.OsImageName, osImageName)
+	if osImage, found := FindOsImage(imageList.OSImages, b.config.OSImageLabel, b.config.Location); found {
+		state.Put(constants.OsImageName, osImage.Name)
 		state.Put(constants.IsOSImage, true)
-		return true, nil
+		return nil
+	} else {
+		imageList, err := vmimage.NewClient(b.client).ListVirtualMachineImages()
+		if err != nil {
+			log.Printf("VM image client returned error: %s", err)
+			return err
+		}
+
+		if vmImage, found := FindVmImage(imageList.VMImages, "", b.config.OSImageLabel, b.config.Location); found {
+			state.Put(constants.OsImageName, vmImage.Name)
+			state.Put(constants.IsOSImage, false)
+			return nil
+		} else {
+			return fmt.Errorf("Can't find VM or OS image '%s' Located at '%s'", b.config.OSImageLabel, b.config.Location)
+		}
 	}
-
-	ui.Message("Image not found.")
-	return false, nil
-}
-
-func (b *Builder) checkOsUserImageExists(ui packer.Ui, state *multistep.BasicStateBag, reqManager *request.Manager) (bool, error) {
-	// check user images
-	ui.Message("Checking VM image with the label '" + b.config.OSImageLabel + "' exists...")
-
-	requestData := reqManager.GetVmImages()
-	resp, err := reqManager.Execute(requestData)
-
-	if err != nil {
-		return false, err
-	}
-
-	imageList, err := response.ParseVmImageList(resp.Body)
-
-	if err != nil {
-		return false, err
-	}
-
-	filteredImageList := imageList.Filter(b.config.OSImageLabel, b.config.Location)
-
-	if len(filteredImageList) != 0 {
-
-		ui.Message(fmt.Sprintf("Found %v image(s).", len(filteredImageList)))
-		ui.Message("Take the most recent:")
-
-		imageList.SortByDateDesc(filteredImageList)
-
-		osImageName := filteredImageList[0].Name
-		ui.Message("VM Image Label: " + filteredImageList[0].Label)
-		ui.Message("VM Image Family: " + filteredImageList[0].ImageFamily)
-		ui.Message("VM Image Name: " + osImageName)
-		ui.Message("VM Image PublishedDate: " + filteredImageList[0].PublishedDate)
-		state.Put(constants.OsImageName, osImageName)
-		state.Put(constants.IsOSImage, false)
-		return true, nil
-	}
-
-	ui.Message("Image not found.")
-	return false, nil
-}
-
-func appendWarnings(slice []string, data ...string) []string {
-	m := len(slice)
-	n := m + len(data)
-	if n > cap(slice) { // if necessary, reallocate
-		// allocate double what's needed, for future growth.
-		newSlice := make([]string, (n+1)*2)
-		copy(newSlice, slice)
-		slice = newSlice
-	}
-	slice = slice[0:n]
-	copy(slice[m:n], data)
-	return slice
 }

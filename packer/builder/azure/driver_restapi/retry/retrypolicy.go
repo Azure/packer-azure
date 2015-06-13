@@ -1,51 +1,45 @@
-// Copyright (c) Microsoft Open Technologies, Inc.
-// All Rights Reserved.
-// Licensed under the Apache License, Version 2.0.
-// See License.txt in the project root for license information.
-
-package request
+package retry
 
 import (
 	"log"
 	"strings"
 	"time"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response/model"
+	"github.com/Azure/azure-sdk-for-go/management"
 )
 
-func defaultRetryPolicy() retryPolicy {
+func newDefaultRetryPolicy() retryPolicy {
 	return retryPolicy{
-		exponentialBackoff("Throttling", func(err model.AzureError) bool {
+		ExponentialBackoffRule("Throttling", func(err management.AzureError) bool {
 			return err.Code == "TooManyRequests"
 		}, 5*time.Second, 2*time.Minute, 0),
-		constantBackoff("InternalError", func(err model.AzureError) bool {
+		ConstantBackoffRule("InternalError", func(err management.AzureError) bool {
 			return err.Code == "InternalError"
 		}, 10*time.Second, 100),
-		constantBackoff("Conflict/InUse", func(err model.AzureError) bool {
+		ConstantBackoffRule("Conflict/InUse", func(err management.AzureError) bool {
 			return (err.Code == "BadRequest" && strings.Contains(err.Message, "is currently in use by")) ||
 				(err.Code == "ConflictError" && strings.Contains(err.Message, "that requires exclusive access"))
 		}, 10*time.Second, 100),
 	}
 }
 
-type retryRule func(model.AzureError) (bool, time.Duration)
-type retryPolicy []retryRule
-type matchRule func(model.AzureError) bool
+type RetryRule func(management.AzureError) (bool, time.Duration)
+type retryPolicy []RetryRule
+type matchRule func(management.AzureError) bool
 
-func (rules retryPolicy) ShouldRetry(err model.AzureError) (shouldRetry bool, backoff time.Duration) {
+func (rules retryPolicy) ShouldRetry(err management.AzureError) (bool, time.Duration) {
 	for _, rule := range rules {
-		shouldRetry, backoff = rule(err)
-		if shouldRetry {
-			return
+		if shouldRetry, backoff := rule(err); shouldRetry {
+			return shouldRetry, backoff
 		}
 	}
 	return false, 0
 }
 
-func constantBackoff(name string, match matchRule, backoff time.Duration, maxRetries int) retryRule {
+func ConstantBackoffRule(name string, match matchRule, backoff time.Duration, maxRetries int) RetryRule {
 	indefinitely := maxRetries == 0
 	retries := 0
-	return func(err model.AzureError) (bool, time.Duration) {
+	return func(err management.AzureError) (bool, time.Duration) {
 		if match(err) {
 			if indefinitely || retries < maxRetries {
 				retries++
@@ -59,11 +53,11 @@ func constantBackoff(name string, match matchRule, backoff time.Duration, maxRet
 	}
 }
 
-func exponentialBackoff(name string, match matchRule, initialBackoff time.Duration, maximumBackoff time.Duration, maxRetries int) retryRule {
+func ExponentialBackoffRule(name string, match matchRule, initialBackoff time.Duration, maximumBackoff time.Duration, maxRetries int) RetryRule {
 	indefinitely := maxRetries == 0
 	retries := 0
 	backoff := initialBackoff
-	return func(err model.AzureError) (bool, time.Duration) {
+	return func(err management.AzureError) (bool, time.Duration) {
 		if match(err) {
 			if indefinitely || retries < maxRetries {
 				retries++

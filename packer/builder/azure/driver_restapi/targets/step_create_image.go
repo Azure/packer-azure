@@ -6,13 +6,18 @@ package targets
 
 import (
 	"fmt"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
-	"github.com/mitchellh/multistep"
-	"github.com/mitchellh/packer/packer"
-	"log"
 	"strings"
 	"time"
+
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/retry"
+
+	"github.com/mitchellh/multistep"
+	"github.com/mitchellh/packer/packer"
+
+	"github.com/Azure/azure-sdk-for-go/management"
+	vmdisk "github.com/Azure/azure-sdk-for-go/management/virtualmachinedisk"
+	vmi "github.com/Azure/azure-sdk-for-go/management/virtualmachineimage"
 )
 
 type StepCreateImage struct {
@@ -24,7 +29,7 @@ type StepCreateImage struct {
 }
 
 func (s *StepCreateImage) Run(state multistep.StateBag) multistep.StepAction {
-	reqManager := state.Get(constants.RequestManager).(*request.Manager)
+	client := state.Get(constants.RequestManager).(management.Client)
 	ui := state.Get(constants.Ui).(packer.Ui)
 
 	errorMsg := "Error Creating Azure Image: %s"
@@ -34,10 +39,14 @@ func (s *StepCreateImage) Run(state multistep.StateBag) multistep.StepAction {
 	description := "packer made image"
 	imageFamily := "PackerMade"
 
-	requestData := reqManager.CaptureVMImage(s.TmpServiceName, s.TmpVmName, s.UserImageName, s.UserImageLabel, description, imageFamily, s.RecommendedVMSize)
-	err := reqManager.ExecuteSync(requestData)
-
-	if err != nil {
+	if err := retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
+		return vmi.NewClient(client).Capture(s.TmpServiceName, s.TmpVmName, s.TmpVmName,
+			s.UserImageName, s.UserImageLabel, vmi.OSStateGeneralized, vmi.CaptureParameters{
+				Description:       description,
+				ImageFamily:       imageFamily,
+				RecommendedVMSize: s.RecommendedVMSize,
+			})
+	}); err != nil {
 		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)
 		ui.Error(err.Error())
@@ -52,7 +61,7 @@ func (s *StepCreateImage) Run(state multistep.StateBag) multistep.StepAction {
 }
 
 func (s *StepCreateImage) Cleanup(state multistep.StateBag) {
-	reqManager := state.Get(constants.RequestManager).(*request.Manager)
+	client := state.Get(constants.RequestManager).(management.Client)
 	ui := state.Get(constants.Ui).(packer.Ui)
 
 	var err error
@@ -76,45 +85,12 @@ func (s *StepCreateImage) Cleanup(state multistep.StateBag) {
 				return
 			}
 
-			requestData := reqManager.DeleteDiskAndMedia(diskName)
-
-			const stepsLimit int = 10
-			stepNumber := 0
-			for {
-				err = reqManager.ExecuteSync(requestData)
-
-				if err == nil {
-					break
-				}
-
-				patterns := []string{
-					"is currently performing an operation on deployment",
-					"is currently in use by virtual machine",
-				}
-
-				needToRetry := false
-
-				for _, pattern := range patterns {
-					if strings.Contains(err.Error(), pattern) {
-						needToRetry = true
-						break
-					}
-				}
-
-				if needToRetry {
-					stepNumber++
-					if stepNumber == stepsLimit {
-						err := fmt.Errorf(errorMsg, err)
-						ui.Error(err.Error())
-						return
-					}
-
-					const p = 30
-					log.Println(fmt.Sprintf("Disk is in use. Waiting for %d sec (%d of %d)", uint(p), stepNumber, stepsLimit))
-					time.Sleep(time.Second * p)
-					continue
-				}
-
+			if err := retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
+				return vmdisk.NewClient(client).DeleteDisk(diskName, true)
+			}, retry.ConstantBackoffRule("busy", func(err management.AzureError) bool {
+				return strings.Contains(err.Message, "is currently performing an operation on deployment") ||
+					strings.Contains(err.Message, "is currently in use by virtual machine")
+			}, 30*time.Second, 10)); err != nil {
 				err := fmt.Errorf(errorMsg, err)
 				ui.Error(err.Error())
 				return

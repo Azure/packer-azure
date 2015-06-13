@@ -6,27 +6,16 @@ package targets
 
 import (
 	"fmt"
-
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/response/model"
-	"github.com/mitchellh/multistep"
-	"github.com/mitchellh/packer/packer"
 	"log"
 	"time"
-)
 
-const (
-	powerState_Started                string = "Started"
-	powerState_Stopping               string = "Stopping"
-	powerState_Stopped                string = "Stopped"
-	powerState_Unknown                string = "Unknown"
-	instanceStatus_ReadyRole                 = "ReadyRole"
-	instanceStatus_FailedStartingRole        = "FailedStartingRole"
-	instanceStatus_FailedStartingVM          = "FailedStartingVM"
-	instanceStatus_ProvisioningFailed        = "ProvisioningFailed"
-	instanceStatus_UnresponsiveRole          = "UnresponsiveRole"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+
+	"github.com/mitchellh/multistep"
+	"github.com/mitchellh/packer/packer"
+
+	"github.com/Azure/azure-sdk-for-go/management"
+	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"
 )
 
 type StepPollStatus struct {
@@ -36,12 +25,13 @@ type StepPollStatus struct {
 }
 
 func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
-	reqManager := state.Get(constants.RequestManager).(*request.Manager)
+	client := state.Get(constants.RequestManager).(management.Client)
+	vmc := vm.NewClient(client)
 	ui := state.Get(constants.Ui).(packer.Ui)
 
-	errorMsg := "Error Polling Temporary Azure VM is ready: %s"
+	errorMsg := "Error polling temporary Azure VM is ready: %s"
 
-	ui.Say("Polling Temporary Azure VM is ready...")
+	ui.Say("Polling till temporary Azure VM is ready...")
 
 	if len(s.OSType) == 0 {
 		err := fmt.Errorf(errorMsg, "'OSType' param is empty")
@@ -50,23 +40,16 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 		return multistep.ActionHalt
 	}
 
-	firstSleepMin := time.Duration(2)
-	firstSleepTime := time.Minute * firstSleepMin
-	log.Printf("Sleeping for %v min to make the VM to start", uint(firstSleepMin))
-	time.Sleep(firstSleepTime)
-
 	var count uint = 60
 	var duration time.Duration = 40
 	sleepTime := time.Second * duration
 	total := count * uint(duration)
 
-	//	var err error
-	var deployment *model.Deployment
+	var deployment vm.DeploymentResponse
 
-	requestData := reqManager.GetDeployment(s.TmpServiceName, s.TmpVmName)
-
-	for count != 0 {
-		resp, err := reqManager.Execute(requestData)
+	for count > 0 {
+		var err error // deployment needs to be accessed outside of this loop, can't use :=
+		deployment, err = vmc.GetDeployment(s.TmpServiceName, s.TmpVmName)
 		if err != nil {
 			err := fmt.Errorf(errorMsg, err)
 			state.Put("error", err)
@@ -74,29 +57,25 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 			return multistep.ActionHalt
 		}
 
-		deployment, err = response.ParseDeployment(resp.Body)
-		//		log.Printf("deployment:\n%v", deployment)
-
 		if len(deployment.RoleInstanceList) > 0 {
 			powerState := deployment.RoleInstanceList[0].PowerState
 			instanceStatus := deployment.RoleInstanceList[0].InstanceStatus
 
-			if powerState == powerState_Started && instanceStatus == instanceStatus_ReadyRole {
+			if powerState == vm.PowerStateStarted && instanceStatus == vm.InstanceStatusReadyRole {
 				break
 			}
 
-			if instanceStatus == instanceStatus_FailedStartingRole ||
-				instanceStatus == instanceStatus_FailedStartingVM ||
-				instanceStatus == instanceStatus_ProvisioningFailed ||
-				instanceStatus == instanceStatus_UnresponsiveRole {
+			if instanceStatus == vm.InstanceStatusFailedStartingRole ||
+				instanceStatus == vm.InstanceStatusFailedStartingVM ||
+				instanceStatus == vm.InstanceStatusUnresponsiveRole {
 				err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].instanceStatus is "+instanceStatus)
 				state.Put("error", err)
 				ui.Error(err.Error())
 				return multistep.ActionHalt
 			}
-			if powerState == powerState_Stopping ||
-				powerState == powerState_Stopped ||
-				powerState == powerState_Unknown {
+			if powerState == vm.PowerStateStopping ||
+				powerState == vm.PowerStateStopped ||
+				powerState == vm.PowerStateUnknown {
 				err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].PowerState is "+powerState)
 				state.Put("error", err)
 				ui.Error(err.Error())
@@ -132,7 +111,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 
 		vip := endpoints[0].Vip
 		port := endpoints[0].PublicPort
-		endpoint := fmt.Sprintf("%s:%s", vip, port)
+		endpoint := fmt.Sprintf("%s:%d", vip, port)
 
 		ui.Message("VM Endpoint: " + endpoint)
 		state.Put(constants.AzureVmAddr, endpoint)

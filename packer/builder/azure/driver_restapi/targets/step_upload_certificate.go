@@ -5,14 +5,18 @@
 package targets
 
 import (
-	"encoding/base64"
 	"fmt"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/request"
-	"github.com/mitchellh/multistep"
-	"github.com/mitchellh/packer/packer"
 	"io/ioutil"
 	"log"
+
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/retry"
+
+	"github.com/Azure/azure-sdk-for-go/management"
+	"github.com/Azure/azure-sdk-for-go/management/hostedservice"
+
+	"github.com/mitchellh/multistep"
+	"github.com/mitchellh/packer/packer"
 )
 
 type StepUploadCertificate struct {
@@ -20,7 +24,7 @@ type StepUploadCertificate struct {
 }
 
 func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepAction {
-	reqManager := state.Get(constants.RequestManager).(*request.Manager)
+	client := state.Get(constants.RequestManager).(management.Client)
 	ui := state.Get("ui").(packer.Ui)
 	errorMsg := "Error Uploading Temporary Certificate: %s"
 	var err error
@@ -40,18 +44,15 @@ func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepActi
 	var certData []byte
 	certData, err = ioutil.ReadFile(userCertPath)
 	if err != nil {
+		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
 
-	certDataBase64 := base64.StdEncoding.EncodeToString(certData)
-	certFormat := "pfx"
-
-	requestData := reqManager.AddCertificate(s.TmpServiceName, certDataBase64, certFormat, "")
-	err = reqManager.ExecuteSync(requestData)
-
-	if err != nil {
+	if err = retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
+		return hostedservice.NewClient(client).AddCertificate(s.TmpServiceName, certData, hostedservice.CertificateFormatPfx, "")
+	}); err != nil {
 		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)
 		ui.Error(err.Error())
