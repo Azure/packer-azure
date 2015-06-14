@@ -25,9 +25,9 @@ const (
 	OsImageName        string = "osImageName"
 	IsOSImage          string = "isOSImage"
 	PrivateKey         string = "privateKey"
-	AzureVmAddr        string = "azureVmAddr"
 	HardDiskName       string = "hardDiskName"
 	MediaLink          string = "mediaLink"
+	SSHHost            string = "sshHost"
 
 //	TmpServiceName 		string = "tmpServiceName"
 )

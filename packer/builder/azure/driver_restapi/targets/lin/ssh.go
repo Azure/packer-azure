@@ -11,10 +11,9 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// SSHAddress returns a function that can be given to the SSH communicator
-func SSHAddress(state multistep.StateBag) (string, error) {
-	azureVmAddr := state.Get(constants.AzureVmAddr).(string)
-	return azureVmAddr, nil
+func SSHHost(state multistep.StateBag) (string, error) {
+	host := state.Get(constants.SSHHost).(string)
+	return host, nil
 }
 
 // SSHConfig returns a function that can be used for the SSH communicator

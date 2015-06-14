@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/targets"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/utils"
-	"github.com/mitchellh/mapstructure"
 	"github.com/mitchellh/packer/common"
+	"github.com/mitchellh/packer/helper/communicator"
 	"github.com/mitchellh/packer/helper/config"
 	"github.com/mitchellh/packer/packer"
+	"github.com/mitchellh/packer/template/interpolate"
 	"log"
 	"os"
 	"regexp"
+	"time"
 )
 
 type Config struct {
@@ -31,15 +33,19 @@ type Config struct {
 	tmpServiceName   string
 	tmpContainerName string
 	userImageName    string
+
+	Comm communicator.Config `mapstructure:",squash"`
+
+	ctx *interpolate.Context
 }
 
 func newConfig(raws ...interface{}) (*Config, []string, error) {
 	var c Config
 
-	var md mapstructure.Metadata
+	c.ctx = &interpolate.Context{}
 	err := config.Decode(&c, &config.DecodeOpts{
-		Metadata:    &md,
-		Interpolate: true,
+		Interpolate:        true,
+		InterpolateContext: c.ctx,
 	}, raws...)
 	if err != nil {
 		return nil, nil, err
@@ -56,6 +62,11 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 		c.userName = "packer"
 	}
 
+	c.Comm.SSHUsername = c.userName
+	if c.Comm.SSHTimeout == 0 {
+		c.Comm.SSHTimeout = 20 * time.Minute
+	}
+
 	randSuffix := utils.RandomString("0123456789abcdefghijklmnopqrstuvwxyz", 10)
 	c.tmpVmName = "PkrVM" + randSuffix
 	c.tmpServiceName = "PkrSrv" + randSuffix
@@ -63,6 +74,7 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 
 	// Check values
 	var errs *packer.MultiError
+	errs = packer.MultiErrorAppend(errs, c.Comm.Prepare(c.ctx)...)
 
 	if c.SubscriptionName == "" {
 		errs = packer.MultiErrorAppend(errs,

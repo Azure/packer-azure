@@ -110,11 +110,9 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 		}
 
 		vip := endpoints[0].Vip
-		port := endpoints[0].PublicPort
-		endpoint := fmt.Sprintf("%s:%d", vip, port)
+		state.Put(constants.SSHHost, vip)
 
-		ui.Message("VM Endpoint: " + endpoint)
-		state.Put(constants.AzureVmAddr, endpoint)
+		ui.Message("VM Endpoint: " + vip)
 	}
 
 	roleList := deployment.RoleList
