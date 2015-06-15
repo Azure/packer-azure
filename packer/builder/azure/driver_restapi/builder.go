@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/management"
 	"github.com/Azure/azure-sdk-for-go/management/osimage"
@@ -22,6 +21,7 @@ import (
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/utils"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
+	"github.com/mitchellh/packer/helper/communicator"
 	"github.com/mitchellh/packer/packer"
 )
 
@@ -121,10 +121,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				OSType:         b.config.OSType,
 			},
 
-			&common.StepConnectSSH{
-				SSHAddress:     lin.SSHAddress,
-				SSHConfig:      lin.SSHConfig(b.config.userName),
-				SSHWaitTimeout: 20 * time.Minute,
+			&communicator.StepConnectSSH{
+				Config:    &b.config.Comm,
+				Host:      lin.SSHHost,
+				SSHConfig: lin.SSHConfig(b.config.userName),
 			},
 			&common.StepProvision{},
 
