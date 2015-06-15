@@ -4,7 +4,9 @@
 // See License.txt in the project root for license information.
 package utils
 
-func FindShift(a, b string) int {
+// removes overlap between the end of a and the start of b and
+// glues them together
+func GlueStrings(a, b string) string {
 	shift := 0
 	for shift < len(a) {
 		i := 0
@@ -16,10 +18,6 @@ func FindShift(a, b string) int {
 		}
 		shift++
 	}
-	return shift
-}
 
-func Clue(a, b string) string {
-	shift := FindShift(a, b)
 	return string(a[:shift]) + b
 }

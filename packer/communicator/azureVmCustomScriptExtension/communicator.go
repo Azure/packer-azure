@@ -18,7 +18,7 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/retry"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/utils"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/utils"
 
 	"github.com/Azure/azure-sdk-for-go/management"
 	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"
@@ -279,13 +279,13 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 		if len(stdOutBuff) == 0 {
 			stdOutBuff = stdOut
 		} else {
-			stdOutBuff = utils.Clue(stdOutBuff, stdOut)
+			stdOutBuff = utils.GlueStrings(stdOutBuff, stdOut)
 		}
 
 		if len(stdErrBuff) == 0 {
 			stdErrBuff = stdErr
 		} else {
-			stdErrBuff = utils.Clue(stdErrBuff, stdErr)
+			stdErrBuff = utils.GlueStrings(stdErrBuff, stdErr)
 		}
 
 		if extensionSettingStatus.Status == statusSuccess {
