@@ -61,6 +61,9 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		return nil, fmt.Errorf("Error creating new Azure client: %v", err)
 	}
 
+	// add logger if appropriate
+	b.client = getLoggedClient(b.client)
+
 	// Set up the state.
 	state := new(multistep.BasicStateBag)
 	state.Put(constants.Config, &b.config)
