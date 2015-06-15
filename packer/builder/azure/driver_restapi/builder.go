@@ -72,7 +72,6 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put(constants.Ui, ui)
 
 	// complete flags
-	state.Put(constants.CertCreated, 0)
 	state.Put(constants.SrvExists, 0)
 	state.Put(constants.CertInstalled, 0)
 	state.Put(constants.CertUploaded, 0)
@@ -90,13 +89,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	var steps []multistep.Step
 
 	if b.config.OSType == targets.Linux {
-		certFileName := "cert.pem"
-		keyFileName := "key.pem"
-
 		steps = []multistep.Step{
 			&lin.StepCreateCert{
-				CertFileName:   certFileName,
-				KeyFileName:    keyFileName,
 				TmpServiceName: b.config.tmpServiceName,
 			},
 			&targets.StepCreateService{
@@ -128,7 +122,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			},
 			&common.StepProvision{},
 
-			&lin.StepGeneralizeOs{
+			&lin.StepGeneralizeOS{
 				Command: "sudo /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync",
 			},
 			&targets.StepStopVm{
@@ -263,8 +257,8 @@ func (b *Builder) validateAzureOptions(ui packer.Ui, state *multistep.BasicState
 		return err
 	}
 
-	if osImage, found := FindOsImage(imageList.OSImages, b.config.OSImageLabel, b.config.Location); found {
-		state.Put(constants.OsImageName, osImage.Name)
+	if osImage, found := FindOSImage(imageList.OSImages, b.config.OSImageLabel, b.config.Location); found {
+		state.Put(constants.OSImageName, osImage.Name)
 		state.Put(constants.IsOSImage, true)
 		return nil
 	} else {
@@ -275,7 +269,7 @@ func (b *Builder) validateAzureOptions(ui packer.Ui, state *multistep.BasicState
 		}
 
 		if vmImage, found := FindVmImage(imageList.VMImages, "", b.config.OSImageLabel, b.config.Location); found {
-			state.Put(constants.OsImageName, vmImage.Name)
+			state.Put(constants.OSImageName, vmImage.Name)
 			state.Put(constants.IsOSImage, false)
 			return nil
 		} else {

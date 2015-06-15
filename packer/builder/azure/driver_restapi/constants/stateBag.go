@@ -8,7 +8,6 @@ package constants
 // complete flags
 const (
 	SrvExists     string = "srvExists"
-	CertCreated   string = "certCreated"
 	CertInstalled string = "certInstalled"
 	CertUploaded  string = "certUploaded"
 	VmExists      string = "vmExists"
@@ -17,17 +16,17 @@ const (
 	ImageCreated  string = "imageCreated"
 )
 const (
-	Config             string = "config"
-	Ui                 string = "ui"
-	RequestManager     string = "requestManager"
-	UserCertThumbprint string = "userCertThumbprint"
-	UserCertPath       string = "userCertPath"
-	OsImageName        string = "osImageName"
-	IsOSImage          string = "isOSImage"
-	PrivateKey         string = "privateKey"
-	HardDiskName       string = "hardDiskName"
-	MediaLink          string = "mediaLink"
-	SSHHost            string = "sshHost"
+	Config         string = "config"
+	Ui             string = "ui"
+	RequestManager string = "requestManager"
+	PrivateKey     string = "privateKey"
+	Certificate    string = "certificate"
+	Thumbprint     string = "thumbprint"
+	OSImageName    string = "osImageName"
+	IsOSImage      string = "isOSImage"
+	HardDiskName   string = "hardDiskName"
+	MediaLink      string = "mediaLink"
+	SSHHost        string = "sshHost"
 
 //	TmpServiceName 		string = "tmpServiceName"
 )

@@ -36,7 +36,7 @@ func (a vmImageByPublishDate) Len() int           { return len(a) }
 func (a vmImageByPublishDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a vmImageByPublishDate) Less(i, j int) bool { return a[i].PublishedDate > a[j].PublishedDate }
 
-func FindOsImage(imageList []osi.OSImage, label, location string) (osi.OSImage, bool) {
+func FindOSImage(imageList []osi.OSImage, label, location string) (osi.OSImage, bool) {
 	matches := make([]osi.OSImage, 0)
 	for _, im := range imageList {
 		for _, loc := range strings.Split(im.Location, ";") {
