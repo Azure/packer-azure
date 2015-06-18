@@ -128,7 +128,7 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 		errs = packer.MultiErrorAppend(errs, fmt.Errorf("user_image_label is not valid, it should follow the pattern %s", userLabelRegex))
 	}
 
-	c.userImageName = utils.DecorateImageName(c.UserImageLabel)
+	c.userImageName = fmt.Sprintf("%s_%s", c.UserImageLabel, time.Now().Format("2006-01-02_15-04"))
 
 	log.Println(fmt.Sprintf("%s: %v", "subscription_name", c.SubscriptionName))
 	log.Println(fmt.Sprintf("%s: %v", "publish_settings_path", c.PublishSettingsPath))
@@ -138,8 +138,8 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 	log.Println(fmt.Sprintf("%s: %v", "os_image_label", c.OSImageLabel))
 	log.Println(fmt.Sprintf("%s: %v", "location", c.Location))
 	log.Println(fmt.Sprintf("%s: %v", "instance_size", c.InstanceSize))
-	log.Println(fmt.Sprintf("%s: %v", "user_image_name", c.userImageName))
 	log.Println(fmt.Sprintf("%s: %v", "user_image_label", c.UserImageLabel))
+	log.Println(fmt.Sprintf("%s: %v", "user_image_name", c.userImageName))
 	log.Println(fmt.Sprintf("%s: %v", "tmpContainerName", c.tmpContainerName))
 	log.Println(fmt.Sprintf("%s: %v", "tmpVmName", c.tmpVmName))
 	log.Println(fmt.Sprintf("%s: %v", "tmpServiceName", c.tmpServiceName))
