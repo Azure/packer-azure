@@ -12,11 +12,11 @@ import (
 	"log"
 )
 
-type StepGeneralizeOs struct {
+type StepGeneralizeOS struct {
 	Command string
 }
 
-func (s *StepGeneralizeOs) Run(state multistep.StateBag) multistep.StepAction {
+func (s *StepGeneralizeOS) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	comm := state.Get("communicator").(packer.Communicator)
 
@@ -53,6 +53,6 @@ func (s *StepGeneralizeOs) Run(state multistep.StateBag) multistep.StepAction {
 	return multistep.ActionContinue
 }
 
-func (s *StepGeneralizeOs) Cleanup(state multistep.StateBag) {
+func (s *StepGeneralizeOS) Cleanup(state multistep.StateBag) {
 	// do nothing
 }

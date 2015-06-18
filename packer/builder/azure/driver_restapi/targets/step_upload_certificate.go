@@ -6,8 +6,6 @@ package targets
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
 
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/retry"
@@ -31,24 +29,7 @@ func (s *StepUploadCertificate) Run(state multistep.StateBag) multistep.StepActi
 
 	ui.Say("Uploading Temporary Certificate...")
 
-	userCertPath := state.Get(constants.UserCertPath).(string)
-	if len(userCertPath) == 0 {
-		err = fmt.Errorf("StepUploadCertificate CertPath is empty")
-		state.Put("error", err)
-		ui.Error(err.Error())
-		return multistep.ActionHalt
-	}
-
-	log.Println("userCertPath: " + userCertPath)
-
-	var certData []byte
-	certData, err = ioutil.ReadFile(userCertPath)
-	if err != nil {
-		err := fmt.Errorf(errorMsg, err)
-		state.Put("error", err)
-		ui.Error(err.Error())
-		return multistep.ActionHalt
-	}
+	certData := []byte(state.Get(constants.Certificate).(string))
 
 	if err = retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
 		return hostedservice.NewClient(client).AddCertificate(s.TmpServiceName, certData, hostedservice.CertificateFormatPfx, "")

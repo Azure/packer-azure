@@ -36,7 +36,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 
 	ui.Say("Creating temporary Azure VM...")
 
-	osImageName := state.Get(constants.OsImageName).(string)
+	osImageName := state.Get(constants.OSImageName).(string)
 	if len(osImageName) == 0 {
 		err := fmt.Errorf(errorMsg, fmt.Errorf("osImageName is empty"))
 		state.Put("error", err)

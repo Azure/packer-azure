@@ -33,7 +33,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 
 	errorMsg := "Error Creating Temporary Azure VM: %s"
 
-	certThumbprint := state.Get(constants.UserCertThumbprint).(string)
+	certThumbprint := state.Get(constants.Thumbprint).(string)
 	if len(certThumbprint) == 0 {
 		err := fmt.Errorf(errorMsg, "Certificate Thumbprint is empty")
 		state.Put("error", err)
@@ -43,7 +43,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 
 	ui.Say("Creating Temporary Azure VM...")
 
-	osImageName := state.Get(constants.OsImageName).(string)
+	osImageName := state.Get(constants.OSImageName).(string)
 	if len(osImageName) == 0 {
 		err := fmt.Errorf(errorMsg, fmt.Errorf("osImageName is empty"))
 		state.Put("error", err)
