@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package driver_restapi
+package azure
 
 import (
 	osi "github.com/Azure/azure-sdk-for-go/management/osimage"

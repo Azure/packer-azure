@@ -6,7 +6,7 @@ package lin
 
 import (
 	"fmt"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/constants"
 	"github.com/mitchellh/multistep"
 	"golang.org/x/crypto/ssh"
 )

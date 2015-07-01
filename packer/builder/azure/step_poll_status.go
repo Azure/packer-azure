@@ -2,14 +2,14 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package targets
+package azure
 
 import (
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/constants"
 
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
@@ -100,7 +100,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 
 	log.Println("s.OSType = " + s.OSType)
 
-	if s.OSType == Linux {
+	if s.OSType == constants.Target_Linux {
 		endpoints := deployment.RoleInstanceList[0].InstanceEndpoints
 		if len(endpoints) == 0 {
 			err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].InstanceEndpoints list is empty")

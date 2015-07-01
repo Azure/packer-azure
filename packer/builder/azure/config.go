@@ -1,8 +1,8 @@
-package driver_restapi
+package azure
 
 import (
 	"fmt"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/targets"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/constants"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/utils"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/helper/communicator"
@@ -93,9 +93,9 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 		errs = packer.MultiErrorAppend(errs, fmt.Errorf("publish_settings_path is not a valid path: %s", err))
 	}
 
-	if !(c.OSType == targets.Linux || c.OSType == targets.Windows) {
+	if !(c.OSType == constants.Target_Linux || c.OSType == constants.Target_Windows) {
 		errs = packer.MultiErrorAppend(errs,
-			fmt.Errorf("os_type is not valid, must be one of: %s, %s", targets.Windows, targets.Linux))
+			fmt.Errorf("os_type is not valid, must be one of: %s, %s", constants.Target_Windows, constants.Target_Linux))
 	}
 
 	if c.OSImageLabel == "" {
@@ -108,7 +108,7 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 
 	sizeIsValid := false
 
-	for _, instanceSize := range targets.VMSizes {
+	for _, instanceSize := range allowedVMSizes {
 		if c.InstanceSize == instanceSize {
 			sizeIsValid = true
 			break
@@ -116,7 +116,7 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 	}
 
 	if !sizeIsValid {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("instance_size is not valid, must be one of: %v", targets.VMSizes))
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("instance_size is not valid, must be one of: %v", allowedVMSizes))
 	}
 
 	if c.UserImageLabel == "" {
@@ -130,24 +130,49 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 
 	c.userImageName = fmt.Sprintf("%s_%s", c.UserImageLabel, time.Now().Format("2006-01-02_15-04"))
 
-	log.Println(fmt.Sprintf("%s: %v", "subscription_name", c.SubscriptionName))
-	log.Println(fmt.Sprintf("%s: %v", "publish_settings_path", c.PublishSettingsPath))
-	log.Println(fmt.Sprintf("%s: %v", "storage_account", c.StorageAccount))
-	log.Println(fmt.Sprintf("%s: %v", "storage_account_container", c.StorageContainer))
-	log.Println(fmt.Sprintf("%s: %v", "os_type", c.OSType))
-	log.Println(fmt.Sprintf("%s: %v", "os_image_label", c.OSImageLabel))
-	log.Println(fmt.Sprintf("%s: %v", "location", c.Location))
-	log.Println(fmt.Sprintf("%s: %v", "instance_size", c.InstanceSize))
-	log.Println(fmt.Sprintf("%s: %v", "user_image_label", c.UserImageLabel))
-	log.Println(fmt.Sprintf("%s: %v", "user_image_name", c.userImageName))
-	log.Println(fmt.Sprintf("%s: %v", "tmpContainerName", c.tmpContainerName))
-	log.Println(fmt.Sprintf("%s: %v", "tmpVmName", c.tmpVmName))
-	log.Println(fmt.Sprintf("%s: %v", "tmpServiceName", c.tmpServiceName))
-	log.Println(fmt.Sprintf("%s: %v", "username", c.userName))
+	log.Println(common.ScrubConfig(c))
 
 	if errs != nil && len(errs.Errors) > 0 {
 		return nil, nil, errs
 	}
 
 	return &c, nil, nil
+}
+
+// Target sizes
+var allowedVMSizes = []string{
+	"ExtraSmall",
+	"Small",
+	"Medium",
+	"Large",
+	"ExtraLarge",
+	"A5",
+	"A6",
+	"A7",
+	"A8",
+	"A9",
+
+	"Standard_D1",
+	"Standard_D2",
+	"Standard_D3",
+	"Standard_D4",
+	"Standard_D11",
+	"Standard_D12",
+	"Standard_D13",
+	"Standard_D14",
+
+	"Standard_DS1",
+	"Standard_DS2",
+	"Standard_DS3",
+	"Standard_DS4",
+	"Standard_DS11",
+	"Standard_DS12",
+	"Standard_DS13",
+	"Standard_DS14",
+
+	"Standard_G1",
+	"Standard_G2",
+	"Standard_G3",
+	"Standard_G4",
+	"Standard_G5",
 }

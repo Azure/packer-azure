@@ -2,16 +2,10 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package settings
+package constants
 
+// Target types
 const (
-	// request
-	LogRequestData bool = true
-
-	// response
-	LogRawResponseBody  bool = true
-	LogRawResponseError bool = true
-
-	// azure storage
-	LogCanonicalizedString bool = false
+	Target_Linux   string = "Linux"
+	Target_Windows string = "Windows"
 )

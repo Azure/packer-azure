@@ -2,13 +2,13 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package win
+package lin
 
 import (
 	"fmt"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/retry"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/retry"
 
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
@@ -25,16 +25,23 @@ type StepCreateVm struct {
 	TmpServiceName   string
 	InstanceSize     string
 	Username         string
-	Password         string
 }
 
 func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 	client := state.Get(constants.RequestManager).(management.Client)
 	ui := state.Get("ui").(packer.Ui)
 
-	errorMsg := "Error creating temporary Azure VM: %s"
+	errorMsg := "Error Creating Temporary Azure VM: %s"
 
-	ui.Say("Creating temporary Azure VM...")
+	certThumbprint := state.Get(constants.Thumbprint).(string)
+	if len(certThumbprint) == 0 {
+		err := fmt.Errorf(errorMsg, "Certificate Thumbprint is empty")
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
+
+	ui.Say("Creating Temporary Azure VM...")
 
 	osImageName := state.Get(constants.OSImageName).(string)
 	if len(osImageName) == 0 {
@@ -48,7 +55,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 
 	mediaLoc := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s.vhd", s.StorageAccount, s.StorageContainer, s.TmpVmName)
 
-	role := createRole(isOSImage, s.TmpVmName, s.InstanceSize, s.Username, s.Password, osImageName, mediaLoc)
+	role := createRole(isOSImage, s.TmpVmName, s.InstanceSize, certThumbprint, s.Username, osImageName, mediaLoc)
 	if err := retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
 		return vm.NewClient(client).CreateDeployment(role, s.TmpServiceName, vm.CreateDeploymentOptions{})
 	}); err != nil {
@@ -57,6 +64,7 @@ func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
+
 	state.Put(constants.VmExists, 1)
 	state.Put(constants.DiskExists, 1)
 
@@ -67,12 +75,10 @@ func (s *StepCreateVm) Cleanup(state multistep.StateBag) {
 	// do nothing
 }
 
-func createRole(isOSImage bool, vmName, vmSize, userName, password, osImageName, mediaLoc string) (role vm.Role) {
+func createRole(isOSImage bool, vmName, vmSize, certThumbprint, userName, osImageName, mediaLoc string) (role vm.Role) {
 	role = vmutils.NewVMConfiguration(vmName, vmSize)
-	vmutils.ConfigureForWindows(&role, vmName, userName, password, true, "")
-	vmutils.ConfigureWithPublicRDP(&role)
-	vmutils.ConfigureWithPublicPowerShell(&role)
-
+	vmutils.ConfigureForLinux(&role, vmName, userName, "", certThumbprint)
+	vmutils.ConfigureWithPublicSSH(&role)
 	if isOSImage {
 		vmutils.ConfigureDeploymentFromPlatformImage(&role, osImageName, mediaLoc, "")
 	} else {

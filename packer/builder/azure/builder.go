@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package driver_restapi
+package azure
 
 import (
 	"errors"
@@ -14,11 +14,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/management/storageservice"
 	vmimage "github.com/Azure/azure-sdk-for-go/management/virtualmachineimage"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/targets"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/targets/lin"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/targets/win"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/lin"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/utils"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/win"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/helper/communicator"
@@ -47,8 +46,6 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 // Run executes a Packer build and returns a packer.Artifact representing
 // a Azure VM image.
 func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
-
-	var err error
 	ui.Say("Preparing builder...")
 
 	ui.Message("Creating Azure Service Management client...")
@@ -88,16 +85,16 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	var steps []multistep.Step
 
-	if b.config.OSType == targets.Linux {
+	if b.config.OSType == constants.Target_Linux {
 		steps = []multistep.Step{
 			&lin.StepCreateCert{
 				TmpServiceName: b.config.tmpServiceName,
 			},
-			&targets.StepCreateService{
+			&StepCreateService{
 				Location:       b.config.Location,
 				TmpServiceName: b.config.tmpServiceName,
 			},
-			&targets.StepUploadCertificate{
+			&StepUploadCertificate{
 				TmpServiceName: b.config.tmpServiceName,
 			},
 			&lin.StepCreateVm{
@@ -109,7 +106,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				Username:         b.config.userName,
 			},
 
-			&targets.StepPollStatus{
+			&StepPollStatus{
 				TmpServiceName: b.config.tmpServiceName,
 				TmpVmName:      b.config.tmpVmName,
 				OSType:         b.config.OSType,
@@ -125,11 +122,11 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&lin.StepGeneralizeOS{
 				Command: "sudo /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync",
 			},
-			&targets.StepStopVm{
+			&StepStopVm{
 				TmpVmName:      b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
 			},
-			&targets.StepCreateImage{
+			&StepCreateImage{
 				TmpServiceName:    b.config.tmpServiceName,
 				TmpVmName:         b.config.tmpVmName,
 				UserImageName:     b.config.userImageName,
@@ -137,12 +134,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				RecommendedVMSize: b.config.InstanceSize,
 			},
 		}
-	} else if b.config.OSType == targets.Windows {
-		//		b.config.tmpVmName = "shchTemp"
-		//		b.config.tmpServiceName = "shchTemp"
+	} else if b.config.OSType == constants.Target_Windows {
 		steps = []multistep.Step{
 
-			&targets.StepCreateService{
+			&StepCreateService{
 				Location:       b.config.Location,
 				TmpServiceName: b.config.tmpServiceName,
 			},
@@ -155,7 +150,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				Username:         b.config.userName,
 				Password:         utils.RandomPassword(),
 			},
-			&targets.StepPollStatus{
+			&StepPollStatus{
 				TmpServiceName: b.config.tmpServiceName,
 				TmpVmName:      b.config.tmpVmName,
 				OSType:         b.config.OSType,
@@ -167,11 +162,11 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TempContainerName:  b.config.tmpContainerName,
 			},
 			&common.StepProvision{},
-			&targets.StepStopVm{
+			&StepStopVm{
 				TmpVmName:      b.config.tmpVmName,
 				TmpServiceName: b.config.tmpServiceName,
 			},
-			&targets.StepCreateImage{
+			&StepCreateImage{
 				TmpServiceName:    b.config.tmpServiceName,
 				TmpVmName:         b.config.tmpVmName,
 				UserImageName:     b.config.userImageName,
