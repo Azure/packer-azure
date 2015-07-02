@@ -17,21 +17,26 @@ import (
 	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"
 )
 
-type StepCreateVm struct {
-	TmpServiceName string
-}
+type StepCreateVm struct{}
 
-func (s *StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
+func (*StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 	client := state.Get(constants.RequestManager).(management.Client)
 	ui := state.Get("ui").(packer.Ui)
+	config := state.Get(constants.Config).(*Config)
 
 	errorMsg := "Error Creating Temporary Azure VM: %s"
 
 	ui.Say("Creating Temporary Azure VM...")
 
 	role := state.Get("role").(*vm.Role)
+
+	options := vm.CreateDeploymentOptions{}
+	if config.VNet != "" && config.Subnet != "" {
+		options.VirtualNetworkName = config.VNet
+	}
+
 	if err := retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
-		return vm.NewClient(client).CreateDeployment(*role, s.TmpServiceName, vm.CreateDeploymentOptions{})
+		return vm.NewClient(client).CreateDeployment(*role, config.tmpServiceName, options)
 	}); err != nil {
 		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)

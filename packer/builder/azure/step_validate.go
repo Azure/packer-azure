@@ -1,6 +1,7 @@
 package azure
 
 import (
+	"encoding/xml"
 	"fmt"
 	"github.com/Azure/azure-sdk-for-go/management"
 	"github.com/Azure/azure-sdk-for-go/management/osimage"
@@ -20,7 +21,7 @@ type StepValidate struct{}
 func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 	client := state.Get(constants.RequestManager).(management.Client)
 	ui := state.Get(constants.Ui).(packer.Ui)
-	config := state.Get(constants.Config).(Config)
+	config := state.Get(constants.Config).(*Config)
 
 	ui.Say("Validating Azure options...")
 
@@ -36,7 +37,7 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 	}
 	ui.Message(fmt.Sprintf("Destination VHD: %s", destinationVhd))
 
-	// Check image exists
+	ui.Message("Checking image source...")
 	if err := func() error {
 		imageList, err := osimage.NewClient(client).ListOSImages()
 		if err != nil {
@@ -93,12 +94,24 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 		vmutils.ConfigureWithPublicPowerShell(&role)
 	}
 
+	if config.VNet != "" && config.Subnet != "" {
+		ui.Message("Checking VNet...")
+		if err := checkVirtualNetworkConfiguration(client, config.VNet, config.Subnet); err != nil {
+			state.Put("error", err)
+			ui.Error(err.Error())
+			return multistep.ActionHalt
+		}
+		vmutils.ConfigureWithSubnet(&role, config.Subnet)
+	}
+
 	state.Put("role", &role)
 
 	return multistep.ActionContinue
 }
 
-func validateStorageAccount(config Config, client management.Client) (string, error) {
+func (*StepValidate) Cleanup(multistep.StateBag) {}
+
+func validateStorageAccount(config *Config, client management.Client) (string, error) {
 	ssc := storageservice.NewClient(client)
 
 	sa, err := ssc.GetStorageService(config.StorageAccount)
@@ -126,4 +139,36 @@ func validateStorageAccount(config Config, client management.Client) (string, er
 	return fmt.Sprintf("%s%s/%s.vhd", blobEndpoint, config.StorageContainer, config.tmpVmName), nil
 }
 
-func (*StepValidate) Cleanup(multistep.StateBag) {}
+func checkVirtualNetworkConfiguration(client management.Client, vnetname, subnetname string) error {
+	const getVNetConfig = "services/networking/media"
+	d, err := client.SendAzureGetRequest(getVNetConfig)
+	if err != nil {
+		return err
+	}
+
+	var vnetConfig struct {
+		VNets []struct {
+			Name    string `xml:"name,attr"`
+			Subnets []struct {
+				Name          string `xml:"name,attr"`
+				AddressPrefix string
+			} `xml:"Subnets>Subnet"`
+		} `xml:"VirtualNetworkConfiguration>VirtualNetworkSites>VirtualNetworkSite"`
+	}
+	err = xml.Unmarshal(d, &vnetConfig)
+	if err != nil {
+		return err
+	}
+
+	for _, vnet := range vnetConfig.VNets {
+		if vnet.Name == vnetname {
+			for _, sn := range vnet.Subnets {
+				if sn.Name == subnetname {
+					return nil
+				}
+			}
+		}
+	}
+
+	return fmt.Errorf("Could not find vnet %q and subnet %q in network configuration: %v", vnetname, subnetname, vnetConfig)
+}

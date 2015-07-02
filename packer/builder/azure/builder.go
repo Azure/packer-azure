@@ -60,7 +60,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	// Set up the state.
 	state := new(multistep.BasicStateBag)
-	state.Put(constants.Config, &b.config)
+	state.Put(constants.Config, b.config)
 	state.Put(constants.RequestManager, b.client)
 	state.Put("hook", hook)
 	state.Put(constants.Ui, ui)
@@ -78,10 +78,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	if b.config.OSType == constants.Target_Linux {
 		steps = []multistep.Step{
-			new(StepValidate),
 			&lin.StepCreateCert{
 				TmpServiceName: b.config.tmpServiceName,
 			},
+			new(StepValidate),
 			&StepCreateService{
 				Location:       b.config.Location,
 				TmpServiceName: b.config.tmpServiceName,
@@ -89,10 +89,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&StepUploadCertificate{
 				TmpServiceName: b.config.tmpServiceName,
 			},
-			&StepCreateVm{
-				TmpServiceName: b.config.tmpServiceName,
-			},
-
+			new(StepCreateVm),
 			&StepPollStatus{
 				TmpServiceName: b.config.tmpServiceName,
 				TmpVmName:      b.config.tmpVmName,
@@ -128,9 +125,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				Location:       b.config.Location,
 				TmpServiceName: b.config.tmpServiceName,
 			},
-			&StepCreateVm{
-				TmpServiceName: b.config.tmpServiceName,
-			},
+			new(StepCreateVm),
 			&StepPollStatus{
 				TmpServiceName: b.config.tmpServiceName,
 				TmpVmName:      b.config.tmpVmName,
