@@ -231,9 +231,6 @@ func (b *Builder) Cancel() {
 }
 
 func (b *Builder) validateAzureOptions(ui packer.Ui, state *multistep.BasicStateBag) error {
-
-	var err error
-
 	// Check Storage account (& container)
 	ui.Message("Checking Storage Account...")
 	availabilityResponse, err := storageservice.NewClient(b.client).CheckStorageAccountNameAvailability(b.config.StorageAccount)

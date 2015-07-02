@@ -6,7 +6,7 @@
 package main
 
 import (
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure"
 	"github.com/mitchellh/packer/packer/plugin"
 )
 
@@ -15,6 +15,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	server.RegisterBuilder(new(driver_restapi.Builder))
+	server.RegisterBuilder(new(azure.Builder))
 	server.Serve()
 }
