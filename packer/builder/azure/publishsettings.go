@@ -1,4 +1,4 @@
-package driver_restapi
+package azure
 
 import (
 	"encoding/xml"

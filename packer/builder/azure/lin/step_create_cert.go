@@ -16,7 +16,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/constants"
 
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"

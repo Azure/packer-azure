@@ -17,7 +17,7 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/retry"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/retry"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/utils"
 
 	"github.com/Azure/azure-sdk-for-go/management"

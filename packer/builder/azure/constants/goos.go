@@ -6,7 +6,7 @@
 package constants
 
 const (
-	Linux   string = "linux"
-	Windows string = "windows"
-	Darwin	string = "darwin"
+	GOOS_Linux   string = "linux"
+	GOOS_Windows string = "windows"
+	GOOS_Darwin  string = "darwin"
 )

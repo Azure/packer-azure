@@ -2,15 +2,15 @@
 // All Rights Reserved.
 // Licensed under the Apache License, Version 2.0.
 // See License.txt in the project root for license information.
-package targets
+package azure
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/retry"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/retry"
 
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"

@@ -7,7 +7,7 @@ package win
 import (
 	"fmt"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/driver_restapi/constants"
+	"github.com/MSOpenTech/packer-azure/packer/builder/azure/constants"
 	"github.com/MSOpenTech/packer-azure/packer/communicator/azureVmCustomScriptExtension"
 
 	"github.com/mitchellh/multistep"
