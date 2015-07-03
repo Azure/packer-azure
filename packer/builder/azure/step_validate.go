@@ -84,19 +84,19 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 			ui.Error(err.Error())
 			return multistep.ActionHalt
 		}
-		vmutils.ConfigureForLinux(&role, config.tmpVmName, config.userName, "", certThumbprint)
+		vmutils.ConfigureForLinux(&role, config.tmpVmName, config.UserName, "", certThumbprint)
 		vmutils.ConfigureWithPublicSSH(&role)
 	} else if config.OSType == constants.Target_Windows {
 		password := utils.RandomPassword()
 		state.Put("password", password)
-		vmutils.ConfigureForWindows(&role, config.tmpVmName, config.userName, password, true, "")
+		vmutils.ConfigureForWindows(&role, config.tmpVmName, config.UserName, password, true, "")
 		vmutils.ConfigureWithPublicRDP(&role)
 		vmutils.ConfigureWithPublicPowerShell(&role)
 	}
 
 	if config.VNet != "" && config.Subnet != "" {
 		ui.Message("Checking VNet...")
-		if err := checkVirtualNetworkConfiguration(client, config.VNet, config.Subnet); err != nil {
+		if err := checkVirtualNetworkConfiguration(client, config.VNet, config.Subnet, config.Location); err != nil {
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -139,7 +139,7 @@ func validateStorageAccount(config *Config, client management.Client) (string, e
 	return fmt.Sprintf("%s%s/%s.vhd", blobEndpoint, config.StorageContainer, config.tmpVmName), nil
 }
 
-func checkVirtualNetworkConfiguration(client management.Client, vnetname, subnetname string) error {
+func checkVirtualNetworkConfiguration(client management.Client, vnetname, subnetname, location string) error {
 	const getVNetConfig = "services/networking/media"
 	d, err := client.SendAzureGetRequest(getVNetConfig)
 	if err != nil {
@@ -148,8 +148,10 @@ func checkVirtualNetworkConfiguration(client management.Client, vnetname, subnet
 
 	var vnetConfig struct {
 		VNets []struct {
-			Name    string `xml:"name,attr"`
-			Subnets []struct {
+			Name          string `xml:"name,attr"`
+			AffinityGroup string `xml:",attr"`
+			Location      string `xml:",attr"`
+			Subnets       []struct {
 				Name          string `xml:"name,attr"`
 				AddressPrefix string
 			} `xml:"Subnets>Subnet"`
@@ -162,6 +164,16 @@ func checkVirtualNetworkConfiguration(client management.Client, vnetname, subnet
 
 	for _, vnet := range vnetConfig.VNets {
 		if vnet.Name == vnetname {
+			if vnet.AffinityGroup != "" {
+				vnet.Location, err = getAffinityGroupLocation(client, vnet.AffinityGroup)
+				if err != nil {
+					return err
+				}
+			}
+			if vnet.Location != location {
+				return fmt.Errorf("VNet %q is not in location %q, but in %q", vnet.Name, location, vnet.Location)
+			}
+
 			for _, sn := range vnet.Subnets {
 				if sn.Name == subnetname {
 					return nil
@@ -171,4 +183,19 @@ func checkVirtualNetworkConfiguration(client management.Client, vnetname, subnet
 	}
 
 	return fmt.Errorf("Could not find vnet %q and subnet %q in network configuration: %v", vnetname, subnetname, vnetConfig)
+}
+
+func getAffinityGroupLocation(client management.Client, affinityGroup string) (string, error) {
+	const getAffinityGroupProperties = "affinitygroups/%s"
+	d, err := client.SendAzureGetRequest(fmt.Sprintf(getAffinityGroupProperties, affinityGroup))
+	if err != nil {
+		return "", err
+	}
+
+	var afGroup struct {
+		Location string
+	}
+	err = xml.Unmarshal(d, &afGroup)
+
+	return afGroup.Location, err
 }
