@@ -16,7 +16,7 @@ To start using the plugin you will need to get **PublishSetting profile** for yo
 You can download binaries from the [releases](https://github.com/MSOpenTech/packer-azure/releases) for this project and drop them in your [packer install](https://packer.io/docs/installation.html) directory or you can build the plugins from source (see below). Configuration examples can be found in the [config_examples](https://github.com/MSOpenTech/packer-azure/tree/master/config_examples) directory.
 
 ## Building from source
-* [Install Go](https://golang.org/doc/install) 1.3 or newer. Go and packer-azure dependencies require [git](http://git-scm.com/) and [mercurial](https://mercurial.selenic.com/) to be installed as well.
+* [Install Go](https://golang.org/doc/install) 1.4.1 or newer. Go and packer-azure dependencies require [git](http://git-scm.com/) and [mercurial](https://mercurial.selenic.com/) to be installed as well.
 * [Install packer](https://packer.io/docs/installation.html)
 * To build the plugins set the GOBIN environment variable to your packer install directory and run `go install github.com/MSOpenTech/packer-azure/packer/plugin/...`
 
