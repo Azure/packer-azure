@@ -103,7 +103,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TmpVmName:        b.config.tmpVmName,
 				TmpServiceName:   b.config.tmpServiceName,
 				InstanceSize:     b.config.InstanceSize,
-				Username:         b.config.userName,
+				Username:         b.config.UserName,
 			},
 
 			&StepPollStatus{
@@ -115,7 +115,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&communicator.StepConnectSSH{
 				Config:    &b.config.Comm,
 				Host:      lin.SSHHost,
-				SSHConfig: lin.SSHConfig(b.config.userName),
+				SSHConfig: lin.SSHConfig(b.config.UserName),
 			},
 			&common.StepProvision{},
 
@@ -147,7 +147,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TmpVmName:        b.config.tmpVmName,
 				TmpServiceName:   b.config.tmpServiceName,
 				InstanceSize:     b.config.InstanceSize,
-				Username:         b.config.userName,
+				Username:         b.config.UserName,
 				Password:         utils.RandomPassword(),
 			},
 			&StepPollStatus{
