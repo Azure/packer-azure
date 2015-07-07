@@ -20,15 +20,18 @@ type Config struct {
 
 	SubscriptionName    string `mapstructure:"subscription_name"`
 	PublishSettingsPath string `mapstructure:"publish_settings_path"`
-	StorageAccount      string `mapstructure:"storage_account"`
-	StorageContainer    string `mapstructure:"storage_account_container"`
-	OSType              string `mapstructure:"os_type"`
-	OSImageLabel        string `mapstructure:"os_image_label"`
-	Location            string `mapstructure:"location"`
-	InstanceSize        string `mapstructure:"instance_size"`
-	UserImageLabel      string `mapstructure:"user_image_label"`
-	UserName            string `mapstructure:"username"`
 
+	StorageAccount   string `mapstructure:"storage_account"`
+	StorageContainer string `mapstructure:"storage_account_container"`
+	Location         string `mapstructure:"location"`
+	InstanceSize     string `mapstructure:"instance_size"`
+	UserImageLabel   string `mapstructure:"user_image_label"`
+	OSType           string `mapstructure:"os_type"`
+	OSImageLabel     string `mapstructure:"os_image_label"`
+	VNet             string `mapstructure:"vnet"`
+	Subnet           string `mapstructure:"subnet"`
+
+	UserName         string `mapstructure:"username"`
 	tmpVmName        string
 	tmpServiceName   string
 	tmpContainerName string
@@ -129,6 +132,10 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 	}
 
 	c.userImageName = fmt.Sprintf("%s_%s", c.UserImageLabel, time.Now().Format("2006-01-02_15-04"))
+
+	if (c.VNet != "" && c.Subnet == "") || (c.Subnet != "" && c.VNet == "") {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("vnet and subnet need to either both be set or both be empty"))
+	}
 
 	log.Println(common.ScrubConfig(c))
 
