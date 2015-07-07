@@ -13,6 +13,7 @@ import (
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
 	"log"
+	"net/http"
 	"strings"
 )
 
@@ -37,35 +38,54 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 	}
 	ui.Message(fmt.Sprintf("Destination VHD: %s", destinationVhd))
 
-	ui.Message("Checking image source...")
 	if err := func() error {
-		imageList, err := osimage.NewClient(client).ListOSImages()
-		if err != nil {
-			log.Printf("OS image client returned error: %s", err)
-			return err
-		}
-
-		if osImage, found := FindOSImage(imageList.OSImages, config.OSImageLabel, config.Location); found {
-			vmutils.ConfigureDeploymentFromPlatformImage(&role, osImage.Name, destinationVhd, "")
-			ui.Message(fmt.Sprintf("Image source is OS image %q", osImage.Name))
-			if osImage.OS != config.OSType {
-				return fmt.Errorf("OS image type (%q) does not match config (%q)", osImage.OS, config.OSType)
+		if config.RemoteSourceImageLink != "" {
+			ui.Message("Checking remote image source link...")
+			response, err := http.DefaultClient.Head(config.RemoteSourceImageLink)
+			if response != nil && response.Body != nil {
+				defer response.Body.Close()
 			}
-		} else {
-			imageList, err := vmimage.NewClient(client).ListVirtualMachineImages()
 			if err != nil {
-				log.Printf("VM image client returned error: %s", err)
+				log.Printf("HTTP client returned error: %s", err)
+				return fmt.Errorf("error checking remote image source link: %v", err)
+			}
+			if response.StatusCode != 200 {
+				return fmt.Errorf("Unexpected status while retrieving remote image source at %s: %d %s", config.RemoteSourceImageLink, response.StatusCode, response.Status)
+			}
+			size := float64(response.ContentLength) / 1024 / 1024 / 1024
+			ui.Say(fmt.Sprintf("Remote image size: %.1f GiB", size))
+
+			vmutils.ConfigureDeploymentFromRemoteImage(&role, config.RemoteSourceImageLink, config.OSType, fmt.Sprintf("%s-OSDisk", config.tmpVmName), destinationVhd, "")
+		} else {
+			ui.Message("Checking image source...")
+			imageList, err := osimage.NewClient(client).ListOSImages()
+			if err != nil {
+				log.Printf("OS image client returned error: %s", err)
 				return err
 			}
 
-			if vmImage, found := FindVmImage(imageList.VMImages, "", config.OSImageLabel, config.Location); found {
-				vmutils.ConfigureDeploymentFromVMImage(&role, vmImage.Name, destinationVhd, true)
-				ui.Message(fmt.Sprintf("Image source is VM image %q", vmImage.Name))
-				if vmImage.OSDiskConfiguration.OS != config.OSType {
-					return fmt.Errorf("VM image type (%q) does not match config (%q)", vmImage.OSDiskConfiguration.OS, config.OSType)
+			if osImage, found := FindOSImage(imageList.OSImages, config.OSImageLabel, config.Location); found {
+				vmutils.ConfigureDeploymentFromPlatformImage(&role, osImage.Name, destinationVhd, "")
+				ui.Message(fmt.Sprintf("Image source is OS image %q", osImage.Name))
+				if osImage.OS != config.OSType {
+					return fmt.Errorf("OS image type (%q) does not match config (%q)", osImage.OS, config.OSType)
 				}
 			} else {
-				return fmt.Errorf("Can't find VM or OS image '%s' Located at '%s'", config.OSImageLabel, config.Location)
+				imageList, err := vmimage.NewClient(client).ListVirtualMachineImages()
+				if err != nil {
+					log.Printf("VM image client returned error: %s", err)
+					return err
+				}
+
+				if vmImage, found := FindVmImage(imageList.VMImages, "", config.OSImageLabel, config.Location); found {
+					vmutils.ConfigureDeploymentFromVMImage(&role, vmImage.Name, destinationVhd, true)
+					ui.Message(fmt.Sprintf("Image source is VM image %q", vmImage.Name))
+					if vmImage.OSDiskConfiguration.OS != config.OSType {
+						return fmt.Errorf("VM image type (%q) does not match config (%q)", vmImage.OSDiskConfiguration.OS, config.OSType)
+					}
+				} else {
+					return fmt.Errorf("Can't find VM or OS image '%s' Located at '%s'", config.OSImageLabel, config.Location)
+				}
 			}
 		}
 		return nil

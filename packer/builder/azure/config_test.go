@@ -62,6 +62,33 @@ func TestConfig_VNet(t *testing.T) {
 	}
 }
 
+func TestConfig_VMImageSource(t *testing.T) {
+	f := getTempFile(t)
+	defer os.Remove(f)
+	log.SetOutput(testLogger{t}) // hide log if test is succes
+
+	tcs := []struct {
+		cfgmod func(map[string]string)
+		err    bool
+	}{
+		{func(cfg map[string]string) { cfg["remote_source_image_link"] = "http://www.microsoft.com/" }, true},
+		{func(cfg map[string]string) {
+			cfg["remote_source_image_link"] = "http://www.microsoft.com/"
+			delete(cfg, "os_image_label")
+		}, false},
+		{func(cfg map[string]string) { delete(cfg, "os_image_label") }, true},
+	}
+
+	for _, tc := range tcs {
+		cfgmap := getDefaultTestConfig(f)
+		tc.cfgmod(cfgmap)
+		_, _, err := newConfig(cfgmap)
+		if (err != nil) != tc.err {
+			t.Fatalf("unexpected error value: %v", err)
+		}
+	}
+}
+
 func getTempFile(t *testing.T) string {
 	f, err := ioutil.TempFile("", "")
 	if err != nil {

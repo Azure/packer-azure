@@ -26,10 +26,13 @@ type Config struct {
 	Location         string `mapstructure:"location"`
 	InstanceSize     string `mapstructure:"instance_size"`
 	UserImageLabel   string `mapstructure:"user_image_label"`
-	OSType           string `mapstructure:"os_type"`
-	OSImageLabel     string `mapstructure:"os_image_label"`
-	VNet             string `mapstructure:"vnet"`
-	Subnet           string `mapstructure:"subnet"`
+
+	OSType                string `mapstructure:"os_type"`
+	OSImageLabel          string `mapstructure:"os_image_label"`
+	RemoteSourceImageLink string `mapstructure:"remote_source_image_link"`
+
+	VNet   string `mapstructure:"vnet"`
+	Subnet string `mapstructure:"subnet"`
 
 	UserName         string `mapstructure:"username"`
 	tmpVmName        string
@@ -101,8 +104,12 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 			fmt.Errorf("os_type is not valid, must be one of: %s, %s", constants.Target_Windows, constants.Target_Linux))
 	}
 
-	if c.OSImageLabel == "" {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("os_image_label must be specified"))
+	if c.RemoteSourceImageLink == "" && c.OSImageLabel == "" {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("os_image_label or remote_source_image_link must be specified"))
+	}
+
+	if c.RemoteSourceImageLink != "" && c.OSImageLabel != "" {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("os_image_label and remote_source_image_link cannot both be specified"))
 	}
 
 	if c.Location == "" {
