@@ -2,6 +2,7 @@ package retry
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/management"
@@ -23,12 +24,16 @@ func ExecuteAsyncOperation(client management.Client, asyncOperation func() (mana
 
 		operationId, err := asyncOperation()
 		if err == nil {
+			log.Printf("Waiting for operation: %s", operationId)
 			err = client.WaitForOperation(operationId, nil)
 		}
 		if err != nil {
+			log.Printf("Caught error (%T) during retryable operation: %v", err, err)
 			// need to remove the pointer receiver in Azure SDK to make these *'s go away
-			if azureError, ok := err.(*management.AzureError); ok {
-				if shouldRetry, backoff := retryPolicy.ShouldRetry(*azureError); shouldRetry {
+			if azureError, ok := err.(management.AzureError); ok {
+				log.Printf("Error is Azure error, checking if we should retry...")
+				if shouldRetry, backoff := retryPolicy.ShouldRetry(azureError); shouldRetry {
+					log.Printf("Error needs to be retried, sleeping %v", backoff)
 					time.Sleep(backoff)
 					continue // retry asyncOperation
 				}
