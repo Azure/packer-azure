@@ -18,7 +18,7 @@ You can download binaries from the [releases](https://github.com/MSOpenTech/pack
 ## Building from source
 * [Install Go](https://golang.org/doc/install) 1.4.1 or newer. Go and packer-azure dependencies require [git](http://git-scm.com/) and [mercurial](https://mercurial.selenic.com/) to be installed as well.
 * [Install packer](https://packer.io/docs/installation.html)
-* To build the plugins set the GOBIN environment variable to your packer install directory and run `go install github.com/MSOpenTech/packer-azure/packer/plugin/...`
+* To build the plugins set the GOBIN environment variable to your packer install directory and run `go get github.com/MSOpenTech/packer-azure/packer/plugin/...`
 
 ### Dependencies (not up to date)
 
