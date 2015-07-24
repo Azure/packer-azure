@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/management"
 	"github.com/Azure/azure-sdk-for-go/management/osimage"
 	"github.com/Azure/azure-sdk-for-go/management/storageservice"
+	vmdisk "github.com/Azure/azure-sdk-for-go/management/virtualmachinedisk"
 	vmimage "github.com/Azure/azure-sdk-for-go/management/virtualmachineimage"
 	"github.com/Azure/azure-sdk-for-go/management/vmutils"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/constants"
@@ -122,6 +123,25 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 			return multistep.ActionHalt
 		}
 		vmutils.ConfigureWithSubnet(&role, config.Subnet)
+	}
+
+	for n, d := range config.DataDisks {
+		switch d := d.(type) {
+		case int:
+			ui.Message(fmt.Sprintf("Configuring datadisk %d: new disk with size %d GB...", n, d))
+			destination := fmt.Sprintf("%s-data-%d.vhd", destinationVhd[:len(destinationVhd)-4], n)
+			ui.Message(fmt.Sprintf("Destination VHD for data disk %d: %s", destinationVhd, n))
+			vmutils.ConfigureWithNewDataDisk(&role, "", destination, d, vmdisk.HostCachingTypeNone)
+		case string:
+			ui.Message(fmt.Sprintf("Configuring datadisk %d: existing blob (%s)...", n, d))
+			vmutils.ConfigureWithVhdDataDisk(&role, d, vmdisk.HostCachingTypeNone)
+		default:
+			err := fmt.Errorf("Datadisk %d is not a string nor a number", n)
+			state.Put("error", err)
+			ui.Error(err.Error())
+			return multistep.ActionHalt
+		}
+
 	}
 
 	state.Put("role", &role)

@@ -10,6 +10,7 @@ import (
 	"github.com/mitchellh/packer/packer"
 	"github.com/mitchellh/packer/template/interpolate"
 	"log"
+	"math"
 	"os"
 	"regexp"
 	"time"
@@ -21,11 +22,12 @@ type Config struct {
 	SubscriptionName    string `mapstructure:"subscription_name"`
 	PublishSettingsPath string `mapstructure:"publish_settings_path"`
 
-	StorageAccount   string `mapstructure:"storage_account"`
-	StorageContainer string `mapstructure:"storage_account_container"`
-	Location         string `mapstructure:"location"`
-	InstanceSize     string `mapstructure:"instance_size"`
-	UserImageLabel   string `mapstructure:"user_image_label"`
+	StorageAccount   string        `mapstructure:"storage_account"`
+	StorageContainer string        `mapstructure:"storage_account_container"`
+	Location         string        `mapstructure:"location"`
+	InstanceSize     string        `mapstructure:"instance_size"`
+	DataDisks        []interface{} `mapstructure:"data_disks"`
+	UserImageLabel   string        `mapstructure:"user_image_label"`
 
 	OSType                string `mapstructure:"os_type"`
 	OSImageLabel          string `mapstructure:"os_image_label"`
@@ -127,6 +129,20 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 
 	if !sizeIsValid {
 		errs = packer.MultiErrorAppend(errs, fmt.Errorf("instance_size is not valid, must be one of: %v", allowedVMSizes))
+	}
+
+	for n := 0; n < len(c.DataDisks); n++ {
+		switch v := c.DataDisks[n].(type) {
+		case string:
+		case int:
+		case float64:
+			if v != math.Floor(v) {
+				errs = packer.MultiErrorAppend(errs, fmt.Errorf("Data disk # %d is a fractional number, needs to be integer", n))
+			}
+			c.DataDisks[n] = int(v)
+		default:
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("Data disk # %d is not a string to an existing VHD nor an integer number, but a %T", n, v))
+		}
 	}
 
 	if c.UserImageLabel == "" {
