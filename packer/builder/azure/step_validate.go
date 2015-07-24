@@ -56,6 +56,14 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 			ui.Say(fmt.Sprintf("Remote image size: %.1f GiB", size))
 
 			vmutils.ConfigureDeploymentFromRemoteImage(&role, config.RemoteSourceImageLink, config.OSType, fmt.Sprintf("%s-OSDisk", config.tmpVmName), destinationVhd, "")
+			if config.ResizeOSVhdGB != nil {
+				if float64(*config.ResizeOSVhdGB) < size {
+					return fmt.Errorf("new OS VHD size of %d GiB is smaller than current size of %.1f GiB", *config.ResizeOSVhdGB, size)
+				}
+				ui.Say(fmt.Sprintf("Remote image will be resized to %d GiB", *config.ResizeOSVhdGB))
+				role.OSVirtualHardDisk.ResizedSizeInGB = *config.ResizeOSVhdGB
+			}
+
 		} else {
 			ui.Message("Checking image source...")
 			imageList, err := osimage.NewClient(client).ListOSImages()
@@ -70,6 +78,13 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 				if osImage.OS != config.OSType {
 					return fmt.Errorf("OS image type (%q) does not match config (%q)", osImage.OS, config.OSType)
 				}
+				if config.ResizeOSVhdGB != nil {
+					if float64(*config.ResizeOSVhdGB) < osImage.LogicalSizeInGB {
+						return fmt.Errorf("new OS VHD size of %d GiB is smaller than current size of %.1f GiB", *config.ResizeOSVhdGB, osImage.LogicalSizeInGB)
+					}
+					ui.Say(fmt.Sprintf("OS image will be resized to %d GiB", *config.ResizeOSVhdGB))
+					role.OSVirtualHardDisk.ResizedSizeInGB = *config.ResizeOSVhdGB
+				}
 			} else {
 				imageList, err := vmimage.NewClient(client).ListVirtualMachineImages()
 				if err != nil {
@@ -78,6 +93,10 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 				}
 
 				if vmImage, found := FindVmImage(imageList.VMImages, "", config.OSImageLabel, config.Location); found {
+					if config.ResizeOSVhdGB != nil {
+						return fmt.Errorf("VM images cannot be resized")
+					}
+
 					vmutils.ConfigureDeploymentFromVMImage(&role, vmImage.Name, destinationVhd, true)
 					ui.Message(fmt.Sprintf("Image source is VM image %q", vmImage.Name))
 					if vmImage.OSDiskConfiguration.OS != config.OSType {

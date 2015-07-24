@@ -30,6 +30,7 @@ type Config struct {
 	OSType                string `mapstructure:"os_type"`
 	OSImageLabel          string `mapstructure:"os_image_label"`
 	RemoteSourceImageLink string `mapstructure:"remote_source_image_link"`
+	ResizeOSVhdGB         *int   `mapstructure:"resize_os_vhd_gb"`
 
 	VNet   string `mapstructure:"vnet"`
 	Subnet string `mapstructure:"subnet"`
