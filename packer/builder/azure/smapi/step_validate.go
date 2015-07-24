@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 
 	"github.com/Azure/azure-sdk-for-go/management"
+	"github.com/Azure/azure-sdk-for-go/management/location"
 	"github.com/Azure/azure-sdk-for-go/management/osimage"
 	"github.com/Azure/azure-sdk-for-go/management/storageservice"
 	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"
@@ -31,9 +32,42 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 
 	ui.Say("Validating Azure options...")
 
+	locationsResponse, err := location.NewClient(client).ListLocations()
+	if err != nil {
+		err = fmt.Errorf("Error checking location: %v", err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
+	if err := func() error {
+		for _, l := range locationsResponse.Locations {
+			if config.Location == l.Name {
+				ui.Message("Checking instance size availability...")
+				if !func() bool {
+					for _, size := range l.VirtualMachineRoleSizes {
+						if size == config.InstanceSize {
+							return true
+						}
+					}
+					return false
+				}() {
+					sizes := strings.Join(l.VirtualMachineRoleSizes, ",")
+					return fmt.Errorf("Instance size %q not available in location %q for this subscription, valid instance sizes: %s",
+						config.InstanceSize, config.Location, sizes)
+				}
+				return nil
+			}
+		}
+		return fmt.Errorf("Location %q not available for this subscription, valid locations: %s", config.Location, locationsResponse.String())
+	}(); err != nil {
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
+
 	role := vmutils.NewVMConfiguration(config.tmpVmName, config.InstanceSize)
 
-	ui.Message("Checking Storage Account...")
+	ui.Message("Checking storage account...")
 	destinationVhd, err := validateStorageAccount(config, client)
 	if err != nil {
 		err = fmt.Errorf("Error checking storage account: %v", err)
@@ -203,7 +237,7 @@ func validateStorageAccount(config *Config, client management.Client) (string, e
 	}
 
 	if sa.StorageServiceProperties.Location != config.Location {
-		return "", fmt.Errorf("Storage Account %q is not in location %q, but in location %q.",
+		return "", fmt.Errorf("Storage account %q is not in location %q, but in location %q.",
 			config.StorageAccount, sa.StorageServiceProperties.Location, config.Location)
 	}
 

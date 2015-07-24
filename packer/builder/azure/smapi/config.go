@@ -135,17 +135,8 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 		errs = packer.MultiErrorAppend(errs, fmt.Errorf("location must be specified"))
 	}
 
-	sizeIsValid := false
-
-	for _, instanceSize := range allowedVMSizes {
-		if c.InstanceSize == instanceSize {
-			sizeIsValid = true
-			break
-		}
-	}
-
-	if !sizeIsValid {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("instance_size is not valid, must be one of: %v", allowedVMSizes))
+	if c.InstanceSize == "" {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("instance_size must be specified"))
 	}
 
 	for n := 0; n < len(c.DataDisks); n++ {
@@ -185,42 +176,4 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 	}
 
 	return &c, nil, nil
-}
-
-// Target sizes
-var allowedVMSizes = []string{
-	"ExtraSmall",
-	"Small",
-	"Medium",
-	"Large",
-	"ExtraLarge",
-	"A5",
-	"A6",
-	"A7",
-	"A8",
-	"A9",
-
-	"Standard_D1",
-	"Standard_D2",
-	"Standard_D3",
-	"Standard_D4",
-	"Standard_D11",
-	"Standard_D12",
-	"Standard_D13",
-	"Standard_D14",
-
-	"Standard_DS1",
-	"Standard_DS2",
-	"Standard_DS3",
-	"Standard_DS4",
-	"Standard_DS11",
-	"Standard_DS12",
-	"Standard_DS13",
-	"Standard_DS14",
-
-	"Standard_G1",
-	"Standard_G2",
-	"Standard_G3",
-	"Standard_G4",
-	"Standard_G5",
 }
