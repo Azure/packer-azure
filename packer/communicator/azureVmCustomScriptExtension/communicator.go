@@ -35,14 +35,15 @@ type comm struct {
 }
 
 type Config struct {
-	ServiceName        string
-	VmName             string
-	StorageAccountName string
-	StorageAccountKey  string
-	ContainerName      string
-	Ui                 packer.Ui
-	IsOSImage          bool
-	ManagementClient   management.Client
+	ServiceName               string
+	VmName                    string
+	StorageAccountName        string
+	StorageAccountKey         string
+	ContainerName             string
+	Ui                        packer.Ui
+	IsOSImage                 bool
+	ProvisionTimeoutInMinutes uint
+	ManagementClient          management.Client
 
 	blobClient storage.BlobStorageClient
 }
@@ -199,15 +200,23 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 
 	serviceName := c.config.ServiceName
 	vmName := c.config.VmName
+	var timeout int64 = int64(c.config.ProvisionTimeoutInMinutes * 60)
 
-	const attemptLimit uint = 30
+	startTime := time.Now().Unix()
+	timeoutState := false
 
-	updateCount := attemptLimit
+	for {
+		if timeout != 0 && time.Now().Unix() - startTime > timeout {
+			timeoutState = true
+			break
+		}
 
-	for ; updateCount > 0; updateCount-- {
+		for {
+			if timeout != 0 && time.Now().Unix() - startTime > timeout {
+				timeoutState = true
+				break
+			}
 
-		repeatCount := attemptLimit
-		for ; repeatCount > 0; repeatCount-- {
 			deployment, err = vm.NewClient(client).GetDeployment(serviceName, vmName)
 
 			if err != nil {
@@ -223,8 +232,8 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 			c.sleepSec(45)
 		}
 
-		if repeatCount == 0 {
-			err = fmt.Errorf("InstanceStatus is not 'ReadyRole' or CustomScriptExtension ResourceExtensionStatusList is empty after %d attempts", attemptLimit)
+		if timeoutState {
+			err = fmt.Errorf("InstanceStatus is not 'ReadyRole' or CustomScriptExtension ResourceExtensionStatusList is empty after %d minutes", c.config.ProvisionTimeoutInMinutes)
 			return
 		}
 
@@ -295,8 +304,8 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 		c.sleepSec(40)
 	}
 
-	if updateCount == 0 {
-		err = fmt.Errorf("extensionSettingStatus.Status in not 'Success' after %d attempts", attemptLimit)
+	if timeoutState {
+		err = fmt.Errorf("extensionSettingStatus.Status in not 'Success' after %d minutes", c.config.ProvisionTimeoutInMinutes)
 		return
 	}
 

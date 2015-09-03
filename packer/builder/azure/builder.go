@@ -132,10 +132,11 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				OSType:         b.config.OSType,
 			},
 			&win.StepSetProvisionInfrastructure{
-				VmName:             b.config.tmpVmName,
-				ServiceName:        b.config.tmpServiceName,
-				StorageAccountName: b.config.StorageAccount,
-				TempContainerName:  b.config.tmpContainerName,
+				VmName:                    b.config.tmpVmName,
+				ServiceName:               b.config.tmpServiceName,
+				StorageAccountName:        b.config.StorageAccount,
+				TempContainerName:         b.config.tmpContainerName,
+				ProvisionTimeoutInMinutes: b.config.ProvisionTimeoutInMinutes,
 			},
 			&common.StepProvision{},
 			&StepStopVm{

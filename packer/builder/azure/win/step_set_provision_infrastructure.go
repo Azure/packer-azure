@@ -19,12 +19,14 @@ import (
 )
 
 type StepSetProvisionInfrastructure struct {
-	VmName                   string
-	ServiceName              string
-	StorageAccountName       string
-	TempContainerName        string
-	storageClient            storage.Client
-	flagTempContainerCreated bool
+	VmName                    string
+	ServiceName               string
+	StorageAccountName        string
+	TempContainerName         string
+	ProvisionTimeoutInMinutes uint
+
+	storageClient             storage.Client
+	flagTempContainerCreated  bool
 }
 
 func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep.StepAction {
@@ -80,6 +82,7 @@ func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep
 			Ui:                 ui,
 			IsOSImage:          isOSImage,
 			ManagementClient:   client,
+			ProvisionTimeoutInMinutes: s.ProvisionTimeoutInMinutes,
 		})
 
 	if err != nil {
