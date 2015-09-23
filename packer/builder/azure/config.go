@@ -34,6 +34,8 @@ type Config struct {
 	RemoteSourceImageLink string `mapstructure:"remote_source_image_link"`
 	ResizeOSVhdGB         *int   `mapstructure:"resize_os_vhd_gb"`
 
+	ProvisionTimeoutInMinutes uint `mapstructure:"provision_timeout_in_minutes"`
+
 	VNet   string `mapstructure:"vnet"`
 	Subnet string `mapstructure:"subnet"`
 
@@ -50,6 +52,9 @@ type Config struct {
 
 func newConfig(raws ...interface{}) (*Config, []string, error) {
 	var c Config
+
+	// Default provision timeout
+	c.ProvisionTimeoutInMinutes = 120
 
 	c.ctx = &interpolate.Context{}
 	err := config.Decode(&c, &config.DecodeOpts{
