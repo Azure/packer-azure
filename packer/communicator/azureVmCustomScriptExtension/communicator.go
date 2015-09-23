@@ -380,6 +380,49 @@ func (c *comm) Download(string, io.Writer) error {
 
 // region private helpers
 
+// Helper method to upload a blob, removed from azure-sdk (and not added back as util)
+// See https://github.com/Azure/azure-sdk-for-go/commit/bf6723e87ca7c26e523b13c18f29383da60ab64f
+
+// PutBlockBlob uploads given stream into a block blob by splitting
+// data stream into chunks and uploading as blocks. Commits the block
+// list at the end. This is a helper method built on top of PutBlock
+// and PutBlockList methods with sequential block ID counting logic.
+func putBlockBlob(b storage.BlobStorageClient, container, name string, blob io.Reader, chunkSize int) error {
+	if chunkSize <= 0 || chunkSize > storage.MaxBlobBlockSize {
+		chunkSize = storage.MaxBlobBlockSize
+	}
+
+	chunk := make([]byte, chunkSize)
+	n, err := blob.Read(chunk)
+	if err != nil && err != io.EOF {
+		return err
+	}
+
+	blockList := []storage.Block{}
+
+	for blockNum := 0;; blockNum++ {
+		id := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%011d", blockNum)))
+		data := chunk[:n]
+		err = b.PutBlock(container, name, id, data)
+		if err != nil {
+			return err
+		}
+
+		blockList = append(blockList, storage.Block{id, storage.BlockStatusLatest})
+
+		// Read next block
+		n, err = blob.Read(chunk)
+		if err != nil && err != io.EOF {
+			return err
+		}
+		if err == io.EOF {
+			break
+		}
+	}
+
+	return b.PutBlockList(container, name, blockList)
+}
+
 func (c *comm) uploadFile(dscPath string, srcPath string) error {
 
 	srcPath = filepath.FromSlash(srcPath)
@@ -392,11 +435,10 @@ func (c *comm) uploadFile(dscPath string, srcPath string) error {
 	ui := c.config.Ui
 	sa := c.config.blobClient
 
-	storageAccountName := c.config.StorageAccountName
 	containerName := c.config.ContainerName
 
 	fileName := filepath.Base(srcPath)
-	uri := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", storageAccountName, containerName, fileName)
+	uri := sa.GetBlobURL(containerName, fileName)
 
 	if len(c.uris) == 0 {
 		c.uris = fmt.Sprintf("\"%s\"", uri)
@@ -408,22 +450,24 @@ func (c *comm) uploadFile(dscPath string, srcPath string) error {
 
 	ui.Message(fmt.Sprintf("Uploading file to to Azure storage container '%s' => '%s'...", srcPath, containerName))
 
-	d, err := ioutil.ReadFile(srcPath)
+	f, err := os.Open(srcPath)
 	if err != nil {
 		return fmt.Errorf("Error reading file %s: %v", srcPath, err)
 	}
 
-	err = sa.PutPageBlob(containerName, fileName, int64(len(d)))
+	defer f.Close()
+
+	err = sa.CreateBlockBlob(containerName, fileName)
 	if err != nil {
-		return fmt.Errorf("Error creating page blob of size %d in container %s for file %s: %v", len(d), containerName, fileName, err)
+		return fmt.Errorf("Error creating block blob in container %s for file %s: %v", containerName, fileName, err)
 	}
 
-	err = sa.PutPage(containerName, fileName, 0, int64(len(d)-1), storage.PageWriteTypeClear, d)
+	err = putBlockBlob(sa, containerName, fileName, f, storage.MaxBlobBlockSize)
 	if err != nil {
-		return fmt.Errorf("Error writing page blob of size %d in container %s for file %s: %v", len(d), containerName, fileName, err)
+		return fmt.Errorf("Error uploading block blob in container %s for file %s: %v", containerName, fileName, err)
 	}
 
-	return err
+	return nil
 }
 
 func (c *comm) uploadFolder(dscPath string, srcPath string) error {
