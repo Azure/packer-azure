@@ -23,7 +23,6 @@ const (
 	Certificate    string = "certificate"
 	Thumbprint     string = "thumbprint"
 	OSImageName    string = "osImageName"
-	IsOSImage      string = "isOSImage"
 	HardDiskName   string = "hardDiskName"
 	MediaLink      string = "mediaLink"
 	SSHHost        string = "sshHost"

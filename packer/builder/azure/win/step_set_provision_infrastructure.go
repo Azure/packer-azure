@@ -70,8 +70,6 @@ func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep
 
 	s.flagTempContainerCreated = true
 
-	isOSImage := state.Get(constants.IsOSImage).(bool)
-
 	comm, err := azureVmCustomScriptExtension.New(
 		azureVmCustomScriptExtension.Config{
 			ServiceName:        s.ServiceName,
@@ -80,7 +78,6 @@ func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep
 			StorageAccountKey:  keys.PrimaryKey,
 			ContainerName:      s.TempContainerName,
 			Ui:                 ui,
-			IsOSImage:          isOSImage,
 			ManagementClient:   client,
 			ProvisionTimeoutInMinutes: s.ProvisionTimeoutInMinutes,
 		})

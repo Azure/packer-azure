@@ -41,7 +41,6 @@ type Config struct {
 	StorageAccountKey         string
 	ContainerName             string
 	Ui                        packer.Ui
-	IsOSImage                 bool
 	ProvisionTimeoutInMinutes uint
 	ManagementClient          management.Client
 
