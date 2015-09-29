@@ -7,7 +7,7 @@ package azureVmCustomScriptExtension
 import (
 	"bufio"
 	"bytes"
-	"code.google.com/p/go-uuid/uuid"
+	"github.com/pborman/uuid"
 	"fmt"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/helper/config"
