@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"code.google.com/p/go-uuid/uuid"
+	"github.com/pborman/uuid"
 
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/retry"
 	"github.com/MSOpenTech/packer-azure/packer/builder/azure/utils"
