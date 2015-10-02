@@ -8,21 +8,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/management"
 )
 
-func newDefaultRetryPolicy() retryPolicy {
-	return retryPolicy{
-		ExponentialBackoffRule("Throttling", func(err management.AzureError) bool {
-			return err.Code == "TooManyRequests"
-		}, 5*time.Second, 2*time.Minute, 0),
-		ConstantBackoffRule("InternalError", func(err management.AzureError) bool {
-			return err.Code == "InternalError"
-		}, 10*time.Second, 100),
-		ConstantBackoffRule("Conflict/InUse", func(err management.AzureError) bool {
-			return (err.Code == "BadRequest" && strings.Contains(err.Message, "is currently in use by")) ||
-				(err.Code == "ConflictError" && strings.Contains(err.Message, "that requires exclusive access"))
-		}, 10*time.Second, 100),
-	}
-}
-
+// RetryRule is a func (possibly with internal state to count retries) that determines
+// if an AzureError should result in a retry and if so, what the back-off duration should be.
 type RetryRule func(management.AzureError) (bool, time.Duration)
 type retryPolicy []RetryRule
 type matchRule func(management.AzureError) bool
@@ -74,4 +61,31 @@ func ExponentialBackoffRule(name string, match matchRule, initialBackoff time.Du
 		}
 		return false, 0
 	}
+}
+
+func newDefaultRetryPolicy() retryPolicy {
+	return retryPolicy{
+		newRetryRuleThrottling(),
+		newRetryRuleInternalError(),
+		newRetryRuleConflictInUse(),
+	}
+}
+
+func newRetryRuleThrottling() RetryRule {
+	return ExponentialBackoffRule("Throttling", func(err management.AzureError) bool {
+		return err.Code == "TooManyRequests"
+	}, 5*time.Second, 2*time.Minute, 0)
+}
+
+func newRetryRuleInternalError() RetryRule {
+	return ConstantBackoffRule("InternalError", func(err management.AzureError) bool {
+		return err.Code == "InternalError"
+	}, 10*time.Second, 100)
+}
+
+func newRetryRuleConflictInUse() RetryRule {
+	return ConstantBackoffRule("Conflict/InUse", func(err management.AzureError) bool {
+		return (err.Code == "BadRequest" && strings.Contains(err.Message, "is currently in use by")) ||
+			(err.Code == "ConflictError" && strings.Contains(err.Message, "that requires exclusive access"))
+	}, 10*time.Second, 100)
 }
