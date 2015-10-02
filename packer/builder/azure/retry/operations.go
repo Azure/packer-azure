@@ -30,9 +30,9 @@ func ExecuteAsyncOperation(client management.Client, asyncOperation func() (mana
 		if err != nil {
 			log.Printf("Caught error (%T) during retryable operation: %v", err, err)
 			// need to remove the pointer receiver in Azure SDK to make these *'s go away
-			if azureError, ok := err.(management.AzureError); ok {
+			if azureError, ok := err.(*management.AzureError); ok {
 				log.Printf("Error is Azure error, checking if we should retry...")
-				if shouldRetry, backoff := retryPolicy.ShouldRetry(azureError); shouldRetry {
+				if shouldRetry, backoff := retryPolicy.ShouldRetry(*azureError); shouldRetry {
 					log.Printf("Error needs to be retried, sleeping %v", backoff)
 					time.Sleep(backoff)
 					continue // retry asyncOperation
