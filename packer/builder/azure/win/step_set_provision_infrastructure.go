@@ -25,8 +25,8 @@ type StepSetProvisionInfrastructure struct {
 	TempContainerName         string
 	ProvisionTimeoutInMinutes uint
 
-	storageClient             storage.Client
-	flagTempContainerCreated  bool
+	storageClient            storage.Client
+	flagTempContainerCreated bool
 }
 
 func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep.StepAction {
@@ -72,13 +72,13 @@ func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep
 
 	comm, err := azureVmCustomScriptExtension.New(
 		azureVmCustomScriptExtension.Config{
-			ServiceName:        s.ServiceName,
-			VmName:             s.VmName,
-			StorageAccountName: s.StorageAccountName,
-			StorageAccountKey:  keys.PrimaryKey,
-			ContainerName:      s.TempContainerName,
-			Ui:                 ui,
-			ManagementClient:   client,
+			ServiceName:               s.ServiceName,
+			VmName:                    s.VmName,
+			StorageAccountName:        s.StorageAccountName,
+			StorageAccountKey:         keys.PrimaryKey,
+			ContainerName:             s.TempContainerName,
+			Ui:                        ui,
+			ManagementClient:          client,
 			ProvisionTimeoutInMinutes: s.ProvisionTimeoutInMinutes,
 		})
 
