@@ -205,13 +205,13 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 	timeoutState := false
 
 	for {
-		if timeout != 0 && time.Now().Unix() - startTime > timeout {
+		if timeout != 0 && time.Now().Unix()-startTime > timeout {
 			timeoutState = true
 			break
 		}
 
 		for {
-			if timeout != 0 && time.Now().Unix() - startTime > timeout {
+			if timeout != 0 && time.Now().Unix()-startTime > timeout {
 				timeoutState = true
 				break
 			}
@@ -399,7 +399,7 @@ func putBlockBlob(b storage.BlobStorageClient, container, name string, blob io.R
 
 	blockList := []storage.Block{}
 
-	for blockNum := 0;; blockNum++ {
+	for blockNum := 0; ; blockNum++ {
 		id := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%011d", blockNum)))
 		data := chunk[:n]
 		err = b.PutBlock(container, name, id, data)

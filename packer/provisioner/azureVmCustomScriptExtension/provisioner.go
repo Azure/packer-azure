@@ -7,11 +7,11 @@ package azureVmCustomScriptExtension
 import (
 	"bufio"
 	"bytes"
-	"github.com/pborman/uuid"
 	"fmt"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/helper/config"
 	"github.com/mitchellh/packer/packer"
+	"github.com/pborman/uuid"
 	"io/ioutil"
 	"log"
 	"os"
