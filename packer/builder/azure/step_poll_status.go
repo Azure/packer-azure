@@ -9,7 +9,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/constants"
+	"github.com/Azure/packer-azure/packer/builder/azure/constants"
 
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
