@@ -7,8 +7,8 @@ package azure
 import (
 	"fmt"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/constants"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/retry"
+	"github.com/Azure/packer-azure/packer/builder/azure/constants"
+	"github.com/Azure/packer-azure/packer/builder/azure/retry"
 
 	"github.com/Azure/azure-sdk-for-go/management"
 	"github.com/Azure/azure-sdk-for-go/management/hostedservice"

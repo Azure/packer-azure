@@ -17,8 +17,8 @@ import (
 
 	"github.com/pborman/uuid"
 
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/retry"
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure/utils"
+	"github.com/Azure/packer-azure/packer/builder/azure/retry"
+	"github.com/Azure/packer-azure/packer/builder/azure/utils"
 
 	"github.com/Azure/azure-sdk-for-go/management"
 	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"

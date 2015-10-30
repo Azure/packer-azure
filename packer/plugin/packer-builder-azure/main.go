@@ -6,7 +6,7 @@
 package main
 
 import (
-	"github.com/MSOpenTech/packer-azure/packer/builder/azure"
+	"github.com/Azure/packer-azure/packer/builder/azure"
 	"github.com/mitchellh/packer/packer/plugin"
 )
 
