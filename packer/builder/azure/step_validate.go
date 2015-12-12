@@ -87,13 +87,16 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 					role.OSVirtualHardDisk.ResizedSizeInGB = *config.ResizeOSVhdGB
 				}
 			} else {
-				imageList, err := vmimage.NewClient(client).ListVirtualMachineImages()
+				imageList, err := vmimage.NewClient(client).ListVirtualMachineImages(
+					vmimage.ListParameters{
+						Location: config.Location,
+					})
 				if err != nil {
 					log.Printf("VM image client returned error: %s", err)
 					return err
 				}
 
-				if vmImage, found := FindVmImage(imageList.VMImages, "", config.OSImageLabel, config.Location); found {
+				if vmImage, found := FindVmImage(imageList.VMImages, "", config.OSImageLabel); found {
 					if config.ResizeOSVhdGB != nil {
 						return fmt.Errorf("VM images cannot be resized")
 					}

@@ -11,15 +11,12 @@ import (
 	"strings"
 )
 
-func FindVmImage(imageList []vmi.VMImage, name, label, location string) (vmi.VMImage, bool) {
+func FindVmImage(imageList []vmi.VMImage, name, label string) (vmi.VMImage, bool) {
 	matches := make([]vmi.VMImage, 0)
 	for _, im := range imageList {
-		for _, loc := range strings.Split(im.Location, ";") {
-			if loc == location &&
-				(label != "" && im.Label == label) &&
-				(name != "" && im.Name == name) {
-				matches = append(matches, im)
-			}
+		if (label != "" && im.Label == label) &&
+			(name != "" && im.Name == name) {
+			matches = append(matches, im)
 		}
 	}
 
