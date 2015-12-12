@@ -194,6 +194,9 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			imageLabel:    userImage.Label,
 			imageName:     userImage.Name,
 			mediaLocation: userImage.OSDiskConfiguration.MediaLink,
+
+			publishSettingsPath: b.config.PublishSettingsPath,
+			subscriptionID:      subscriptionID,
 		}, nil
 	} else {
 		log.Printf("could not find image %s", b.config.userImageName)
