@@ -55,7 +55,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	}
 
 	// add logger if appropriate
-	b.client = getLoggedClient(b.client)
+	b.client = GetLoggedClient(b.client)
 
 	// Set up the state.
 	state := new(multistep.BasicStateBag)
