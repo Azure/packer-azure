@@ -23,7 +23,7 @@ func ExecuteAsyncOperation(client management.Client, asyncOperation func() (mana
 	for { // retry loop for azure errors, call continue for retryable errors
 
 		operationId, err := asyncOperation()
-		if err == nil {
+		if err == nil && operationId != "" {
 			log.Printf("Waiting for operation: %s", operationId)
 			err = client.WaitForOperation(operationId, nil)
 		}
@@ -41,4 +41,13 @@ func ExecuteAsyncOperation(client management.Client, asyncOperation func() (mana
 		}
 		return err
 	}
+}
+
+// ExecuteOperation calls the provided syncOperation.
+// Any known retryiable transient errors are retried and
+// additional retry rules can be specified.
+// If the operation was successful, nothing is returned, otherwise
+// an error is returned.
+func ExecuteOperation(syncOperation func() error, extraRules ...RetryRule) error {
+	return ExecuteAsyncOperation(nil, func() (management.OperationID, error) { return "", syncOperation() }, extraRules...)
 }
