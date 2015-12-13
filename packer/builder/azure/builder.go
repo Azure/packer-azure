@@ -181,13 +181,16 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		return nil, errors.New("Build was halted.")
 	}
 
-	vmImageList, err := vmimage.NewClient(b.client).ListVirtualMachineImages()
+	vmImageList, err := vmimage.NewClient(b.client).ListVirtualMachineImages(
+		vmimage.ListParameters{
+			Location: b.config.Location,
+		})
 	if err != nil {
 		log.Printf("VM image client returned error: %s", err)
 		return nil, fmt.Errorf("Can't create artifact")
 	}
 
-	if userImage, found := FindVmImage(vmImageList.VMImages, b.config.userImageName, b.config.UserImageLabel, b.config.Location); found {
+	if userImage, found := FindVmImage(vmImageList.VMImages, b.config.userImageName, b.config.UserImageLabel); found {
 		return &artifact{
 			imageLabel:    userImage.Label,
 			imageName:     userImage.Name,

@@ -85,7 +85,7 @@ func (s *StepCreateImage) Cleanup(state multistep.StateBag) {
 				return
 			}
 
-			if err := retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
+			if err := retry.ExecuteOperation(func() error {
 				return vmdisk.NewClient(client).DeleteDisk(diskName, true)
 			}, retry.ConstantBackoffRule("busy", func(err management.AzureError) bool {
 				return strings.Contains(err.Message, "is currently performing an operation on deployment") ||
