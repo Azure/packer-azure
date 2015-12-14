@@ -14,8 +14,8 @@ import (
 func FindVmImage(imageList []vmi.VMImage, name, label string) (vmi.VMImage, bool) {
 	matches := make([]vmi.VMImage, 0)
 	for _, im := range imageList {
-		if (label != "" && im.Label == label) &&
-			(name != "" && im.Name == name) {
+		if (label == "" || im.Label == label) &&
+			(name == "" || im.Name == name) {
 			matches = append(matches, im)
 		}
 	}
