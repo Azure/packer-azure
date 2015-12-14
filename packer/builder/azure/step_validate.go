@@ -98,10 +98,20 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 
 				if vmImage, found := FindVmImage(imageList.VMImages, "", config.OSImageLabel); found {
 					if config.ResizeOSVhdGB != nil {
-						return fmt.Errorf("VM images cannot be resized")
+						return fmt.Errorf("Packer cannot resize VM images")
+					}
+					if vmImage.OSDiskConfiguration.OSState != vmimage.OSStateGeneralized {
+						return fmt.Errorf("Packer can only use VM user images with a generalized OS so that it can be reprovisioned. The specified image OS is not in a generalized state.")
 					}
 
-					vmutils.ConfigureDeploymentFromVMImage(&role, vmImage.Name, destinationVhd, true)
+					if vmImage.Category == vmimage.CategoryUser {
+						//vmutils.ConfigureDeploymentFromUserVMImage(&role, vmImage.Name)
+						role.VMImageName = vmImage.Name
+					} else {
+						//vmutils.ConfigureDeploymentFromPublishedVMImage(&role, vmImage.Name, destinationVhd, true)
+						vmutils.ConfigureDeploymentFromVMImage(&role, vmImage.Name, destinationVhd, true)
+					}
+
 					ui.Message(fmt.Sprintf("Image source is VM image %q", vmImage.Name))
 					if vmImage.OSDiskConfiguration.OS != config.OSType {
 						return fmt.Errorf("VM image type (%q) does not match config (%q)", vmImage.OSDiskConfiguration.OS, config.OSType)
