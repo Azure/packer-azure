@@ -7,7 +7,7 @@ package win
 import (
 	"fmt"
 
-	"github.com/Azure/packer-azure/packer/builder/azure/constants"
+	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 	"github.com/Azure/packer-azure/packer/communicator/azureVmCustomScriptExtension"
 
 	"github.com/mitchellh/multistep"
