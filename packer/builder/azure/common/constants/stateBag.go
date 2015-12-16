@@ -7,25 +7,37 @@ package constants
 
 // complete flags
 const (
-	SrvExists     string = "srvExists"
 	CertInstalled string = "certInstalled"
 	CertUploaded  string = "certUploaded"
-	VmExists      string = "vmExists"
 	DiskExists    string = "diskExists"
-	VmRunning     string = "vmRunning"
 	ImageCreated  string = "imageCreated"
+	SrvExists     string = "srvExists"
+	VmExists      string = "vmExists"
+	VmRunning     string = "vmRunning"
 )
 const (
-	Config         string = "config"
-	Ui             string = "ui"
-	RequestManager string = "requestManager"
-	PrivateKey     string = "privateKey"
-	Certificate    string = "certificate"
-	Thumbprint     string = "thumbprint"
-	OSImageName    string = "osImageName"
-	HardDiskName   string = "hardDiskName"
-	MediaLink      string = "mediaLink"
-	SSHHost        string = "sshHost"
-
-//	TmpServiceName 		string = "tmpServiceName"
+	AuthorizedKey         string = "authorizedKey"
+	Certificate           string = "certificate"
+	Config                string = "config"
+	Error                 string = "error"
+	HardDiskName          string = "hardDiskName"
+	MediaLink             string = "mediaLink"
+	OSImageName           string = "osImageName"
+	PrivateKey            string = "privateKey"
+	RequestManager        string = "requestManager"
+	ServicePrincipalToken string = "servicePrincipalToken"
+	SSHHost               string = "sshHost"
+	Thumbprint            string = "thumbprint"
+	Ui                    string = "ui"
+)
+const (
+	ArmComputeName                     string = "arm.ComputeName"
+	ArmDeploymentName                  string = "arm.DeploymentName"
+	ArmIsValid                         string = "arm.IsValid"
+	ArmLocation                        string = "arm.Location"
+	ArmOSDiskVhd                       string = "arm.OSDiskVhd"
+	ArmPublicIPAddressName             string = "arm.PublicIPAddressName"
+	ArmResourceGroupName               string = "arm.ResourceGroupName"
+	ArmTemplateParameters              string = "arm.TemplateParameters"
+	ArmVirtualMachineCaptureParameters string = "arm.VirtualMachineCaptureParameters"
 )
