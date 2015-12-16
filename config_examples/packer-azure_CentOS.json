@@ -15,7 +15,8 @@
       "os_image_label": "OpenLogic 7.1",
       "location": "Central US",
       "instance_size": "Small",
-      "user_image_label": "PackerMade_OpenLogicImage"
+      "user_image_label": "PackerMade_OpenLogicImage",
+      "ssh_pty": "true"
     }
   ],
   "provisioners": [

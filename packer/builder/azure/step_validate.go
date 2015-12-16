@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/management"
 	"github.com/Azure/azure-sdk-for-go/management/osimage"
 	"github.com/Azure/azure-sdk-for-go/management/storageservice"
+	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"
 	vmdisk "github.com/Azure/azure-sdk-for-go/management/virtualmachinedisk"
 	vmimage "github.com/Azure/azure-sdk-for-go/management/virtualmachineimage"
 	"github.com/Azure/azure-sdk-for-go/management/vmutils"
@@ -138,6 +139,14 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 			return multistep.ActionHalt
 		}
 		vmutils.ConfigureForLinux(&role, config.tmpVmName, config.UserName, "", certThumbprint)
+
+		// disallowing password login is irreversible on some images, see https://github.com/Azure/packer-azure/issues/62
+		for i, _ := range role.ConfigurationSets {
+			if role.ConfigurationSets[i].ConfigurationSetType == vm.ConfigurationSetTypeLinuxProvisioning {
+				role.ConfigurationSets[i].DisableSSHPasswordAuthentication = "false"
+			}
+		}
+
 		vmutils.ConfigureWithPublicSSH(&role)
 	} else if config.OSType == constants.Target_Windows {
 		password := utils.RandomPassword()
