@@ -21,6 +21,7 @@ func getDefaultTestConfig(publishSettingsFileName string) map[string]interface{}
 		"location":                  "Central US",
 		"instance_size":             "Large",
 		"user_image_label":          "boo",
+                "use_private_ip":            false,
 	}
 }
 

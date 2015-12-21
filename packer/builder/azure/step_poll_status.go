@@ -28,6 +28,7 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 	client := state.Get(constants.RequestManager).(management.Client)
 	vmc := vm.NewClient(client)
 	ui := state.Get(constants.Ui).(packer.Ui)
+        config := state.Get(constants.Config).(*Config)
 
 	errorMsg := "Error polling temporary Azure VM is ready: %s"
 
@@ -101,18 +102,21 @@ func (s *StepPollStatus) Run(state multistep.StateBag) multistep.StepAction {
 	log.Println("s.OSType = " + s.OSType)
 
 	if s.OSType == constants.Target_Linux {
-		endpoints := deployment.RoleInstanceList[0].InstanceEndpoints
-		if len(endpoints) == 0 {
-			err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].InstanceEndpoints list is empty")
-			state.Put("error", err)
-			ui.Error(err.Error())
-			return multistep.ActionHalt
-		}
-
-		vip := endpoints[0].Vip
-		state.Put(constants.SSHHost, vip)
-
-		ui.Message("VM Endpoint: " + vip)
+                var ip string
+                if config.SSHPrivateIp {
+                        ip = deployment.RoleInstanceList[0].IPAddress
+                } else {
+                        endpoints := deployment.RoleInstanceList[0].InstanceEndpoints
+			if len(endpoints) == 0 {
+				err := fmt.Errorf(errorMsg, "deployment.RoleInstanceList[0].InstanceEndpoints list is empty")
+				state.Put("error", err)
+				ui.Error(err.Error())
+				return multistep.ActionHalt
+			}
+			ip = endpoints[0].Vip
+                }
+                state.Put(constants.SSHHost, ip)
+		ui.Message("VM Endpoint: " + ip)
 	}
 
 	roleList := deployment.RoleList
