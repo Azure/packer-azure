@@ -109,8 +109,7 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 						//vmutils.ConfigureDeploymentFromUserVMImage(&role, vmImage.Name)
 						role.VMImageName = vmImage.Name
 					} else {
-						//vmutils.ConfigureDeploymentFromPublishedVMImage(&role, vmImage.Name, destinationVhd, true)
-						vmutils.ConfigureDeploymentFromVMImage(&role, vmImage.Name, destinationVhd, true)
+						vmutils.ConfigureDeploymentFromPublishedVMImage(&role, vmImage.Name, destinationVhd, true)
 					}
 
 					ui.Message(fmt.Sprintf("Image source is VM image %q", vmImage.Name))
