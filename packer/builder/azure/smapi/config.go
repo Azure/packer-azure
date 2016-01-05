@@ -2,8 +2,8 @@ package azure
 
 import (
 	"fmt"
-	"github.com/Azure/packer-azure/packer/builder/azure/constants"
-	"github.com/Azure/packer-azure/packer/builder/azure/utils"
+	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
+	"github.com/Azure/packer-azure/packer/builder/azure/common/utils"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/helper/communicator"
 	"github.com/mitchellh/packer/helper/config"

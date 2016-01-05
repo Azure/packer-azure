@@ -8,8 +8,8 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/Azure/packer-azure/packer/builder/azure/constants"
-	"github.com/Azure/packer-azure/packer/builder/azure/retry"
+	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
+	"github.com/Azure/packer-azure/packer/builder/azure/smapi/retry"
 
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
