@@ -12,9 +12,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/management"
 	vmimage "github.com/Azure/azure-sdk-for-go/management/virtualmachineimage"
 
-	"github.com/Azure/packer-azure/packer/builder/azure/constants"
-	"github.com/Azure/packer-azure/packer/builder/azure/lin"
-	"github.com/Azure/packer-azure/packer/builder/azure/win"
+	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
+	"github.com/Azure/packer-azure/packer/builder/azure/common/lin"
+	"github.com/Azure/packer-azure/packer/builder/azure/smapi/win"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/helper/communicator"
