@@ -170,7 +170,7 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 		case int:
 			ui.Message(fmt.Sprintf("Configuring datadisk %d: new disk with size %d GB...", n, d))
 			destination := fmt.Sprintf("%s-data-%d.vhd", destinationVhd[:len(destinationVhd)-4], n)
-			ui.Message(fmt.Sprintf("Destination VHD for data disk %d: %s", destinationVhd, n))
+			ui.Message(fmt.Sprintf("Destination VHD for data disk %s: %d", destinationVhd, n))
 			vmutils.ConfigureWithNewDataDisk(&role, "", destination, d, vmdisk.HostCachingTypeNone)
 		case string:
 			ui.Message(fmt.Sprintf("Configuring datadisk %d: existing blob (%s)...", n, d))
