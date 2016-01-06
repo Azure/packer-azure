@@ -28,7 +28,7 @@ func TestGlueStrings(t *testing.T) {
 		t.Logf("result: '%s'", result)
 
 		if result != testcase.expected {
-			t.Error("expected %q, got %q", testcase.expected, result)
+			t.Errorf("expected %q, got %q", testcase.expected, result)
 		}
 	}
 }
