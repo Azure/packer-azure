@@ -6,11 +6,11 @@
 package arm
 
 import (
-	"testing"
 	"golang.org/x/crypto/ssh"
+	"testing"
 )
 
-func TestAuthorizedKeyShouldBeParse(t *testing.T) {
+func TestAuthorizedKeyShouldParse(t *testing.T) {
 	testSubject, err := NewOpenSshKeyPairWithSize(512)
 	if err != nil {
 		t.Fatalf("Failed to create a new OpenSSH key pair, err=%s.", err)
@@ -35,4 +35,3 @@ func TestPrivateKeyShouldParse(t *testing.T) {
 		t.Fatalf("Failed to parse the private key, err=%s\n", err)
 	}
 }
-

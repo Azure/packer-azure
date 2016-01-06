@@ -6,14 +6,13 @@
 package arm
 
 import (
-	"bytes"
-	"crypto/rsa"
 	"crypto/rand"
-	"encoding/base64"
-	"golang.org/x/crypto/ssh"
-	"encoding/pem"
+	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
 	"fmt"
+	"golang.org/x/crypto/ssh"
 	"time"
 )
 
@@ -23,7 +22,7 @@ const (
 
 type OpenSshKeyPair struct {
 	privateKey *rsa.PrivateKey
-	publicKey ssh.PublicKey
+	publicKey  ssh.PublicKey
 }
 
 func NewOpenSshKeyPair() (*OpenSshKeyPair, error) {
@@ -41,21 +40,17 @@ func NewOpenSshKeyPairWithSize(keySize int) (*OpenSshKeyPair, error) {
 		return nil, err
 	}
 
-	return &OpenSshKeyPair {
+	return &OpenSshKeyPair{
 		privateKey: privateKey,
-		publicKey: publicKey,
+		publicKey:  publicKey,
 	}, nil
 }
 
-
 func (s *OpenSshKeyPair) AuthorizedKey() string {
-	b := bytes.NewBufferString("")
-	b.WriteString(s.publicKey.Type())
-	b.WriteString(" ")
-	b.WriteString(base64.StdEncoding.EncodeToString(s.publicKey.Marshal()))
-	b.WriteString(" ")
-	b.WriteString(fmt.Sprintf("packer Azure Deployment@%s", time.Now().Format(time.RFC3339)))
-	return b.String()
+	return fmt.Sprintf("%s %s packer Azure Deployment%s",
+		s.publicKey.Type(),
+		base64.StdEncoding.EncodeToString(s.publicKey.Marshal()),
+		time.Now().Format(time.RFC3339))
 }
 
 func (s *OpenSshKeyPair) PrivateKey() string {
@@ -66,4 +61,3 @@ func (s *OpenSshKeyPair) PrivateKey() string {
 
 	return privateKey
 }
-
