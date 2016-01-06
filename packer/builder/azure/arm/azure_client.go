@@ -37,10 +37,10 @@ func NewAzureClient(subscriptionID string, resourceGroupName string, storageAcco
 	azureClient.VirtualMachinesClient = compute.NewVirtualMachinesClient(subscriptionID)
 	azureClient.VirtualMachinesClient.Authorizer = servicePrincipalToken
 
-	accountsClient := armStorage.NewAccountsClient(subscriptionID)
-	accountsClient.Authorizer = servicePrincipalToken
+	storageAccountsClient := armStorage.NewAccountsClient(subscriptionID)
+	storageAccountsClient.Authorizer = servicePrincipalToken
 
-	accountKeys, err := accountsClient.ListKeys(resourceGroupName, storageAccountName)
+	accountKeys, err := storageAccountsClient.ListKeys(resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, err
 	}
