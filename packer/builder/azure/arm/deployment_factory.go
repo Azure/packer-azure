@@ -15,7 +15,7 @@ type DeploymentFactory struct {
 	template string
 }
 
-func NewDeploymentFactory(template string) DeploymentFactory {
+func newDeploymentFactory(template string) DeploymentFactory {
 	return DeploymentFactory{
 		template: template,
 	}
@@ -34,7 +34,7 @@ func (f *DeploymentFactory) create(templateParameters TemplateParameters) (*reso
 
 	return &resources.Deployment{
 		Properties: &resources.DeploymentProperties{
-			Mode:       "Incremental",
+			Mode:       resources.Incremental,
 			Template:   template,
 			Parameters: parameters,
 		},

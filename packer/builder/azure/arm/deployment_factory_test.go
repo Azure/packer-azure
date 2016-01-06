@@ -10,7 +10,7 @@ import (
 )
 
 func TestDeploymentFactoryShouldBeIncremental(t *testing.T) {
-	var testSubject = NewDeploymentFactory(Linux)
+	var testSubject = newDeploymentFactory(Linux)
 
 	deployment, err := testSubject.create(getTemplateParameters())
 	if err != nil {
@@ -25,7 +25,7 @@ func TestDeploymentFactoryShouldBeIncremental(t *testing.T) {
 // Either {Template,Parameter} are set or {Template,Parameter}Link values are
 // set, but never both.
 func TestDeploymentFactoryShouldNotSetLinks(t *testing.T) {
-	testSubject := NewDeploymentFactory(Linux)
+	testSubject := newDeploymentFactory(Linux)
 
 	deployment, err := testSubject.create(getTemplateParameters())
 	if err != nil {
@@ -50,7 +50,7 @@ func TestDeploymentFactoryShouldNotSetLinks(t *testing.T) {
 }
 
 func TestFactoryShouldCreateDeploymentInstance(t *testing.T) {
-	testSubject := NewDeploymentFactory(Linux)
+	testSubject := newDeploymentFactory(Linux)
 
 	deployment, err := testSubject.create(getTemplateParameters())
 	if err != nil {
@@ -71,7 +71,7 @@ func TestFactoryShouldCreateDeploymentInstance(t *testing.T) {
 }
 
 func TestMalformedTemplatesShouldReturnError(t *testing.T) {
-	testSubject := NewDeploymentFactory("")
+	testSubject := newDeploymentFactory("")
 
 	_, err := testSubject.create(getTemplateParameters())
 	if err == nil {
