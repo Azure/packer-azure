@@ -12,70 +12,37 @@ const Linux = `{
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountName": {
-      "type": "string",
-      "metadata": {
-        "description": "Existing for the Storage Account where the Virtual Machine's disks will be placed."
-      }
+      "type": "string"
     },
     "adminUserName": {
-      "type": "string",
-      "metadata": {
-        "description": "User name for the Virtual Machine."
-      }
+      "type": "string"
     },
      "osDiskName": {
-      "type": "string",
-      "metadata": {
-        "description": "Name of the OS disk."
-      }
+      "type": "string"
     },
     "sshAuthorizedKey": {
-      "type": "string",
-      "metadata": {
-        "description": "SSH rsa public key file as a string."
-      }
+      "type": "string"
     },
     "dnsNameForPublicIP": {
-      "type": "string",
-      "metadata": {
-        "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
-      }
+      "type": "string"
     },
     "location": {
-      "type": "string",
-      "metadata": {
-        "description": "Location of resources."
-      }
+      "type": "string"
     },
     "vmSize": {
-      "type": "string",
-      "metadata": {
-        "description": "Size of the VM"
-      }
+      "type": "string"
     },
     "vmName": {
-      "type": "string",
-      "metadata": {
-        "description": "Name of the VM"
-      }
+      "type": "string"
     },
     "imagePublisher": {
-   	  "type": "string",
-   	  "metadata": {
-   	    "description": "The image publisher, e.g. Canonical"
-   	  }
+   	  "type": "string"
     },
     "imageOffer": {
-   	  "type": "string",
-   	  "metadata": {
-   	    "description": "The image offer, e.g. UbuntuServer"
-   	  }
+   	  "type": "string"
     },
     "imageSku": {
-   	  "type": "string",
-   	  "metadata": {
-   	    "description": "The image SKU, e.g. Ubuntu 14.04.3-LTS"
-   	  }
+   	  "type": "string"
     }
   },
   "variables": {
@@ -168,7 +135,7 @@ const Linux = `{
           "computerName": "[parameters('vmName')]",
           "adminUsername": "[parameters('adminUsername')]",
           "linuxConfiguration": {
-            "disablePasswordAuthentication": "true",
+            "disablePasswordAuthentication": "false",
             "ssh": {
               "publicKeys": [
                 {
