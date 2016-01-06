@@ -16,9 +16,9 @@ func TestTemplateParametersShouldHaveExpectedKeys(t *testing.T) {
 	params := TemplateParameters{
 		AdminUsername:      &TemplateParameter{"sentinel"},
 		DnsNameForPublicIP: &TemplateParameter{"sentinel"},
-		ImageOffer: &TemplateParameter{"sentinel"},
-		ImagePublisher: &TemplateParameter{"sentinel"},
-		ImageSku: &TemplateParameter{"sentinel"},
+		ImageOffer:         &TemplateParameter{"sentinel"},
+		ImagePublisher:     &TemplateParameter{"sentinel"},
+		ImageSku:           &TemplateParameter{"sentinel"},
 		Location:           &TemplateParameter{"sentinel"},
 		OSDiskName:         &TemplateParameter{"sentinel"},
 		SshAuthorizedKey:   &TemplateParameter{"sentinel"},
