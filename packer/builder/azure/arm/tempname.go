@@ -12,13 +12,10 @@ import (
 )
 
 const (
-	ResourceGroupNameTemplate = "packer-Resource-Group-%s"
+	TempNameAlphabet = "0123456789bcdfghjklmnpqrstvwxyz"
 )
 
 type TempName struct {
-	alphabet string
-	suffix   string
-
 	ComputeName       string
 	DeploymentName    string
 	ResourceGroupName string
@@ -26,15 +23,13 @@ type TempName struct {
 }
 
 func NewTempName() *TempName {
-	tempName := &TempName{
-		alphabet: "0123456789bcdfghjklmnpqrstvwxyz",
-	}
+	tempName := &TempName{}
 
-	tempName.suffix = utils.RandomString(tempName.alphabet, 10)
-	tempName.ComputeName = fmt.Sprintf("pkrvm%s", tempName.suffix)
-	tempName.DeploymentName = fmt.Sprintf("pkrdp%s", tempName.suffix)
-	tempName.OSDiskName = fmt.Sprintf("pkros%s", tempName.suffix)
-	tempName.ResourceGroupName = fmt.Sprintf(ResourceGroupNameTemplate, tempName.suffix)
+	suffix := utils.RandomString(TempNameAlphabet, 10)
+	tempName.ComputeName = fmt.Sprintf("pkrvm%s", suffix)
+	tempName.DeploymentName = fmt.Sprintf("pkrdp%s", suffix)
+	tempName.OSDiskName = fmt.Sprintf("pkros%s", suffix)
+	tempName.ResourceGroupName = fmt.Sprintf("packer-Resource-Group-%s", suffix)
 
 	return tempName
 }
