@@ -6,6 +6,12 @@ go:
   - 1.4
   - 1.5
 
+script: 
+  - test -z "$(go fmt ./... | tee /dev/stderr)" 
+  - go build -v ./... 
+  - test -z "$(go vet ./... | tee /dev/stderr)"
+  - go test -v ./...
+
 before_deploy:
   - go get github.com/mitchellh/gox
   - gox -os="windows linux darwin" -arch="amd64" -build-toolchain 

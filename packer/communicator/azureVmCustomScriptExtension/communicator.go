@@ -17,8 +17,8 @@ import (
 
 	"github.com/pborman/uuid"
 
-	"github.com/Azure/packer-azure/packer/builder/azure/smapi/retry"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/utils"
+	"github.com/Azure/packer-azure/packer/builder/azure/smapi/retry"
 
 	"github.com/Azure/azure-sdk-for-go/management"
 	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"
@@ -407,7 +407,7 @@ func putBlockBlob(b storage.BlobStorageClient, container, name string, blob io.R
 			return err
 		}
 
-		blockList = append(blockList, storage.Block{id, storage.BlockStatusLatest})
+		blockList = append(blockList, storage.Block{ID: id, Status: storage.BlockStatusLatest})
 
 		// Read next block
 		n, err = blob.Read(chunk)
