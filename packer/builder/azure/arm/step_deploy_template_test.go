@@ -24,11 +24,7 @@ func TestStepDeployTemplateShouldFailIfValidateFails(t *testing.T) {
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionHalt {
-<<<<<<< f4d6901e5c5ccdeb7b94cb443804004c1172921e
 		t.Fatalf("Expected the step to return 'ActionHalt', but got '%d'.", result)
-=======
-		t.Fatalf("Expected the step to return 'ActionHalt', but got '%s'.", result)
->>>>>>> Implement deploy template step.
 	}
 
 	if _, ok := stateBag.GetOk(constants.Error); ok == false {
@@ -47,11 +43,7 @@ func TestStepDeployTemplateShouldPassIfValidatePasses(t *testing.T) {
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionContinue {
-<<<<<<< f4d6901e5c5ccdeb7b94cb443804004c1172921e
 		t.Fatalf("Expected the step to return 'ActionContinue', but got '%d'.", result)
-=======
-		t.Fatalf("Expected the step to return 'ActionContinue', but got '%s'.", result)
->>>>>>> Implement deploy template step.
 	}
 
 	if _, ok := stateBag.GetOk(constants.Error); ok == true {
