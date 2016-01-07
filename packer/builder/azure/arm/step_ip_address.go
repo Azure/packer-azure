@@ -1,7 +1,5 @@
-// Copyright (c) Microsoft Open Technologies, Inc.
-// All Rights Reserved.
-// Licensed under the Apache License, Version 2.0.
-// See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See the LICENSE file in the project root for license information.
 
 package arm
 
@@ -13,15 +11,15 @@ import (
 	"github.com/mitchellh/packer/packer"
 )
 
-type StepIPAddress struct {
+type StepGetIPAddress struct {
 	client *AzureClient
 	get    func(resourceGroupName string, ipAddressName string) (string, error)
 	say    func(message string)
 	error  func(e error)
 }
 
-func NewStepIPAddress(client *AzureClient, ui packer.Ui) *StepIPAddress {
-	var step = &StepIPAddress{
+func NewStepGetIPAddress(client *AzureClient, ui packer.Ui) *StepGetIPAddress {
+	var step = &StepGetIPAddress{
 		client: client,
 		say:    func(message string) { ui.Say(message) },
 		error:  func(e error) { ui.Error(e.Error()) },
@@ -31,7 +29,7 @@ func NewStepIPAddress(client *AzureClient, ui packer.Ui) *StepIPAddress {
 	return step
 }
 
-func (s *StepIPAddress) getIPAddress(resourceGroupName string, ipAddressName string) (string, error) {
+func (s *StepGetIPAddress) getIPAddress(resourceGroupName string, ipAddressName string) (string, error) {
 	res, err := s.client.PublicIPAddressesClient.Get(resourceGroupName, ipAddressName)
 	if err != nil {
 		return "", nil
@@ -40,7 +38,7 @@ func (s *StepIPAddress) getIPAddress(resourceGroupName string, ipAddressName str
 	return *res.Properties.IPAddress, nil
 }
 
-func (s *StepIPAddress) Run(state multistep.StateBag) multistep.StepAction {
+func (s *StepGetIPAddress) Run(state multistep.StateBag) multistep.StepAction {
 	s.say("Getting the public IP address ...")
 
 	var resourceGroupName = state.Get(constants.ArmResourceGroupName).(string)
@@ -63,5 +61,5 @@ func (s *StepIPAddress) Run(state multistep.StateBag) multistep.StepAction {
 	return multistep.ActionContinue
 }
 
-func (*StepIPAddress) Cleanup(multistep.StateBag) {
+func (*StepGetIPAddress) Cleanup(multistep.StateBag) {
 }

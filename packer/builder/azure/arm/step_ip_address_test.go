@@ -1,7 +1,5 @@
-// Copyright (c) Microsoft Open Technologies, Inc.
-// All Rights Reserved.
-// Licensed under the Apache License, Version 2.0.
-// See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See the LICENSE file in the project root for license information.
 
 package arm
 
@@ -13,14 +11,14 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepIPAddressShouldFailIfValidateFails(t *testing.T) {
-	var testSubject = &StepIPAddress{
+func TestStepGetIPAddressShouldFailIfValidateFails(t *testing.T) {
+	var testSubject = &StepGetIPAddress{
 		get:   func(string, string) (string, error) { return "", fmt.Errorf("!! Unit Test FAIL !!") },
 		say:   func(message string) {},
 		error: func(e error) {},
 	}
 
-	stateBag := createTestStateBagStepIPAddress()
+	stateBag := createTestStateBagStepGetIPAddress()
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionHalt {
@@ -32,14 +30,14 @@ func TestStepIPAddressShouldFailIfValidateFails(t *testing.T) {
 	}
 }
 
-func TestStepIPAddressShouldPassIfValidatePasses(t *testing.T) {
-	var testSubject = &StepIPAddress{
+func TestStepGetIPAddressShouldPassIfValidatePasses(t *testing.T) {
+	var testSubject = &StepGetIPAddress{
 		get:   func(string, string) (string, error) { return "", nil },
 		say:   func(message string) {},
 		error: func(e error) {},
 	}
 
-	stateBag := createTestStateBagStepIPAddress()
+	stateBag := createTestStateBagStepGetIPAddress()
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionContinue {
@@ -51,11 +49,11 @@ func TestStepIPAddressShouldPassIfValidatePasses(t *testing.T) {
 	}
 }
 
-func TestStepIPAddressShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
+func TestStepGetIPAddressShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
 	var actualResourceGroupName string
 	var actualIPAddressName string
 
-	var testSubject = &StepIPAddress{
+	var testSubject = &StepGetIPAddress{
 		get: func(resourceGroupName string, ipAddressName string) (string, error) {
 			actualResourceGroupName = resourceGroupName
 			actualIPAddressName = ipAddressName
@@ -66,7 +64,7 @@ func TestStepIPAddressShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
 		error: func(e error) {},
 	}
 
-	stateBag := createTestStateBagStepIPAddress()
+	stateBag := createTestStateBagStepGetIPAddress()
 	var result = testSubject.Run(stateBag)
 
 	if result != multistep.ActionContinue {
@@ -94,7 +92,7 @@ func TestStepIPAddressShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
 	}
 }
 
-func createTestStateBagStepIPAddress() multistep.StateBag {
+func createTestStateBagStepGetIPAddress() multistep.StateBag {
 	stateBag := new(multistep.BasicStateBag)
 
 	stateBag.Put(constants.ArmPublicIPAddressName, "Unit Test: PublicIPAddressName")
