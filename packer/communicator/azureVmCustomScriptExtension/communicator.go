@@ -16,7 +16,7 @@ import (
 
 	"github.com/pborman/uuid"
 
-	"github.com/Azure/packer-azure/packer/builder/azure/common/utils"
+	"github.com/Azure/packer-azure/packer/builder/azure/common"
 	"github.com/Azure/packer-azure/packer/builder/azure/smapi/retry"
 
 	"github.com/Azure/azure-sdk-for-go/management"
@@ -286,13 +286,13 @@ func (c *comm) pollCustomScriptExtensionIsReady() (stdOutBuff, stdErrBuff string
 		if len(stdOutBuff) == 0 {
 			stdOutBuff = stdOut
 		} else {
-			stdOutBuff = utils.GlueStrings(stdOutBuff, stdOut)
+			stdOutBuff = common.GlueStrings(stdOutBuff, stdOut)
 		}
 
 		if len(stdErrBuff) == 0 {
 			stdErrBuff = stdErr
 		} else {
-			stdErrBuff = utils.GlueStrings(stdErrBuff, stdErr)
+			stdErrBuff = common.GlueStrings(stdErrBuff, stdErr)
 		}
 
 		if extensionSettingStatus.Status == statusSuccess {
