@@ -6,7 +6,7 @@ package azure
 import "fmt"
 
 // This is the common builder ID to all of these artifacts.
-const BuilderId = "MSOpenTech.azure"
+const BuilderId = "Azure.ServiceManagement.VMImage"
 
 // Artifact is the result of running the azure builder.
 type artifact struct {
