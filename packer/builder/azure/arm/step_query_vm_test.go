@@ -1,7 +1,5 @@
-// Copyright (c) Microsoft Open Technologies, Inc.
-// All Rights Reserved.
-// Licensed under the Apache License, Version 2.0.
-// See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See the LICENSE file in the project root for license information.
 
 package arm
 
@@ -16,7 +14,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepQueryVMShouldFailIfValidateFails(t *testing.T) {
+func TestStepQueryVMShouldFailIfQueryFails(t *testing.T) {
 	var testSubject = &StepQueryVM{
 		query: func(string, string) (compute.VirtualMachine, error) {
 			return createVirtualMachineFromUri("test.vhd"), fmt.Errorf("!! Unit Test FAIL !!")
