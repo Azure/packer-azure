@@ -22,7 +22,7 @@ func TestStepGetIPAddressShouldFailIfValidateFails(t *testing.T) {
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionHalt {
-		t.Fatalf("Expected the step to return 'ActionHalt', but got '%s'.", result)
+		t.Fatalf("Expected the step to return 'ActionHalt', but got '%d'.", result)
 	}
 
 	if _, ok := stateBag.GetOk(constants.Error); ok == false {
@@ -41,7 +41,7 @@ func TestStepGetIPAddressShouldPassIfValidatePasses(t *testing.T) {
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionContinue {
-		t.Fatalf("Expected the step to return 'ActionContinue', but got '%s'.", result)
+		t.Fatalf("Expected the step to return 'ActionContinue', but got '%d'.", result)
 	}
 
 	if _, ok := stateBag.GetOk(constants.Error); ok == true {
@@ -68,7 +68,7 @@ func TestStepGetIPAddressShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
 	var result = testSubject.Run(stateBag)
 
 	if result != multistep.ActionContinue {
-		t.Fatalf("Expected the step to return 'ActionContinue', but got '%s'.", result)
+		t.Fatalf("Expected the step to return 'ActionContinue', but got '%d'.", result)
 	}
 
 	var expectedResourceGroupName = stateBag.Get(constants.ArmResourceGroupName).(string)
