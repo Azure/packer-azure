@@ -11,14 +11,14 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepPowerOffComputeShouldFailIfStepFails(t *testing.T) {
-	var testSubject = &StepPowerOffCompute{
-		powerOff: func(string, string) error { return fmt.Errorf("!! Unit Test FAIL !!") },
-		say:      func(message string) {},
-		error:    func(e error) {},
+func TestStepCreateResourceGroupShouldFailIfStepFails(t *testing.T) {
+	var testSubject = &StepCreateResourceGroup{
+		create: func(string, string) error { return fmt.Errorf("!! Unit Test FAIL !!") },
+		say:    func(message string) {},
+		error:  func(e error) {},
 	}
 
-	stateBag := createTestStateBagStepPowerOffCompute()
+	stateBag := createTestStateBagStepCreateResourceGroup()
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionHalt {
@@ -30,14 +30,14 @@ func TestStepPowerOffComputeShouldFailIfStepFails(t *testing.T) {
 	}
 }
 
-func TestStepPowerOffComputeShouldPassIfStepPasses(t *testing.T) {
-	var testSubject = &StepPowerOffCompute{
-		powerOff: func(string, string) error { return nil },
-		say:      func(message string) {},
-		error:    func(e error) {},
+func TestStepCreateResourceGroupShouldPassIfStepPasses(t *testing.T) {
+	var testSubject = &StepCreateResourceGroup{
+		create: func(string, string) error { return nil },
+		say:    func(message string) {},
+		error:  func(e error) {},
 	}
 
-	stateBag := createTestStateBagStepPowerOffCompute()
+	stateBag := createTestStateBagStepCreateResourceGroup()
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionContinue {
@@ -49,44 +49,43 @@ func TestStepPowerOffComputeShouldPassIfStepPasses(t *testing.T) {
 	}
 }
 
-func TestStepPowerOffComputeShouldTakeStepArgumentsFromStateBag(t *testing.T) {
+func TestStepCreateResourceGroupShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 	var actualResourceGroupName string
-	var actualComputeName string
+	var actualLocation string
 
-	var testSubject = &StepPowerOffCompute{
-		powerOff: func(resourceGroupName string, computeName string) error {
+	var testSubject = &StepCreateResourceGroup{
+		create: func(resourceGroupName string, location string) error {
 			actualResourceGroupName = resourceGroupName
-			actualComputeName = computeName
-
+			actualLocation = location
 			return nil
 		},
 		say:   func(message string) {},
 		error: func(e error) {},
 	}
 
-	stateBag := createTestStateBagStepPowerOffCompute()
+	stateBag := createTestStateBagStepCreateResourceGroup()
 	var result = testSubject.Run(stateBag)
 
 	if result != multistep.ActionContinue {
 		t.Fatalf("Expected the step to return 'ActionContinue', but got '%d'.", result)
 	}
 
-	var expectedComputeName = stateBag.Get(constants.ArmComputeName).(string)
+	var expectedLocation = stateBag.Get(constants.ArmLocation).(string)
 	var expectedResourceGroupName = stateBag.Get(constants.ArmResourceGroupName).(string)
-
-	if actualComputeName != expectedComputeName {
-		t.Fatalf("Expected the step to source 'constants.ArmResourceGroupName' from the state bag, but it did not.")
-	}
 
 	if actualResourceGroupName != expectedResourceGroupName {
 		t.Fatalf("Expected the step to source 'constants.ArmResourceGroupName' from the state bag, but it did not.")
 	}
+
+	if actualLocation != expectedLocation {
+		t.Fatalf("Expected the step to source 'constants.ArmResourceGroupName' from the state bag, but it did not.")
+	}
 }
 
-func createTestStateBagStepPowerOffCompute() multistep.StateBag {
+func createTestStateBagStepCreateResourceGroup() multistep.StateBag {
 	stateBag := new(multistep.BasicStateBag)
 
-	stateBag.Put(constants.ArmComputeName, "Unit Test: ComputeName")
+	stateBag.Put(constants.ArmLocation, "Unit Test: Location")
 	stateBag.Put(constants.ArmResourceGroupName, "Unit Test: ResourceGroupName")
 
 	return stateBag
