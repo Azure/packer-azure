@@ -1,7 +1,5 @@
-// Copyright (c) Microsoft Open Technologies, Inc.
-// All Rights Reserved.
-// Licensed under the Apache License, Version 2.0.
-// See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See the LICENSE file in the project root for license information.
 
 package arm
 
@@ -13,7 +11,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepDeleteOSDiskShouldFailIfValidateFails(t *testing.T) {
+func TestStepDeleteOSDiskShouldFailIfStepFails(t *testing.T) {
 	var testSubject = &StepDeleteOSDisk{
 		delete: func(string, string) error { return fmt.Errorf("!! Unit Test FAIL !!") },
 		say:    func(message string) {},
@@ -24,7 +22,7 @@ func TestStepDeleteOSDiskShouldFailIfValidateFails(t *testing.T) {
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionHalt {
-		t.Fatalf("Expected the step to return 'ActionHalt', but got '%s'.", result)
+		t.Fatalf("Expected the step to return 'ActionHalt', but got '%d'.", result)
 	}
 
 	if _, ok := stateBag.GetOk(constants.Error); ok == false {
@@ -32,7 +30,7 @@ func TestStepDeleteOSDiskShouldFailIfValidateFails(t *testing.T) {
 	}
 }
 
-func TestStepDeleteOSDiskShouldPassIfValidatePasses(t *testing.T) {
+func TestStepDeleteOSDiskShouldPassIfStepPasses(t *testing.T) {
 	var testSubject = &StepDeleteOSDisk{
 		delete: func(string, string) error { return nil },
 		say:    func(message string) {},
@@ -43,7 +41,7 @@ func TestStepDeleteOSDiskShouldPassIfValidatePasses(t *testing.T) {
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionContinue {
-		t.Fatalf("Expected the step to return 'ActionContinue', but got '%s'.", result)
+		t.Fatalf("Expected the step to return 'ActionContinue', but got '%d'.", result)
 	}
 
 	if _, ok := stateBag.GetOk(constants.Error); ok == true {
@@ -51,7 +49,7 @@ func TestStepDeleteOSDiskShouldPassIfValidatePasses(t *testing.T) {
 	}
 }
 
-func TestStepDeleteOSDiskShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
+func TestStepDeleteOSDiskShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 	var actualStorageContainerName string
 	var actualBlobName string
 
@@ -69,7 +67,7 @@ func TestStepDeleteOSDiskShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
 	var result = testSubject.Run(stateBag)
 
 	if result != multistep.ActionContinue {
-		t.Fatalf("Expected the step to return 'ActionContinue', but got '%s'.", result)
+		t.Fatalf("Expected the step to return 'ActionContinue', but got '%d'.", result)
 	}
 
 	if actualStorageContainerName != "images" {
