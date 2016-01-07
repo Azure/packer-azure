@@ -30,7 +30,7 @@ func TestFailedShouldImmediatelyStopPolling(t *testing.T) {
 
 	res, err := testSubject.PollAsNeeded()
 	if err != nil {
-		t.Fatal("Expected PollAsNeeded to not return an error, but got '%s'.", err)
+		t.Fatalf("Expected PollAsNeeded to not return an error, but got '%s'.", err)
 	}
 
 	if res != "Failed" {
@@ -44,7 +44,7 @@ func TestDeletedShouldImmediatelyStopPolling(t *testing.T) {
 
 	res, err := testSubject.PollAsNeeded()
 	if err != nil {
-		t.Fatal("Expected PollAsNeeded to not return an error, but got '%s'.", err)
+		t.Fatalf("Expected PollAsNeeded to not return an error, but got '%s'.", err)
 	}
 
 	if res != "Deleted" {
@@ -58,7 +58,7 @@ func TestSucceededShouldImmediatelyStopPolling(t *testing.T) {
 
 	res, err := testSubject.PollAsNeeded()
 	if err != nil {
-		t.Fatal("Expected PollAsNeeded to not return an error, but got '%s'.", err)
+		t.Fatalf("Expected PollAsNeeded to not return an error, but got '%s'.", err)
 	}
 
 	if res != "Succeeded" {
@@ -79,13 +79,11 @@ func TestPollerShouldPollOnNonStoppingStatus(t *testing.T) {
 		default:
 			return "Succeeded", nil
 		}
-
-		return "", fmt.Errorf("We've gone pear shaped...")
 	}
 
 	res, err := testSubject.PollAsNeeded()
 	if err != nil {
-		t.Fatal("Expected PollAsNeeded to not return an error, but got '%s'.", err)
+		t.Fatalf("Expected PollAsNeeded to not return an error, but got '%s'.", err)
 	}
 
 	if res != "Succeeded" {
