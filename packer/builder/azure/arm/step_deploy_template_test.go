@@ -1,7 +1,5 @@
-// Copyright (c) Microsoft Open Technologies, Inc.
-// All Rights Reserved.
-// Licensed under the Apache License, Version 2.0.
-// See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See the LICENSE file in the project root for license information.
 
 package arm
 
@@ -72,7 +70,7 @@ func TestStepDeployTemplateShouldTakeValidateArgumentsFromStateBag(t *testing.T)
 	var result = testSubject.Run(stateBag)
 
 	if result != multistep.ActionContinue {
-		t.Fatalf("Expected the step to return 'ActionContinue', but got '%s'.", result)
+		t.Fatalf("Expected the step to return 'ActionContinue', but got '%d'.", result)
 	}
 
 	var expectedDeploymentName = stateBag.Get(constants.ArmDeploymentName).(string)
