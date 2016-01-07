@@ -1,7 +1,5 @@
-// Copyright (c) Microsoft Open Technologies, Inc.
-// All Rights Reserved.
-// Licensed under the Apache License, Version 2.0.
-// See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See the LICENSE file in the project root for license information.
 
 package arm
 
@@ -13,7 +11,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepPowerOffComputeShouldFailIfValidateFails(t *testing.T) {
+func TestStepPowerOffComputeShouldFailIfStepFails(t *testing.T) {
 	var testSubject = &StepPowerOffCompute{
 		powerOff: func(string, string) error { return fmt.Errorf("!! Unit Test FAIL !!") },
 		say:      func(message string) {},
@@ -32,7 +30,7 @@ func TestStepPowerOffComputeShouldFailIfValidateFails(t *testing.T) {
 	}
 }
 
-func TestStepPowerOffComputeShouldPassIfValidatePasses(t *testing.T) {
+func TestStepPowerOffComputeShouldPassIfStepPasses(t *testing.T) {
 	var testSubject = &StepPowerOffCompute{
 		powerOff: func(string, string) error { return nil },
 		say:      func(message string) {},
@@ -51,7 +49,7 @@ func TestStepPowerOffComputeShouldPassIfValidatePasses(t *testing.T) {
 	}
 }
 
-func TestStepPowerOffComputeShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
+func TestStepPowerOffComputeShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 	var actualResourceGroupName string
 	var actualComputeName string
 
