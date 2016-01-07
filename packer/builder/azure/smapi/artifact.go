@@ -1,13 +1,12 @@
-// Copyright (c) Microsoft Open Technologies, Inc.
-// All Rights Reserved.
-// Licensed under the Apache License, Version 2.0.
-// See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See the LICENSE file in the project root for license information.
+
 package azure
 
 import "fmt"
 
 // This is the common builder ID to all of these artifacts.
-const BuilderId = "MSOpenTech.azure"
+const BuilderId = "Azure.ServiceManagement.VMImage"
 
 // Artifact is the result of running the azure builder.
 type artifact struct {
