@@ -6,7 +6,7 @@ package arm
 import (
 	"fmt"
 
-	"github.com/Azure/packer-azure/packer/builder/azure/common/utils"
+	"github.com/Azure/packer-azure/packer/builder/azure/common"
 )
 
 const (
@@ -23,7 +23,7 @@ type TempName struct {
 func NewTempName() *TempName {
 	tempName := &TempName{}
 
-	suffix := utils.RandomString(TempNameAlphabet, 10)
+	suffix := common.RandomString(TempNameAlphabet, 10)
 	tempName.ComputeName = fmt.Sprintf("pkrvm%s", suffix)
 	tempName.DeploymentName = fmt.Sprintf("pkrdp%s", suffix)
 	tempName.OSDiskName = fmt.Sprintf("pkros%s", suffix)

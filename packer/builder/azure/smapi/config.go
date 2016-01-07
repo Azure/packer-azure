@@ -2,8 +2,8 @@ package azure
 
 import (
 	"fmt"
+	azureCommon "github.com/Azure/packer-azure/packer/builder/azure/common"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
-	"github.com/Azure/packer-azure/packer/builder/azure/common/utils"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/helper/communicator"
 	"github.com/mitchellh/packer/helper/config"
@@ -81,7 +81,7 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 		c.Comm.SSHTimeout = 20 * time.Minute
 	}
 
-	randSuffix := utils.RandomString("0123456789abcdefghijklmnopqrstuvwxyz", 10)
+	randSuffix := azureCommon.RandomString("0123456789abcdefghijklmnopqrstuvwxyz", 10)
 	c.tmpVmName = "PkrVM" + randSuffix
 	c.tmpServiceName = "PkrSrv" + randSuffix
 	c.tmpContainerName = "packer-provision-" + randSuffix

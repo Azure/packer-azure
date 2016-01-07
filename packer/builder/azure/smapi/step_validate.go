@@ -11,7 +11,7 @@ import (
 	vmimage "github.com/Azure/azure-sdk-for-go/management/virtualmachineimage"
 	"github.com/Azure/azure-sdk-for-go/management/vmutils"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
-	"github.com/Azure/packer-azure/packer/builder/azure/common/utils"
+	"github.com/Azure/packer-azure/packer/builder/azure/common"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
 	"log"
@@ -148,7 +148,7 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 
 		vmutils.ConfigureWithPublicSSH(&role)
 	} else if config.OSType == constants.Target_Windows {
-		password := utils.RandomPassword()
+		password := common.RandomPassword()
 		state.Put("password", password)
 		vmutils.ConfigureForWindows(&role, config.tmpVmName, config.UserName, password, true, "")
 		vmutils.ConfigureWithPublicRDP(&role)
