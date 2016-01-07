@@ -1,7 +1,5 @@
-// Copyright (c) Microsoft Open Technologies, Inc.
-// All Rights Reserved.
-// Licensed under the Apache License, Version 2.0.
-// See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See the LICENSE file in the project root for license information.
 
 package arm
 
@@ -14,7 +12,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepCaptureImageShouldFailIfValidateFails(t *testing.T) {
+func TestStepCaptureImageShouldFailIfStepFails(t *testing.T) {
 
 	var testSubject = &StepCaptureImage{
 		capture: func(string, string, *compute.VirtualMachineCaptureParameters) error {
@@ -28,7 +26,7 @@ func TestStepCaptureImageShouldFailIfValidateFails(t *testing.T) {
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionHalt {
-		t.Fatalf("Expected the step to return 'ActionHalt', but got '%s'.", result)
+		t.Fatalf("Expected the step to return 'ActionHalt', but got '%d'.", result)
 	}
 
 	if _, ok := stateBag.GetOk(constants.Error); ok == false {
@@ -40,7 +38,7 @@ func TestStepCaptureImageShouldFailIfValidateFails(t *testing.T) {
 	}
 }
 
-func TestStepCaptureImageShouldPassIfValidatePasses(t *testing.T) {
+func TestStepCaptureImageShouldPassIfStepPasses(t *testing.T) {
 	var testSubject = &StepCaptureImage{
 		capture: func(string, string, *compute.VirtualMachineCaptureParameters) error { return nil },
 		say:     func(message string) {},
@@ -51,7 +49,7 @@ func TestStepCaptureImageShouldPassIfValidatePasses(t *testing.T) {
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionContinue {
-		t.Fatalf("Expected the step to return 'ActionContinue', but got '%s'.", result)
+		t.Fatalf("Expected the step to return 'ActionContinue', but got '%d'.", result)
 	}
 
 	if _, ok := stateBag.GetOk(constants.Error); ok == true {
@@ -63,7 +61,7 @@ func TestStepCaptureImageShouldPassIfValidatePasses(t *testing.T) {
 	}
 }
 
-func TestStepCaptureImageShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
+func TestStepCaptureImageShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 	var actualResourceGroupName string
 	var actualComputeName string
 	var actualVirtualMachineCaptureParameters *compute.VirtualMachineCaptureParameters
@@ -84,7 +82,7 @@ func TestStepCaptureImageShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
 	var result = testSubject.Run(stateBag)
 
 	if result != multistep.ActionContinue {
-		t.Fatalf("Expected the step to return 'ActionContinue', but got '%s'.", result)
+		t.Fatalf("Expected the step to return 'ActionContinue', but got '%d'.", result)
 	}
 
 	var expectedComputeName = stateBag.Get(constants.ArmComputeName).(string)
