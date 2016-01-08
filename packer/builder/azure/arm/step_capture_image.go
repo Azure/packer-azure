@@ -65,7 +65,6 @@ func (s *StepCaptureImage) Run(state multistep.StateBag) multistep.StepAction {
 		return multistep.ActionHalt
 	}
 
-	state.Put(constants.ArmIsValid, true)
 	return multistep.ActionContinue
 }
 
