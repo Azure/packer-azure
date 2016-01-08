@@ -30,7 +30,7 @@ func NewStepGetIPAddress(client *AzureClient, ui packer.Ui) *StepGetIPAddress {
 }
 
 func (s *StepGetIPAddress) getIPAddress(resourceGroupName string, ipAddressName string) (string, error) {
-	res, err := s.client.PublicIPAddressesClient.Get(resourceGroupName, ipAddressName)
+	res, err := s.client.PublicIPAddressesClient.Get(resourceGroupName, ipAddressName, "")
 	if err != nil {
 		return "", nil
 	}
