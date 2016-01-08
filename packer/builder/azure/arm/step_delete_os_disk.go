@@ -50,8 +50,8 @@ func (s *StepDeleteOSDisk) Run(state multistep.StateBag) multistep.StepAction {
 
 	xs := strings.Split(u.Path, "/")
 
-	var storageAccountName = strings.Join(xs[1:len(xs)-1], "/")
-	var blobName = xs[len(xs)-1]
+	var storageAccountName = xs[1]
+	var blobName = strings.Join(xs[2:], "/")
 
 	err = s.delete(storageAccountName, blobName)
 	if err != nil {

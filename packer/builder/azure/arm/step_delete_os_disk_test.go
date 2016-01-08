@@ -75,7 +75,7 @@ func TestStepDeleteOSDiskShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 	}
 
 	if actualBlobName != "pkrvm_os.vhd" {
-		t.Fatalf("Expected the storage container name to be 'pkrvm_os.vhd', but found '%s'.", actualStorageContainerName)
+		t.Fatalf("Expected the blob name to be 'pkrvm_os.vhd', but found '%s'.", actualBlobName)
 	}
 }
 
@@ -96,12 +96,12 @@ func TestStepDeleteOSDiskShouldHandleComplexStorageContainerNames(t *testing.T) 
 	stateBag := DeleteTestStateBagStepDeleteOSDisk("http://storage.blob.core.windows.net/abc/def/pkrvm_os.vhd")
 	testSubject.Run(stateBag)
 
-	if actualStorageContainerName != "abc/def" {
+	if actualStorageContainerName != "abc" {
 		t.Fatalf("Expected the storage container name to be 'abc/def', but found '%s'.", actualStorageContainerName)
 	}
 
-	if actualBlobName != "pkrvm_os.vhd" {
-		t.Fatalf("Expected the storage container name to be 'pkrvm_os.vhd', but found '%s'.", actualStorageContainerName)
+	if actualBlobName != "def/pkrvm_os.vhd" {
+		t.Fatalf("Expected the blob name to be 'pkrvm_os.vhd', but found '%s'.", actualBlobName)
 	}
 }
 
