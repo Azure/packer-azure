@@ -6,7 +6,7 @@ package arm
 import (
 	"encoding/json"
 
-	"github.com/Azure/azure-sdk-for-go/arm/resources"
+	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 )
 
 type DeploymentFactory struct {
