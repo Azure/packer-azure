@@ -32,10 +32,6 @@ func TestStepCaptureImageShouldFailIfStepFails(t *testing.T) {
 	if _, ok := stateBag.GetOk(constants.Error); ok == false {
 		t.Fatalf("Expected the step to set stateBag['%s'], but it was not.", constants.Error)
 	}
-
-	if _, ok := stateBag.GetOk(constants.ArmIsValid); ok == true {
-		t.Fatalf("Expected the step to not set stateBag['%s'], but it was.", constants.ArmIsValid)
-	}
 }
 
 func TestStepCaptureImageShouldPassIfStepPasses(t *testing.T) {
@@ -54,10 +50,6 @@ func TestStepCaptureImageShouldPassIfStepPasses(t *testing.T) {
 
 	if _, ok := stateBag.GetOk(constants.Error); ok == true {
 		t.Fatalf("Expected the step to not set stateBag['%s'], but it was.", constants.Error)
-	}
-
-	if _, ok := stateBag.GetOk(constants.ArmIsValid); ok == false {
-		t.Fatalf("Expected the step to set stateBag['%s'], but it was not.", constants.ArmIsValid)
 	}
 }
 
