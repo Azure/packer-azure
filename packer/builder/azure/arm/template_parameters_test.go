@@ -13,6 +13,7 @@ import (
 func TestTemplateParametersShouldHaveExpectedKeys(t *testing.T) {
 	params := TemplateParameters{
 		AdminUsername:      &TemplateParameter{"sentinel"},
+		AdminPassword:      &TemplateParameter{"sentinel"},
 		DnsNameForPublicIP: &TemplateParameter{"sentinel"},
 		ImageOffer:         &TemplateParameter{"sentinel"},
 		ImagePublisher:     &TemplateParameter{"sentinel"},
@@ -39,6 +40,7 @@ func TestTemplateParametersShouldHaveExpectedKeys(t *testing.T) {
 
 	expectedKeys := []string{
 		"adminUsername",
+		"adminPassword",
 		"dnsNameForPublicIP",
 		"imageOffer",
 		"imagePublisher",
@@ -62,6 +64,7 @@ func TestTemplateParametersShouldHaveExpectedKeys(t *testing.T) {
 func TestParameterValuesShouldBeSet(t *testing.T) {
 	params := TemplateParameters{
 		AdminUsername:      &TemplateParameter{"adminusername00"},
+		AdminPassword:      &TemplateParameter{"adminpassword00"},
 		DnsNameForPublicIP: &TemplateParameter{"dnsnameforpublicip00"},
 		ImageOffer:         &TemplateParameter{"imageoffer00"},
 		ImagePublisher:     &TemplateParameter{"imagepublisher00"},

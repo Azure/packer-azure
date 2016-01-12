@@ -50,6 +50,7 @@ type Config struct {
 	UserName string `mapaccount:"username"`
 
 	// Runtime Values
+	tmpAdminPassword     string
 	tmpResourceGroupName string
 	tmpComputeName       string
 	tmpDeploymentName    string
@@ -68,6 +69,7 @@ type Config struct {
 func (c *Config) toTemplateParameters() *TemplateParameters {
 	return &TemplateParameters{
 		AdminUsername:      &TemplateParameter{c.UserName},
+		AdminPassword:      &TemplateParameter{c.tmpAdminPassword},
 		DnsNameForPublicIP: &TemplateParameter{c.tmpComputeName},
 		ImageOffer:         &TemplateParameter{c.ImageOffer},
 		ImagePublisher:     &TemplateParameter{c.ImagePublisher},
@@ -141,6 +143,7 @@ func setSshValues(c *Config) error {
 func setRuntimeValues(c *Config) {
 	var tempName = NewTempName()
 
+	c.tmpAdminPassword = tempName.AdminPassword
 	c.tmpComputeName = tempName.ComputeName
 	c.tmpDeploymentName = tempName.DeploymentName
 	c.tmpResourceGroupName = tempName.ResourceGroupName

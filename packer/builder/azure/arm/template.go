@@ -15,7 +15,10 @@ const Linux = `{
     "adminUserName": {
       "type": "string"
     },
-     "osDiskName": {
+    "adminPassword": {
+      "type": "string"
+    },
+    "osDiskName": {
       "type": "string"
     },
     "sshAuthorizedKey": {
@@ -132,6 +135,7 @@ const Linux = `{
         "osProfile": {
           "computerName": "[parameters('vmName')]",
           "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
           "linuxConfiguration": {
             "disablePasswordAuthentication": "false",
             "ssh": {
