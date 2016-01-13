@@ -9,31 +9,13 @@ const Linux = `{
   "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "storageAccountName": {
-      "type": "string"
-    },
-    "adminUserName": {
+    "adminUsername": {
       "type": "string"
     },
     "adminPassword": {
       "type": "string"
     },
-    "osDiskName": {
-      "type": "string"
-    },
-    "sshAuthorizedKey": {
-      "type": "string"
-    },
     "dnsNameForPublicIP": {
-      "type": "string"
-    },
-    "location": {
-      "type": "string"
-    },
-    "vmSize": {
-      "type": "string"
-    },
-    "vmName": {
       "type": "string"
     },
     "imagePublisher": {
@@ -44,28 +26,44 @@ const Linux = `{
     },
     "imageSku": {
    	  "type": "string"
+    },
+    "osDiskName": {
+      "type": "string"
+    },
+    "sshAuthorizedKey": {
+      "type": "string"
+    },
+    "storageAccountName": {
+      "type": "string"
+    },
+    "vmSize": {
+      "type": "string"
+    },
+    "vmName": {
+      "type": "string"
     }
   },
   "variables": {
     "addressPrefix": "10.0.0.0/16",
-    "subnet1Name": "Subnet-1",
-    "subnet1Prefix": "10.0.0.0/24",
-    "vmStorageAccountContainerName": "images",
-    "nicName": "sshNIC",
-    "publicIPAddressName": "sshPublicIP",
+    "apiVersion": "2015-06-15",
+    "location": "[resourceGroup().location]",
+    "nicName": "packerNic",
+    "publicIPAddressName": "packerPublicIP",
     "publicIPAddressType": "Dynamic",
-    "storageAccountType": "Standard_LRS",
-    "virtualNetworkName": "sshVNET",
     "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
-    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
-    "subnet1Ref": "[concat(variables('vnetID'),'/subnets/',variables('subnet1Name'))]"
+    "subnetName": "packerSubnet",
+    "subnetAddressPrefix": "10.0.0.0/24",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+    "virtualNetworkName": "packerNetwork",
+    "vmStorageAccountContainerName": "images",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
   },
   "resources": [
     {
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('publicIPAddressName')]",
-      "location": "[parameters('location')]",
+      "location": "[variables('location')]",
       "properties": {
         "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
         "dnsSettings": {
@@ -74,10 +72,10 @@ const Linux = `{
       }
     },
     {
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/virtualNetworks",
       "name": "[variables('virtualNetworkName')]",
-      "location": "[parameters('location')]",
+      "location": "[variables('location')]",
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
@@ -86,19 +84,19 @@ const Linux = `{
         },
         "subnets": [
           {
-            "name": "[variables('subnet1Name')]",
+            "name": "[variables('subnetName')]",
             "properties": {
-              "addressPrefix": "[variables('subnet1Prefix')]"
+              "addressPrefix": "[variables('subnetAddressPrefix')]"
             }
           }
         ]
       }
     },
     {
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('nicName')]",
-      "location": "[parameters('location')]",
+      "location": "[variables('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
@@ -106,14 +104,14 @@ const Linux = `{
       "properties": {
         "ipConfigurations": [
           {
-            "name": "ipconfig1",
+            "name": "ipconfig",
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "publicIPAddress": {
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]"
               },
               "subnet": {
-                "id": "[variables('subnet1Ref')]"
+                "id": "[variables('subnetRef')]"
               }
             }
           }
@@ -121,10 +119,10 @@ const Linux = `{
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[parameters('vmName')]",
-      "location": "[parameters('location')]",
+      "location": "[variables('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
       ],

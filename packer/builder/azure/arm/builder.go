@@ -24,7 +24,7 @@ type Builder struct {
 }
 
 const (
-	DefaultPublicIPAddressName = "sshPublicIP"
+	DefaultPublicIPAddressName = "packerPublicIP"
 )
 
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {

@@ -120,10 +120,6 @@ func TestConfigShouldTransformToTemplateParameters(t *testing.T) {
 		t.Errorf("Expected ImageSku to be equal to config's ImageSku, but they were '%s' and '%s' respectively.", templateParameters.ImageSku.Value, c.ImageSku)
 	}
 
-	if templateParameters.Location.Value != c.Location {
-		t.Errorf("Expected Location to be equal to config's Location, but they were '%s' and '%s' respectively.", templateParameters.Location.Value, c.Location)
-	}
-
 	if templateParameters.OSDiskName.Value != c.tmpOSDiskName {
 		t.Errorf("Expected OSDiskName to be equal to config's OSDiskName, but they were '%s' and '%s' respectively.", templateParameters.OSDiskName.Value, c.tmpOSDiskName)
 	}

@@ -74,7 +74,6 @@ func (c *Config) toTemplateParameters() *TemplateParameters {
 		ImageOffer:         &TemplateParameter{c.ImageOffer},
 		ImagePublisher:     &TemplateParameter{c.ImagePublisher},
 		ImageSku:           &TemplateParameter{c.ImageSku},
-		Location:           &TemplateParameter{c.Location},
 		OSDiskName:         &TemplateParameter{c.tmpOSDiskName},
 		SshAuthorizedKey:   &TemplateParameter{c.sshAuthorizedKey},
 		StorageAccountName: &TemplateParameter{c.StorageAccount},

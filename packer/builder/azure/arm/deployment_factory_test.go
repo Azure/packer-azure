@@ -81,7 +81,6 @@ func getTemplateParameters() TemplateParameters {
 	templateParameters := TemplateParameters{
 		AdminUsername:      &TemplateParameter{"adminusername00"},
 		DnsNameForPublicIP: &TemplateParameter{"dnsnameforpublicip00"},
-		Location:           &TemplateParameter{"location00"},
 		OSDiskName:         &TemplateParameter{"osdiskname00"},
 		SshAuthorizedKey:   &TemplateParameter{"sshkeydata00"},
 		StorageAccountName: &TemplateParameter{"storageaccountname00"},
