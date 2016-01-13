@@ -59,7 +59,6 @@ func (s *StepValidateTemplate) Run(state multistep.StateBag) multistep.StepActio
 		return multistep.ActionHalt
 	}
 
-	state.Put(constants.ArmIsValid, true)
 	return multistep.ActionContinue
 }
 
