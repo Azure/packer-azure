@@ -75,7 +75,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		&lin.StepGeneralizeOS{
 			Command: "sudo /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync",
 		},
-		NewStepQueryVM(azureClient, ui),
+		NewStepGetOSDisk(azureClient, ui),
 		NewStepPowerOffCompute(azureClient, ui),
 		NewStepCaptureImage(azureClient, ui),
 		NewStepDeleteResourceGroup(azureClient, ui),
