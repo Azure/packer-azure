@@ -14,15 +14,15 @@ import (
 	"github.com/mitchellh/packer/packer"
 )
 
-type StepQueryVM struct {
+type StepGetOSDisk struct {
 	client *AzureClient
 	query  func(resourceGroupName string, computeName string) (compute.VirtualMachine, error)
 	say    func(message string)
 	error  func(e error)
 }
 
-func NewStepQueryVM(client *AzureClient, ui packer.Ui) *StepQueryVM {
-	var step = &StepQueryVM{
+func NewStepGetOSDisk(client *AzureClient, ui packer.Ui) *StepGetOSDisk {
+	var step = &StepGetOSDisk{
 		client: client,
 		say:    func(message string) { ui.Say(message) },
 		error:  func(e error) { ui.Error(e.Error()) },
@@ -32,11 +32,11 @@ func NewStepQueryVM(client *AzureClient, ui packer.Ui) *StepQueryVM {
 	return step
 }
 
-func (s *StepQueryVM) queryCompute(resourceGroupName string, computeName string) (compute.VirtualMachine, error) {
+func (s *StepGetOSDisk) queryCompute(resourceGroupName string, computeName string) (compute.VirtualMachine, error) {
 	return s.client.VirtualMachinesClient.Get(resourceGroupName, computeName, "")
 }
 
-func (s *StepQueryVM) Run(state multistep.StateBag) multistep.StepAction {
+func (s *StepGetOSDisk) Run(state multistep.StateBag) multistep.StepAction {
 	s.say("Querying the machine's properties ...")
 
 	var resourceGroupName = state.Get(constants.ArmResourceGroupName).(string)
@@ -59,5 +59,5 @@ func (s *StepQueryVM) Run(state multistep.StateBag) multistep.StepAction {
 	return multistep.ActionContinue
 }
 
-func (*StepQueryVM) Cleanup(multistep.StateBag) {
+func (*StepGetOSDisk) Cleanup(multistep.StateBag) {
 }

@@ -14,8 +14,8 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepQueryVMShouldFailIfQueryFails(t *testing.T) {
-	var testSubject = &StepQueryVM{
+func TestStepGetOSDiskShouldFailIfStepFails(t *testing.T) {
+	var testSubject = &StepGetOSDisk{
 		query: func(string, string) (compute.VirtualMachine, error) {
 			return createVirtualMachineFromUri("test.vhd"), fmt.Errorf("!! Unit Test FAIL !!")
 		},
@@ -23,7 +23,7 @@ func TestStepQueryVMShouldFailIfQueryFails(t *testing.T) {
 		error: func(e error) {},
 	}
 
-	stateBag := createTestStateBagStepQueryVM()
+	stateBag := createTestStateBagStepGetOSDisk()
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionHalt {
@@ -35,8 +35,8 @@ func TestStepQueryVMShouldFailIfQueryFails(t *testing.T) {
 	}
 }
 
-func TestStepQueryVMShouldPassIfValidatePasses(t *testing.T) {
-	var testSubject = &StepQueryVM{
+func TestStepGetOSDiskShouldPassIfStepPasses(t *testing.T) {
+	var testSubject = &StepGetOSDisk{
 		query: func(string, string) (compute.VirtualMachine, error) {
 			return createVirtualMachineFromUri("test.vhd"), nil
 		},
@@ -44,7 +44,7 @@ func TestStepQueryVMShouldPassIfValidatePasses(t *testing.T) {
 		error: func(e error) {},
 	}
 
-	stateBag := createTestStateBagStepQueryVM()
+	stateBag := createTestStateBagStepGetOSDisk()
 
 	var result = testSubject.Run(stateBag)
 	if result != multistep.ActionContinue {
@@ -56,11 +56,11 @@ func TestStepQueryVMShouldPassIfValidatePasses(t *testing.T) {
 	}
 }
 
-func TestStepQueryVMShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
+func TestStepGetOSDiskShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
 	var actualResourceGroupName string
 	var actualComputeName string
 
-	var testSubject = &StepQueryVM{
+	var testSubject = &StepGetOSDisk{
 		query: func(resourceGroupName string, computeName string) (compute.VirtualMachine, error) {
 			actualResourceGroupName = resourceGroupName
 			actualComputeName = computeName
@@ -71,7 +71,7 @@ func TestStepQueryVMShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
 		error: func(e error) {},
 	}
 
-	stateBag := createTestStateBagStepQueryVM()
+	stateBag := createTestStateBagStepGetOSDisk()
 	var result = testSubject.Run(stateBag)
 
 	if result != multistep.ActionContinue {
@@ -99,7 +99,7 @@ func TestStepQueryVMShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
 	}
 }
 
-func createTestStateBagStepQueryVM() multistep.StateBag {
+func createTestStateBagStepGetOSDisk() multistep.StateBag {
 	stateBag := new(multistep.BasicStateBag)
 
 	stateBag.Put(constants.ArmComputeName, "Unit Test: ComputeName")
