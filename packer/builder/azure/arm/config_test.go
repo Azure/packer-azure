@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 )
 
 // List of configuration parameters that are required by the ARM builder.
@@ -158,6 +159,25 @@ func TestConfigShouldTransformToVirtualMachineCaptureParameters(t *testing.T) {
 	}
 }
 
+func TestConfigShouldSupportPackersConfigElements(t *testing.T) {
+	c, _, err := newConfig(
+		getArmBuilderConfiguration(),
+		getPackerConfiguration(),
+		getPackerCommunicatorConfiguration())
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if c.Comm.SSHTimeout != 1*time.Hour {
+		t.Errorf("Expected Comm.SSHTimeout to be a duration of an hour, but got '%s' instead.", c.Comm.SSHTimeout)
+	}
+
+	if c.Comm.WinRMTimeout != 2*time.Hour {
+		t.Errorf("Expected Comm.WinRMTimeout to be a durationof two hours, but got '%s' instead.", c.Comm.WinRMTimeout)
+	}
+}
+
 func getArmBuilderConfiguration() interface{} {
 	m := make(map[string]string)
 	for _, v := range requiredConfigValues {
@@ -194,6 +214,18 @@ func getPackerConfiguration() interface{} {
 		"packer_debug": "false",
 		"packer_force": "false",
 		"packer_template_path": "/home/jenkins/azure-arm-vm/template.json"
+	}`
+
+	var config interface{}
+	json.Unmarshal([]byte(doc), &config)
+
+	return config
+}
+
+func getPackerCommunicatorConfiguration() interface{} {
+	var doc = `{
+		"ssh_timeout": "1h",
+		"winrm_timeout": "2h"
 	}`
 
 	var config interface{}
