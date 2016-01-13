@@ -60,7 +60,7 @@ type Config struct {
 	sshAuthorizedKey string
 	sshPrivateKey    string
 
-	Comm communicator.Config
+	Comm communicator.Config `mapstructure:",squash"`
 	ctx  *interpolate.Context
 }
 
