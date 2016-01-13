@@ -12,7 +12,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepCaptureImageShouldFailIfStepFails(t *testing.T) {
+func TestStepCaptureImageShouldFailIfCaptureFails(t *testing.T) {
 
 	var testSubject = &StepCaptureImage{
 		capture: func(string, string, *compute.VirtualMachineCaptureParameters) error {
@@ -34,7 +34,7 @@ func TestStepCaptureImageShouldFailIfStepFails(t *testing.T) {
 	}
 }
 
-func TestStepCaptureImageShouldPassIfStepPasses(t *testing.T) {
+func TestStepCaptureImageShouldPassIfCapturePasses(t *testing.T) {
 	var testSubject = &StepCaptureImage{
 		capture: func(string, string, *compute.VirtualMachineCaptureParameters) error { return nil },
 		say:     func(message string) {},

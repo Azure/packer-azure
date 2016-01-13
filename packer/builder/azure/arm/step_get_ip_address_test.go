@@ -11,7 +11,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepGetIPAddressShouldFailIfStepFails(t *testing.T) {
+func TestStepGetIPAddressShouldFailIfGetFails(t *testing.T) {
 	var testSubject = &StepGetIPAddress{
 		get:   func(string, string) (string, error) { return "", fmt.Errorf("!! Unit Test FAIL !!") },
 		say:   func(message string) {},
@@ -30,7 +30,7 @@ func TestStepGetIPAddressShouldFailIfStepFails(t *testing.T) {
 	}
 }
 
-func TestStepGetIPAddressShouldPassIfStepPasses(t *testing.T) {
+func TestStepGetIPAddressShouldPassIfGetPasses(t *testing.T) {
 	var testSubject = &StepGetIPAddress{
 		get:   func(string, string) (string, error) { return "", nil },
 		say:   func(message string) {},

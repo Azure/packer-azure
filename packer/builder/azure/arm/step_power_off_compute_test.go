@@ -11,7 +11,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepPowerOffComputeShouldFailIfStepFails(t *testing.T) {
+func TestStepPowerOffComputeShouldFailIfPowerOffFails(t *testing.T) {
 	var testSubject = &StepPowerOffCompute{
 		powerOff: func(string, string) error { return fmt.Errorf("!! Unit Test FAIL !!") },
 		say:      func(message string) {},
@@ -30,7 +30,7 @@ func TestStepPowerOffComputeShouldFailIfStepFails(t *testing.T) {
 	}
 }
 
-func TestStepPowerOffComputeShouldPassIfStepPasses(t *testing.T) {
+func TestStepPowerOffComputeShouldPassIfPowerOffPasses(t *testing.T) {
 	var testSubject = &StepPowerOffCompute{
 		powerOff: func(string, string) error { return nil },
 		say:      func(message string) {},

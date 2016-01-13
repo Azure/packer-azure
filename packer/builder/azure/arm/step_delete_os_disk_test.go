@@ -11,7 +11,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepDeleteOSDiskShouldFailIfStepFails(t *testing.T) {
+func TestStepDeleteOSDiskShouldFailIfGetFails(t *testing.T) {
 	var testSubject = &StepDeleteOSDisk{
 		delete: func(string, string) error { return fmt.Errorf("!! Unit Test FAIL !!") },
 		say:    func(message string) {},
@@ -30,7 +30,7 @@ func TestStepDeleteOSDiskShouldFailIfStepFails(t *testing.T) {
 	}
 }
 
-func TestStepDeleteOSDiskShouldPassIfStepPasses(t *testing.T) {
+func TestStepDeleteOSDiskShouldPassIfGetPasses(t *testing.T) {
 	var testSubject = &StepDeleteOSDisk{
 		delete: func(string, string) error { return nil },
 		say:    func(message string) {},

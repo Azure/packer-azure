@@ -11,7 +11,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepCreateResourceGroupShouldFailIfStepFails(t *testing.T) {
+func TestStepCreateResourceGroupShouldFailIfCreateFails(t *testing.T) {
 	var testSubject = &StepCreateResourceGroup{
 		create: func(string, string) error { return fmt.Errorf("!! Unit Test FAIL !!") },
 		say:    func(message string) {},
@@ -30,7 +30,7 @@ func TestStepCreateResourceGroupShouldFailIfStepFails(t *testing.T) {
 	}
 }
 
-func TestStepCreateResourceGroupShouldPassIfStepPasses(t *testing.T) {
+func TestStepCreateResourceGroupShouldPassIfCreatePasses(t *testing.T) {
 	var testSubject = &StepCreateResourceGroup{
 		create: func(string, string) error { return nil },
 		say:    func(message string) {},

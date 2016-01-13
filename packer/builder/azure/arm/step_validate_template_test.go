@@ -11,7 +11,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepValidateTemplateShouldFailIfStepFails(t *testing.T) {
+func TestStepValidateTemplateShouldFailIfValidateFails(t *testing.T) {
 
 	var testSubject = &StepValidateTemplate{
 		validate: func(string, string, *TemplateParameters) error { return fmt.Errorf("!! Unit Test FAIL !!") },
@@ -31,7 +31,7 @@ func TestStepValidateTemplateShouldFailIfStepFails(t *testing.T) {
 	}
 }
 
-func TestStepValidateTemplateShouldPassIfStepPasses(t *testing.T) {
+func TestStepValidateTemplateShouldPassIfValidatePasses(t *testing.T) {
 	var testSubject = &StepValidateTemplate{
 		validate: func(string, string, *TemplateParameters) error { return nil },
 		say:      func(message string) {},
