@@ -11,7 +11,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepDeployTemplateShouldFailIfValidateFails(t *testing.T) {
+func TestStepDeployTemplateShouldFailIfStepFails(t *testing.T) {
 	var testSubject = &StepDeployTemplate{
 		deploy: func(string, string, *TemplateParameters) error { return fmt.Errorf("!! Unit Test FAIL !!") },
 		say:    func(message string) {},
@@ -30,7 +30,7 @@ func TestStepDeployTemplateShouldFailIfValidateFails(t *testing.T) {
 	}
 }
 
-func TestStepDeployTemplateShouldPassIfValidatePasses(t *testing.T) {
+func TestStepDeployTemplateShouldPassIfStepPasses(t *testing.T) {
 	var testSubject = &StepDeployTemplate{
 		deploy: func(string, string, *TemplateParameters) error { return nil },
 		say:    func(message string) {},
@@ -49,7 +49,7 @@ func TestStepDeployTemplateShouldPassIfValidatePasses(t *testing.T) {
 	}
 }
 
-func TestStepDeployTemplateShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
+func TestStepDeployTemplateShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 	var actualResourceGroupName string
 	var actualDeploymentName string
 	var actualTemplateParameters *TemplateParameters
