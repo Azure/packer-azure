@@ -74,6 +74,11 @@ func TestUserShouldProvideRequiredValues(t *testing.T) {
 
 func TestSystemShouldDefineRuntimeValues(t *testing.T) {
 	c, _, _ := newConfig(getArmBuilderConfiguration(), getPackerConfiguration())
+
+	if c.tmpAdminPassword == "" {
+		t.Errorf("Expected tmpAdminPassword to not be empty, but it was '%s'!", c.tmpAdminPassword)
+	}
+
 	if c.tmpComputeName == "" {
 		t.Errorf("Expected tmpComputeName to not be empty, but it was '%s'!", c.tmpComputeName)
 	}

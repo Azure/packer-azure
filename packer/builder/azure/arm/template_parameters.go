@@ -22,6 +22,7 @@ type TemplateParameter struct {
 
 type TemplateParameters struct {
 	AdminUsername      *TemplateParameter `json:"adminUsername,omitempty"`
+	AdminPassword      *TemplateParameter `json:"adminPassword,omitempty"`
 	DnsNameForPublicIP *TemplateParameter `json:"dnsNameForPublicIP,omitempty"`
 	ImageOffer         *TemplateParameter `json:"imageOffer,omitempty"`
 	ImagePublisher     *TemplateParameter `json:"imagePublisher,omitempty"`
