@@ -31,7 +31,6 @@ const (
 const (
 	ArmComputeName                     string = "arm.ComputeName"
 	ArmDeploymentName                  string = "arm.DeploymentName"
-	ArmIsValid                         string = "arm.IsValid"
 	ArmLocation                        string = "arm.Location"
 	ArmOSDiskVhd                       string = "arm.OSDiskVhd"
 	ArmPublicIPAddressName             string = "arm.PublicIPAddressName"
