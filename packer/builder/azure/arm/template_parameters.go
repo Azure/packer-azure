@@ -27,7 +27,6 @@ type TemplateParameters struct {
 	ImageOffer         *TemplateParameter `json:"imageOffer,omitempty"`
 	ImagePublisher     *TemplateParameter `json:"imagePublisher,omitempty"`
 	ImageSku           *TemplateParameter `json:"imageSku,omitempty"`
-	Location           *TemplateParameter `json:"location,omitempty"`
 	OSDiskName         *TemplateParameter `json:"osDiskName,omitempty"`
 	SshAuthorizedKey   *TemplateParameter `json:"sshAuthorizedKey,omitempty"`
 	StorageAccountName *TemplateParameter `json:"storageAccountName,omitempty"`
