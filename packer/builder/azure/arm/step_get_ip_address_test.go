@@ -11,7 +11,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepGetIPAddressShouldFailIfValidateFails(t *testing.T) {
+func TestStepGetIPAddressShouldFailIfGetFails(t *testing.T) {
 	var testSubject = &StepGetIPAddress{
 		get:   func(string, string) (string, error) { return "", fmt.Errorf("!! Unit Test FAIL !!") },
 		say:   func(message string) {},
@@ -30,7 +30,7 @@ func TestStepGetIPAddressShouldFailIfValidateFails(t *testing.T) {
 	}
 }
 
-func TestStepGetIPAddressShouldPassIfValidatePasses(t *testing.T) {
+func TestStepGetIPAddressShouldPassIfGetPasses(t *testing.T) {
 	var testSubject = &StepGetIPAddress{
 		get:   func(string, string) (string, error) { return "", nil },
 		say:   func(message string) {},
@@ -49,7 +49,7 @@ func TestStepGetIPAddressShouldPassIfValidatePasses(t *testing.T) {
 	}
 }
 
-func TestStepGetIPAddressShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
+func TestStepGetIPAddressShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 	var actualResourceGroupName string
 	var actualIPAddressName string
 

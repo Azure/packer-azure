@@ -50,7 +50,7 @@ func TestStepValidateTemplateShouldPassIfValidatePasses(t *testing.T) {
 	}
 }
 
-func TestStepValidateTemplateShouldTakeValidateArgumentsFromStateBag(t *testing.T) {
+func TestStepValidateTemplateShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 	var actualResourceGroupName string
 	var actualDeploymentName string
 	var actualTemplateParameters *TemplateParameters

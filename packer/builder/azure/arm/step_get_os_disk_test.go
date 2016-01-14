@@ -14,7 +14,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepGetOSDiskShouldFailIfStepFails(t *testing.T) {
+func TestStepGetOSDiskShouldFailIfGetFails(t *testing.T) {
 	var testSubject = &StepGetOSDisk{
 		query: func(string, string) (compute.VirtualMachine, error) {
 			return createVirtualMachineFromUri("test.vhd"), fmt.Errorf("!! Unit Test FAIL !!")
@@ -35,7 +35,7 @@ func TestStepGetOSDiskShouldFailIfStepFails(t *testing.T) {
 	}
 }
 
-func TestStepGetOSDiskShouldPassIfStepPasses(t *testing.T) {
+func TestStepGetOSDiskShouldPassIfGetPasses(t *testing.T) {
 	var testSubject = &StepGetOSDisk{
 		query: func(string, string) (compute.VirtualMachine, error) {
 			return createVirtualMachineFromUri("test.vhd"), nil

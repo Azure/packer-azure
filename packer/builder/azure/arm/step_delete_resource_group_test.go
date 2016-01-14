@@ -11,7 +11,7 @@ import (
 	"github.com/mitchellh/multistep"
 )
 
-func TestStepDeleteResourceGroupShouldFailIfStepFails(t *testing.T) {
+func TestStepDeleteResourceGroupShouldFailIfDeleteFails(t *testing.T) {
 	var testSubject = &StepDeleteResourceGroup{
 		delete: func(string) error { return fmt.Errorf("!! Unit Test FAIL !!") },
 		say:    func(message string) {},
@@ -30,7 +30,7 @@ func TestStepDeleteResourceGroupShouldFailIfStepFails(t *testing.T) {
 	}
 }
 
-func TestStepDeleteResourceGroupShouldPassIfStepPasses(t *testing.T) {
+func TestStepDeleteResourceGroupShouldPassIfDeletePasses(t *testing.T) {
 	var testSubject = &StepDeleteResourceGroup{
 		delete: func(string) error { return nil },
 		say:    func(message string) {},
