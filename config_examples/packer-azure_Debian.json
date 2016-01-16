@@ -1,0 +1,32 @@
+{
+  "variables": {
+    "sn": "your_subscription_name",
+    "ps": "/home/azureuser/examples/ps.publishsettings",
+    "sa": "your_storage_account"
+  },
+  "builders": [
+    {
+      "type": "azure",
+      "publish_settings_path": "{{user `ps`}}",
+      "subscription_name": "{{user `sn`}}",
+      "storage_account": "{{user `sa`}}",
+      "storage_account_container": "images",
+      "os_type": "Linux",
+      "os_image_label": "Debian 8 \"Jessie\"",
+      "location": "Central US",
+      "instance_size": "Small",
+      "user_image_label": "PackerMade_CredativImage",
+      "ssh_pty": "true"
+    }
+  ],
+  "provisioners": [
+    {
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+      "inline": [
+        "apt-get update"
+      ],
+      "inline_shebang": "/bin/sh -x",
+      "type": "shell"
+    }
+  ]
+}
