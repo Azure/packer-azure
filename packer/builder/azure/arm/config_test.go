@@ -53,23 +53,30 @@ func TestConfigShouldDefaultVMSizeToStandardA1(t *testing.T) {
 
 func TestUserShouldProvideRequiredValues(t *testing.T) {
 	builderValues := make(map[string]string)
-	var lastElement = requiredConfigValues[len(requiredConfigValues)-1]
 
+	// Populate the dictionary with all of the required values.
 	for _, v := range requiredConfigValues {
-		builderValues[v] = "--ignored--"
+		builderValues[v] = "--some-value--"
+	}
+
+	// Ensure we can successfully create a config.
+	_, _, err := newConfig(getArmBuilderConfigurationFromMap(builderValues), getPackerConfiguration())
+	if err != nil {
+		t.Errorf("Expected configuration creation to succeed, but it failed!\n")
+		t.Fatalf(" -> %+v\n", builderValues)
+	}
+
+	// Take away a required element, and ensure construction fails.
+	for _, v := range requiredConfigValues {
+		delete(builderValues, v)
 
 		_, _, err := newConfig(getArmBuilderConfigurationFromMap(builderValues), getPackerConfiguration())
-		if lastElement != v && err == nil {
+		if err == nil {
 			t.Errorf("Expected configuration creation to fail, but it succeeded!\n")
 			t.Fatalf(" -> %+v\n", builderValues)
 		}
-	}
 
-	_, _, err := newConfig(getArmBuilderConfigurationFromMap(builderValues), getPackerConfiguration())
-	if err != nil {
-		t.Errorf("Expected configuration creation to succeed, but it failed!")
-		t.Errorf(" errors: %s", err)
-		t.Fatalf(" -> %+v", builderValues)
+		builderValues[v] = "--some-value--"
 	}
 }
 
