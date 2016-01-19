@@ -86,7 +86,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	b.runner.Run(b.stateBag)
 
 	if e, ok := b.stateBag.GetOk(constants.Error); ok {
-		ui.Error(e.(string))
+		ui.Error(e.(error).Error())
 	}
 
 	return &artifact{}, nil
