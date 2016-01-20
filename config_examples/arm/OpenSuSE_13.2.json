@@ -1,0 +1,45 @@
+{
+    "variables": {
+        "cid": "your_client_id",
+        "cst": "your_client_secret",
+        "tid": "your_client_tenant",
+        "sid": "your_subscription_id",
+
+        "rgn": "your_resource_group",
+        "sa": "your_storage_account"
+    },
+    "builders": [
+        {
+            "type": "azure-arm",
+
+            "client_id": "{{user `cid`}}",
+            "client_secret": "{{user `cst`}}",
+            "subscription_id": "{{user `sid`}}",
+            "tenant_id": "{{user `tid`}}",
+
+            "resource_group_name": "{{user `rgn`}}",
+            "storage_account": "{{user `sa`}}",
+
+            "capture_container_name": "images",
+            "capture_name_prefix": "packer",
+
+            "image_publisher": "SUSE",
+            "image_offer": "openSUSE",
+            "image_sku": "13.2",
+            "ssh_pty": "true",
+
+            "location": "South Central US",
+
+            "vm_size": "Standard_A2"
+        }
+    ],
+    "provisioners": [
+        {
+            "inline": [
+                "echo '!! Hello OpenSuSE !!'"
+            ],
+            "inline_shebang": "/bin/sh -x",
+            "type": "shell"
+        }
+    ]
+}
