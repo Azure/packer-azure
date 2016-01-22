@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 )
 
 // List of configuration parameters that are required by the ARM builder.
@@ -21,6 +23,7 @@ var requiredConfigValues = []string{
 	"image_publisher",
 	"image_sku",
 	"location",
+	"os_type",
 	"storage_account",
 	"subscription_id",
 	"tenant_id",
@@ -41,6 +44,10 @@ func TestConfigShouldProvideReasonableDefaultValues(t *testing.T) {
 	if c.VMSize == "" {
 		t.Errorf("Expected 'VMSize' to be populated, but it was empty!")
 	}
+
+	if c.ObjectID != "" {
+		t.Errorf("Expected 'ObjectID' to be nil, but it was '%s'!", c.ObjectID)
+	}
 }
 
 func TestConfigShouldBeAbleToOverrideDefaultedValues(t *testing.T) {
@@ -54,8 +61,13 @@ func TestConfigShouldBeAbleToOverrideDefaultedValues(t *testing.T) {
 	builderValues["ssh_password"] = "override_password"
 	builderValues["ssh_username"] = "override_username"
 	builderValues["vm_size"] = "override_vm_size"
+	builderValues["os_type"] = constants.Target_Linux
 
-	c, _, _ := newConfig(getArmBuilderConfigurationFromMap(builderValues), getPackerConfiguration())
+	c, _, err := newConfig(getArmBuilderConfigurationFromMap(builderValues), getPackerConfiguration())
+
+	if err != nil {
+		t.Fatalf("newConfig failed: %s", err)
+	}
 
 	if c.Password != "override_password" {
 		t.Errorf("Expected 'Password' to be set to 'override_password', but found '%s'!", c.Password)
@@ -74,7 +86,7 @@ func TestConfigShouldBeAbleToOverrideDefaultedValues(t *testing.T) {
 	}
 
 	if c.VMSize != "override_vm_size" {
-		t.Errorf("Expected 'vm_size' to be set to 'override_username', but found '%s'!", c.VMSize)
+		t.Errorf("Expected 'vm_size' to be set to 'override_vm_size', but found '%s'!", c.VMSize)
 	}
 }
 
@@ -94,6 +106,8 @@ func TestUserShouldProvideRequiredValues(t *testing.T) {
 		builderValues[v] = "--some-value--"
 	}
 
+	builderValues["os_type"] = constants.Target_Linux
+
 	// Ensure we can successfully create a config.
 	_, _, err := newConfig(getArmBuilderConfigurationFromMap(builderValues), getPackerConfiguration())
 	if err != nil {
@@ -103,6 +117,7 @@ func TestUserShouldProvideRequiredValues(t *testing.T) {
 
 	// Take away a required element, and ensure construction fails.
 	for _, v := range requiredConfigValues {
+		originalValue := builderValues[v]
 		delete(builderValues, v)
 
 		_, _, err := newConfig(getArmBuilderConfigurationFromMap(builderValues), getPackerConfiguration())
@@ -111,7 +126,7 @@ func TestUserShouldProvideRequiredValues(t *testing.T) {
 			t.Fatalf(" -> %+v\n", builderValues)
 		}
 
-		builderValues[v] = "--some-value--"
+		builderValues[v] = originalValue
 	}
 }
 
@@ -180,6 +195,50 @@ func TestConfigShouldTransformToTemplateParameters(t *testing.T) {
 	}
 }
 
+func TestConfigShouldTransformToTemplateParametersLinux(t *testing.T) {
+	c, _, _ := newConfig(getArmBuilderConfiguration(), getPackerConfiguration())
+	c.OSType = constants.Target_Linux
+	templateParameters := c.toTemplateParameters()
+
+	if templateParameters.KeyVaultSecretValue != nil {
+		t.Errorf("Expected KeyVaultSecretValue to be empty for an os_type == '%s', but it was not.", c.OSType)
+	}
+
+	if templateParameters.ObjectId != nil {
+		t.Errorf("Expected ObjectId to be empty for an os_type == '%s', but it was not.", c.OSType)
+	}
+
+	if templateParameters.TenantId != nil {
+		t.Errorf("Expected TenantId to be empty for an os_type == '%s', but it was not.", c.OSType)
+	}
+}
+
+func TestConfigShouldTransformToTemplateParametersWindows(t *testing.T) {
+	c, _, _ := newConfig(getArmBuilderConfiguration(), getPackerConfiguration())
+	c.OSType = constants.Target_Windows
+	templateParameters := c.toTemplateParameters()
+
+	if templateParameters.SshAuthorizedKey != nil {
+		t.Errorf("Expected SshAuthorizedKey to be empty for an os_type == '%s', but it was not.", c.OSType)
+	}
+
+	if templateParameters.KeyVaultName == nil {
+		t.Errorf("Expected KeyVaultName to not be empty for an os_type == '%s', but it was not.", c.OSType)
+	}
+
+	if templateParameters.KeyVaultSecretValue == nil {
+		t.Errorf("Expected KeyVaultSecretValue to not be empty for an os_type == '%s', but it was not.", c.OSType)
+	}
+
+	if templateParameters.ObjectId == nil {
+		t.Errorf("Expected ObjectId to not be empty for an os_type == '%s', but it was not.", c.OSType)
+	}
+
+	if templateParameters.TenantId == nil {
+		t.Errorf("Expected TenantId to not be empty for an os_type == '%s', but it was not.", c.OSType)
+	}
+}
+
 func TestConfigShouldTransformToVirtualMachineCaptureParameters(t *testing.T) {
 	c, _, _ := newConfig(getArmBuilderConfiguration(), getPackerConfiguration())
 	parameters := c.toVirtualMachineCaptureParameters()
@@ -222,6 +281,7 @@ func getArmBuilderConfiguration() interface{} {
 		m[v] = fmt.Sprintf("%s00", v)
 	}
 
+	m["os_type"] = constants.Target_Linux
 	return getArmBuilderConfigurationFromMap(m)
 }
 

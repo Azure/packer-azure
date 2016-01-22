@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log"
 
+	packerAzureCommon "github.com/Azure/packer-azure/packer/builder/azure/common"
+
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/lin"
 
@@ -27,6 +29,7 @@ type Builder struct {
 
 const (
 	DefaultPublicIPAddressName = "packerPublicIP"
+	DefaultSecretName          = "packerKeyVaultSecret"
 )
 
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
@@ -57,28 +60,73 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		return nil, err
 	}
 
-	ui.Message("Creating Azure Resource Manager (ARM) client ...")
-	azureClient, err := NewAzureClient(b.config.SubscriptionID, b.config.ResourceGroupName, b.config.StorageAccount, servicePrincipalToken)
+	servicePrincipalTokenVault, err := b.createServicePrincipalTokenVault()
 	if err != nil {
 		return nil, err
 	}
 
-	steps := []multistep.Step{
-		NewStepCreateResourceGroup(azureClient, ui),
-		NewStepValidateTemplate(azureClient, ui),
-		NewStepDeployTemplate(azureClient, ui),
-		NewStepGetIPAddress(azureClient, ui),
-		&communicator.StepConnectSSH{
-			Config:    &b.config.Comm,
-			Host:      lin.SSHHost,
-			SSHConfig: lin.SSHConfig(b.config.UserName),
-		},
-		&common.StepProvision{},
-		NewStepGetOSDisk(azureClient, ui),
-		NewStepPowerOffCompute(azureClient, ui),
-		NewStepCaptureImage(azureClient, ui),
-		NewStepDeleteResourceGroup(azureClient, ui),
-		NewStepDeleteOSDisk(azureClient, ui),
+	ui.Message("Creating Azure Resource Manager (ARM) client ...")
+	azureClient, err := NewAzureClient(
+		b.config.SubscriptionID,
+		b.config.ResourceGroupName,
+		b.config.StorageAccount,
+		servicePrincipalToken,
+		servicePrincipalTokenVault)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var steps []multistep.Step
+
+	if b.config.OSType == constants.Target_Linux {
+		steps = []multistep.Step{
+			NewStepCreateResourceGroup(azureClient, ui),
+			NewStepValidateTemplate(azureClient, ui, Linux),
+			NewStepDeployTemplate(azureClient, ui, Linux),
+			NewStepGetIPAddress(azureClient, ui),
+			&communicator.StepConnectSSH{
+				Config:    &b.config.Comm,
+				Host:      lin.SSHHost,
+				SSHConfig: lin.SSHConfig(b.config.UserName),
+			},
+			&common.StepProvision{},
+			NewStepGetOSDisk(azureClient, ui),
+			NewStepPowerOffCompute(azureClient, ui),
+			NewStepCaptureImage(azureClient, ui),
+			NewStepDeleteResourceGroup(azureClient, ui),
+			NewStepDeleteOSDisk(azureClient, ui),
+		}
+	} else if b.config.OSType == constants.Target_Windows {
+		steps = []multistep.Step{
+			NewStepCreateResourceGroup(azureClient, ui),
+			NewStepValidateTemplate(azureClient, ui, KeyVault),
+			NewStepDeployTemplate(azureClient, ui, KeyVault),
+			NewStepGetCertificate(azureClient, ui),
+			NewStepSetCertificate(b.config, ui),
+			NewStepValidateTemplate(azureClient, ui, Windows),
+			NewStepDeployTemplate(azureClient, ui, Windows),
+			NewStepGetIPAddress(azureClient, ui),
+			&communicator.StepConnectWinRM{
+				Config: &b.config.Comm,
+				Host: func(stateBag multistep.StateBag) (string, error) {
+					return stateBag.Get(constants.SSHHost).(string), nil
+				},
+				WinRMConfig: func(multistep.StateBag) (*communicator.WinRMConfig, error) {
+					return &communicator.WinRMConfig{
+						Username: b.config.UserName,
+						Password: b.config.tmpAdminPassword,
+					}, nil
+				},
+			},
+			&common.StepProvision{},
+			NewStepGetOSDisk(azureClient, ui),
+			NewStepPowerOffCompute(azureClient, ui),
+			NewStepDeleteResourceGroup(azureClient, ui),
+			NewStepDeleteOSDisk(azureClient, ui),
+		}
+	} else {
+		return nil, fmt.Errorf("Builder does not support the os_type '%s'", b.config.OSType)
 	}
 
 	if b.config.PackerDebug {
@@ -134,6 +182,7 @@ func (b *Builder) configureStateBag(stateBag multistep.StateBag) error {
 	stateBag.Put(constants.ArmDeploymentName, b.config.tmpDeploymentName)
 	stateBag.Put(constants.ArmLocation, b.config.Location)
 	stateBag.Put(constants.ArmResourceGroupName, b.config.tmpResourceGroupName)
+	stateBag.Put(constants.ArmKeyVaultName, b.config.tmpKeyVaultName)
 	stateBag.Put(constants.ArmTemplateParameters, b.config.toTemplateParameters())
 	stateBag.Put(constants.ArmVirtualMachineCaptureParameters, b.config.toVirtualMachineCaptureParameters())
 
@@ -153,6 +202,21 @@ func (b *Builder) createServicePrincipalToken() (*azure.ServicePrincipalToken, e
 		b.config.ClientID,
 		b.config.ClientSecret,
 		azure.PublicCloud.ResourceManagerEndpoint)
+
+	return spt, err
+}
+
+func (b *Builder) createServicePrincipalTokenVault() (*azure.ServicePrincipalToken, error) {
+	oauthConfig, err := azure.PublicCloud.OAuthConfigForTenant(b.config.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	spt, err := azure.NewServicePrincipalToken(
+		*oauthConfig,
+		b.config.ClientID,
+		b.config.ClientSecret,
+		packerAzureCommon.AzureVaultScope)
 
 	return spt, err
 }

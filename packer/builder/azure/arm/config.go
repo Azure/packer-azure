@@ -4,9 +4,16 @@
 package arm
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/big"
+	"net/http"
 	"time"
 
 	"golang.org/x/crypto/ssh"
@@ -14,6 +21,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/go-autorest/autorest/to"
 
+	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
+	"github.com/Azure/packer-azure/packer/builder/azure/pkcs12"
+
+	"github.com/Azure/go-ntlmssp"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/helper/communicator"
 	"github.com/mitchellh/packer/helper/config"
@@ -32,6 +43,7 @@ type Config struct {
 	// Authentication via OAUTH
 	ClientID       string `mapstructure:"client_id"`
 	ClientSecret   string `mapstructure:"client_secret"`
+	ObjectID       string `mapstructure:"object_id"`
 	TenantID       string `mapstructure:"tenant_id"`
 	SubscriptionID string `mapstructure:"subscription_id"`
 
@@ -50,27 +62,42 @@ type Config struct {
 	ResourceGroupName string `mapstructure:"resource_group_name"`
 	StorageAccount    string `mapstructure:"storage_account"`
 
+	// OS
+	OSType string `mapstructure:"os_type"`
+
 	// Runtime Values
-	UserName             string
-	Password             string
-	tmpAdminPassword     string
-	tmpResourceGroupName string
-	tmpComputeName       string
-	tmpDeploymentName    string
-	tmpOSDiskName        string
+	UserName               string
+	Password               string
+	tmpAdminPassword       string
+	tmpCertificatePassword string
+	tmpResourceGroupName   string
+	tmpComputeName         string
+	tmpDeploymentName      string
+	tmpKeyVaultName        string
+	tmpOSDiskName          string
+	tmpWinRMCertificateUrl string
 
 	// Authentication with the VM via SSH
 	sshAuthorizedKey string
 	sshPrivateKey    string
 
+	// Authentication with the VM via WinRM
+	winrmCertificate string
+
 	Comm communicator.Config `mapstructure:",squash"`
 	ctx  *interpolate.Context
+}
+
+type keyVaultCertificate struct {
+	Data     string `json:"data"`
+	DataType string `json:"dataType"`
+	Password string `json:"password,omitempty"`
 }
 
 // If we ever feel the need to support more templates consider moving this
 // method to its own factory class.
 func (c *Config) toTemplateParameters() *TemplateParameters {
-	return &TemplateParameters{
+	templateParameters := &TemplateParameters{
 		AdminUsername:      &TemplateParameter{c.UserName},
 		AdminPassword:      &TemplateParameter{c.Password},
 		DnsNameForPublicIP: &TemplateParameter{c.tmpComputeName},
@@ -78,11 +105,24 @@ func (c *Config) toTemplateParameters() *TemplateParameters {
 		ImagePublisher:     &TemplateParameter{c.ImagePublisher},
 		ImageSku:           &TemplateParameter{c.ImageSku},
 		OSDiskName:         &TemplateParameter{c.tmpOSDiskName},
-		SshAuthorizedKey:   &TemplateParameter{c.sshAuthorizedKey},
 		StorageAccountName: &TemplateParameter{c.StorageAccount},
 		VMSize:             &TemplateParameter{c.VMSize},
 		VMName:             &TemplateParameter{c.tmpComputeName},
 	}
+
+	switch c.OSType {
+	case constants.Target_Linux:
+		templateParameters.SshAuthorizedKey = &TemplateParameter{c.sshAuthorizedKey}
+	case constants.Target_Windows:
+		templateParameters.TenantId = &TemplateParameter{c.TenantID}
+		templateParameters.ObjectId = &TemplateParameter{c.ObjectID}
+
+		templateParameters.KeyVaultName = &TemplateParameter{c.tmpKeyVaultName}
+		templateParameters.KeyVaultSecretValue = &TemplateParameter{c.winrmCertificate}
+		templateParameters.WinRMCertificateUrl = &TemplateParameter{c.tmpWinRMCertificateUrl}
+	}
+
+	return templateParameters
 }
 
 func (c *Config) toVirtualMachineCaptureParameters() *compute.VirtualMachineCaptureParameters {
@@ -91,6 +131,66 @@ func (c *Config) toVirtualMachineCaptureParameters() *compute.VirtualMachineCapt
 		VhdPrefix:                &c.CaptureNamePrefix,
 		OverwriteVhds:            to.BoolPtr(false),
 	}
+}
+
+func (c *Config) createCertificate() (string, error) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		err := fmt.Errorf("Failed to Generate Private Key: %s", err)
+		return "", err
+	}
+
+	host := fmt.Sprintf("%s.cloudapp.net", c.tmpComputeName)
+	notBefore := time.Now()
+	notAfter := notBefore.Add(365 * 24 * time.Hour)
+
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	if err != nil {
+		err := fmt.Errorf("Failed to Generate Serial Number: %v", err)
+		return "", err
+	}
+
+	template := x509.Certificate{
+		SerialNumber: serialNumber,
+		Issuer: pkix.Name{
+			CommonName: host,
+		},
+		Subject: pkix.Name{
+			CommonName: host,
+		},
+		NotBefore: notBefore,
+		NotAfter:  notAfter,
+
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+	}
+
+	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
+	if err != nil {
+		err = fmt.Errorf("Failed to Create Certificate: %s", err)
+		return "", err
+	}
+
+	pfxBytes, err := pkcs12.Encode(derBytes, privateKey, c.tmpCertificatePassword)
+	if err != nil {
+		err = fmt.Errorf("Failed to encode certificate as PFX: %s", err)
+		return "", err
+	}
+
+	keyVaultDescription := keyVaultCertificate{
+		Data:     base64.StdEncoding.EncodeToString(pfxBytes),
+		DataType: "pfx",
+		Password: c.tmpCertificatePassword,
+	}
+
+	bytes, err := json.Marshal(keyVaultDescription)
+	if err != nil {
+		err = fmt.Errorf("Failed to marshal key vault description: %s", err)
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(bytes), nil
 }
 
 func newConfig(raws ...interface{}) (*Config, []string, error) {
@@ -110,6 +210,11 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 	setUserNamePassword(&c)
 
 	err = setSshValues(&c)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = setWinRMCertificate(&c)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -157,17 +262,30 @@ func setSshValues(c *Config) error {
 		c.sshPrivateKey = sshKeyPair.PrivateKey()
 	}
 
+	c.Comm.WinRMTransportDecorator = func(t *http.Transport) http.RoundTripper {
+		return &ntlmssp.Negotiator{t}
+	}
+
 	return nil
+}
+
+func setWinRMCertificate(c *Config) error {
+	cert, err := c.createCertificate()
+	c.winrmCertificate = cert
+
+	return err
 }
 
 func setRuntimeValues(c *Config) {
 	var tempName = NewTempName()
 
 	c.tmpAdminPassword = tempName.AdminPassword
+	c.tmpCertificatePassword = tempName.CertificatePassword
 	c.tmpComputeName = tempName.ComputeName
 	c.tmpDeploymentName = tempName.DeploymentName
 	c.tmpResourceGroupName = tempName.ResourceGroupName
 	c.tmpOSDiskName = tempName.OSDiskName
+	c.tmpKeyVaultName = tempName.KeyVaultName
 }
 
 func setUserNamePassword(c *Config) {
@@ -222,7 +340,6 @@ func assertRequiredParametersSet(c *Config, errs *packer.MultiError) {
 
 	/////////////////////////////////////////////
 	// Compute
-
 	if c.ImagePublisher == "" {
 		errs = packer.MultiErrorAppend(errs, fmt.Errorf("A image_publisher must be specified"))
 	}
@@ -241,8 +358,13 @@ func assertRequiredParametersSet(c *Config, errs *packer.MultiError) {
 
 	/////////////////////////////////////////////
 	// Deployment
-
 	if c.StorageAccount == "" {
 		errs = packer.MultiErrorAppend(errs, fmt.Errorf("A storage_account must be specified"))
+	}
+
+	/////////////////////////////////////////////
+	// OS
+	if c.OSType != constants.Target_Linux && c.OSType != constants.Target_Windows {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("An os_type must be specified"))
 	}
 }

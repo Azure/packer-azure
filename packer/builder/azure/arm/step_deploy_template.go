@@ -12,17 +12,19 @@ import (
 )
 
 type StepDeployTemplate struct {
-	client *AzureClient
-	deploy func(resourceGroupName string, deploymentName string, templateParameters *TemplateParameters) error
-	say    func(message string)
-	error  func(e error)
+	client   *AzureClient
+	template string
+	deploy   func(resourceGroupName string, deploymentName string, templateParameters *TemplateParameters) error
+	say      func(message string)
+	error    func(e error)
 }
 
-func NewStepDeployTemplate(client *AzureClient, ui packer.Ui) *StepDeployTemplate {
+func NewStepDeployTemplate(client *AzureClient, ui packer.Ui, template string) *StepDeployTemplate {
 	var step = &StepDeployTemplate{
-		client: client,
-		say:    func(message string) { ui.Say(message) },
-		error:  func(e error) { ui.Error(e.Error()) },
+		client:   client,
+		template: template,
+		say:      func(message string) { ui.Say(message) },
+		error:    func(e error) { ui.Error(e.Error()) },
 	}
 
 	step.deploy = step.deployTemplate
@@ -30,7 +32,7 @@ func NewStepDeployTemplate(client *AzureClient, ui packer.Ui) *StepDeployTemplat
 }
 
 func (s *StepDeployTemplate) deployTemplate(resourceGroupName string, deploymentName string, templateParameters *TemplateParameters) error {
-	factory := newDeploymentFactory(Linux)
+	factory := newDeploymentFactory(s.template)
 	deployment, err := factory.create(*templateParameters)
 	if err != nil {
 		return err

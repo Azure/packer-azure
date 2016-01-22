@@ -13,9 +13,10 @@ import (
 
 func TestStepDeployTemplateShouldFailIfDeployFails(t *testing.T) {
 	var testSubject = &StepDeployTemplate{
-		deploy: func(string, string, *TemplateParameters) error { return fmt.Errorf("!! Unit Test FAIL !!") },
-		say:    func(message string) {},
-		error:  func(e error) {},
+		template: Linux,
+		deploy:   func(string, string, *TemplateParameters) error { return fmt.Errorf("!! Unit Test FAIL !!") },
+		say:      func(message string) {},
+		error:    func(e error) {},
 	}
 
 	stateBag := createTestStateBagStepDeployTemplate()
@@ -32,9 +33,10 @@ func TestStepDeployTemplateShouldFailIfDeployFails(t *testing.T) {
 
 func TestStepDeployTemplateShouldPassIfDeployPasses(t *testing.T) {
 	var testSubject = &StepDeployTemplate{
-		deploy: func(string, string, *TemplateParameters) error { return nil },
-		say:    func(message string) {},
-		error:  func(e error) {},
+		template: Linux,
+		deploy:   func(string, string, *TemplateParameters) error { return nil },
+		say:      func(message string) {},
+		error:    func(e error) {},
 	}
 
 	stateBag := createTestStateBagStepDeployTemplate()
@@ -55,6 +57,7 @@ func TestStepDeployTemplateShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 	var actualTemplateParameters *TemplateParameters
 
 	var testSubject = &StepDeployTemplate{
+		template: Linux,
 		deploy: func(resourceGroupName string, deploymentName string, templateParameter *TemplateParameters) error {
 			actualResourceGroupName = resourceGroupName
 			actualDeploymentName = deploymentName
