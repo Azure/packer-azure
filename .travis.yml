@@ -6,11 +6,19 @@ go:
   - 1.4
   - 1.5
 
+before_install:
+  - go get github.com/axw/gocov/gocov
+  - go get github.com/matm/gocov-html
+
 script: 
   - test -z "$(go fmt ./... | tee /dev/stderr)" 
   - go build -v ./... 
   - test -z "$(go vet ./... | tee /dev/stderr)"
-  - go test -v ./...
+  - gocov test ./... > coverage.json
+  - [ "x$COVERAGE_HTML_URL" != "x" ] && gocov-html coverage.json > coverage.html
+  - [ "x$COVERAGE_HTML_URL" != "x" ] && ruby ./coverage.rb
+  - [ "x$COVERAGE_HTML_URL" != "x" ] && curl $COVERAGE_HTML_URL --upload-file coverage.html -H "x-ms-blob-type:BlockBlob" -H "Content-Type:text/html"
+  - [ "x$COVERAGE_SVG_URL"  != "x" ] && curl $COVERAGE_SVG_URL  --upload-file coverage.svg  -H "x-ms-blob-type:BlockBlob" -H "Content-Type:image/svg+xml"
 
 before_deploy:
   - go get github.com/mitchellh/gox
@@ -19,13 +27,9 @@ before_deploy:
   - zip -j packer-azure-windows-amd64-${TRAVIS_TAG}.zip ./dist/windows-amd64/*
   - tar -cvzf packer-azure-linux-amd64-${TRAVIS_TAG}.tar.gz -C dist/linux-amd64/ .
   - tar -cvzf packer-azure-darwin-amd64-${TRAVIS_TAG}.tar.gz -C dist/darwin-amd64/ .
+
 deploy:
   provider: releases
   api_key: ${GITHUB_TOKEN}
-  file:
-    - packer-azure-windows-amd64-${TRAVIS_TAG}.zip
-    - packer-azure-linux-amd64-${TRAVIS_TAG}.tar.gz
-    - packer-azure-darwin-amd64-${TRAVIS_TAG}.tar.gz
   on:
     tags: true
-    go: 1.4
