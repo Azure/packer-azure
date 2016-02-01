@@ -31,6 +31,7 @@ type Config struct {
 
 	OSType                string `mapstructure:"os_type"`
 	OSImageLabel          string `mapstructure:"os_image_label"`
+	OSImageName           string `mapstructure:"os_image_name"`
 	RemoteSourceImageLink string `mapstructure:"remote_source_image_link"`
 	ResizeOSVhdGB         *int   `mapstructure:"resize_os_vhd_gb"`
 
@@ -112,12 +113,19 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 			fmt.Errorf("os_type is not valid, must be one of: %s, %s", constants.Target_Windows, constants.Target_Linux))
 	}
 
-	if c.RemoteSourceImageLink == "" && c.OSImageLabel == "" {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("os_image_label or remote_source_image_link must be specified"))
+	count := 0
+	if c.RemoteSourceImageLink != "" {
+		count += 1
+	}
+	if c.OSImageLabel != "" {
+		count += 1
+	}
+	if c.OSImageName != "" {
+		count += 1
 	}
 
-	if c.RemoteSourceImageLink != "" && c.OSImageLabel != "" {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("os_image_label and remote_source_image_link cannot both be specified"))
+	if count != 1 {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("One source and only one among os_image_label, os_image_label or remote_source_image_link has to be specified"))
 	}
 
 	if c.Location == "" {

@@ -69,24 +69,48 @@ func TestConfig_VMImageSource(t *testing.T) {
 	defer os.Remove(f)
 	log.SetOutput(testLogger{t}) // hide log if test is succes
 
+	m := make(map[string]string)
+	m["name"] = "Ubuntu-14_04_3-LTS-amd64-server-20160119-en-us-30GB"
+	m["link"] = "http://www.microsoft.com/"
+
 	tcs := []struct {
 		cfgmod func(map[string]interface{})
+		msg    string
 		err    bool
 	}{
-		{func(cfg map[string]interface{}) { cfg["remote_source_image_link"] = "http://www.microsoft.com/" }, true},
-		{func(cfg map[string]interface{}) {
-			cfg["remote_source_image_link"] = "http://www.microsoft.com/"
+		{func(cfg map[string]interface{}) { // none
 			delete(cfg, "os_image_label")
-		}, false},
-		{func(cfg map[string]interface{}) { delete(cfg, "os_image_label") }, true},
+		}, "No defined source", true},
+		{func(cfg map[string]interface{}) { // label and link
+			cfg["remote_source_image_link"] = m["link"]
+		}, "Both label and link defined", true},
+		{func(cfg map[string]interface{}) { // label and name
+			cfg["os_image_name"] = m["name"]
+		}, "Both label and name defined", true},
+		{func(cfg map[string]interface{}) { // label and name and link
+			cfg["os_image_name"] = m["name"]
+			cfg["remote_source_image_link"] = m["link"]
+		}, "Both name and link defined", true},
+		{func(cfg map[string]interface{}) { // only os_image_name set
+			delete(cfg, "os_image_label")
+			cfg["os_image_name"] = m["name"]
+		}, "Only name", false},
+		{func(cfg map[string]interface{}) { // only remote_source_image_link set
+			delete(cfg, "os_image_label")
+			cfg["remote_source_image_link"] = m["link"]
+		}, "Only link", false},
 	}
-
+	// Test default config
+	_, _, err := newConfig(getDefaultTestConfig(f))
+	if err != nil {
+		t.Fatalf("TestCase Label only : unexpected error value: %v", err)
+	}
 	for _, tc := range tcs {
 		cfgmap := getDefaultTestConfig(f)
 		tc.cfgmod(cfgmap)
 		_, _, err := newConfig(cfgmap)
 		if (err != nil) != tc.err {
-			t.Fatalf("unexpected error value: %v", err)
+			t.Fatalf("TestCase %s : unexpected error value: %v", tc.msg, err)
 		}
 	}
 }

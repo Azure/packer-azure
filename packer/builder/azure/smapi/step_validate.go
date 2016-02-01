@@ -74,7 +74,7 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 				return err
 			}
 
-			if osImage, found := FindOSImage(imageList.OSImages, config.OSImageLabel, config.Location); found {
+			if osImage, found := FindOSImage(imageList.OSImages, config.OSImageName, config.OSImageLabel, config.Location); found {
 				vmutils.ConfigureDeploymentFromPlatformImage(&role, osImage.Name, destinationVhd, "")
 				ui.Message(fmt.Sprintf("Image source is OS image %q", osImage.Name))
 				if osImage.OS != config.OSType {
@@ -97,7 +97,7 @@ func (*StepValidate) Run(state multistep.StateBag) multistep.StepAction {
 					return err
 				}
 
-				if vmImage, found := FindVmImage(imageList.VMImages, "", config.OSImageLabel); found {
+				if vmImage, found := FindVmImage(imageList.VMImages, config.OSImageName, config.OSImageLabel); found {
 					if config.ResizeOSVhdGB != nil {
 						return fmt.Errorf("Packer cannot resize VM images")
 					}
