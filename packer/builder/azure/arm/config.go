@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/Godeps/_workspace/src/github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/helper/communicator"
