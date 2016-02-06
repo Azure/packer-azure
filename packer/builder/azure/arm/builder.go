@@ -4,6 +4,7 @@
 package arm
 
 import (
+	"errors"
 	"log"
 
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
@@ -85,8 +86,18 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	b.runner = b.createRunner(&steps, ui)
 	b.runner.Run(b.stateBag)
 
-	if e, ok := b.stateBag.GetOk(constants.Error); ok {
-		ui.Error(e.(error).Error())
+	// Report any errors.
+	if rawErr, ok := b.stateBag.GetOk(constants.Error); ok {
+		return nil, rawErr.(error)
+	}
+
+	// If we were interrupted or cancelled, then just exit.
+	if _, ok := b.stateBag.GetOk(multistep.StateCancelled); ok {
+		return nil, errors.New("Build was cancelled.")
+	}
+
+	if _, ok := b.stateBag.GetOk(multistep.StateHalted); ok {
+		return nil, errors.New("Build was halted.")
 	}
 
 	return &artifact{}, nil
