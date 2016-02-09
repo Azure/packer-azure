@@ -4,8 +4,12 @@
 package arm
 
 import (
+	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"time"
+
+	"golang.org/x/crypto/ssh"
 
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -128,13 +132,36 @@ func setSshValues(c *Config) error {
 		c.Comm.SSHTimeout = 20 * time.Minute
 	}
 
-	sshKeyPair, err := NewOpenSshKeyPair()
-	if err != nil {
-		return err
+	if c.Comm.SSHPassword != "" {
+		c.tmpAdminPassword = c.Comm.SSHPassword
 	}
+	if c.Comm.SSHPrivateKey != "" {
+		privateKeyBytes, err := ioutil.ReadFile(c.Comm.SSHPrivateKey)
+		if err != nil {
+			panic(err)
+		}
+		signer, err := ssh.ParsePrivateKey(privateKeyBytes)
+		if err != nil {
+			panic(err)
+		}
 
-	c.sshAuthorizedKey = sshKeyPair.AuthorizedKey()
-	c.sshPrivateKey = sshKeyPair.PrivateKey()
+		publicKey := signer.PublicKey()
+		c.sshAuthorizedKey = fmt.Sprintf("%s %s packer Azure Deployment%s",
+			publicKey.Type(),
+			base64.StdEncoding.EncodeToString(publicKey.Marshal()),
+			time.Now().Format(time.RFC3339))
+		c.sshPrivateKey = string(privateKeyBytes)
+
+	} else {
+
+		sshKeyPair, err := NewOpenSshKeyPair()
+		if err != nil {
+			return err
+		}
+
+		c.sshAuthorizedKey = sshKeyPair.AuthorizedKey()
+		c.sshPrivateKey = sshKeyPair.PrivateKey()
+	}
 
 	return nil
 }
