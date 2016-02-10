@@ -43,6 +43,41 @@ func TestConfigShouldProvideReasonableDefaultValues(t *testing.T) {
 	}
 }
 
+func TestConfigShouldBeAbleToOverrideDefaultedValues(t *testing.T) {
+	builderValues := make(map[string]string)
+
+	// Populate the dictionary with all of the required values.
+	for _, v := range requiredConfigValues {
+		builderValues[v] = "--some-value--"
+	}
+
+	builderValues["ssh_password"] = "override_password"
+	builderValues["ssh_username"] = "override_username"
+	builderValues["vm_size"] = "override_vm_size"
+
+	c, _, _ := newConfig(getArmBuilderConfigurationFromMap(builderValues), getPackerConfiguration())
+
+	if c.Password != "override_password" {
+		t.Errorf("Expected 'Password' to be set to 'override_password', but found '%s'!", c.Password)
+	}
+
+	if c.Comm.SSHPassword != "override_password" {
+		t.Errorf("Expected 'c.Comm.SSHPassword' to be set to 'override_password', but found '%s'!", c.Comm.SSHPassword)
+	}
+
+	if c.UserName != "override_username" {
+		t.Errorf("Expected 'UserName' to be set to 'override_username', but found '%s'!", c.UserName)
+	}
+
+	if c.Comm.SSHUsername != "override_username" {
+		t.Errorf("Expected 'c.Comm.SSHUsername' to be set to 'override_username', but found '%s'!", c.Comm.SSHUsername)
+	}
+
+	if c.VMSize != "override_vm_size" {
+		t.Errorf("Expected 'vm_size' to be set to 'override_username', but found '%s'!", c.VMSize)
+	}
+}
+
 func TestConfigShouldDefaultVMSizeToStandardA1(t *testing.T) {
 	c, _, _ := newConfig(getArmBuilderConfiguration(), getPackerConfiguration())
 
@@ -83,8 +118,8 @@ func TestUserShouldProvideRequiredValues(t *testing.T) {
 func TestSystemShouldDefineRuntimeValues(t *testing.T) {
 	c, _, _ := newConfig(getArmBuilderConfiguration(), getPackerConfiguration())
 
-	if c.tmpAdminPassword == "" {
-		t.Errorf("Expected tmpAdminPassword to not be empty, but it was '%s'!", c.tmpAdminPassword)
+	if c.Password == "" {
+		t.Errorf("Expected Password to not be empty, but it was '%s'!", c.Password)
 	}
 
 	if c.tmpComputeName == "" {

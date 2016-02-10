@@ -50,10 +50,9 @@ type Config struct {
 	ResourceGroupName string `mapstructure:"resource_group_name"`
 	StorageAccount    string `mapstructure:"storage_account"`
 
-	// Packer
-	UserName string `mapaccount:"username"`
-
 	// Runtime Values
+	UserName             string
+	Password             string
 	tmpAdminPassword     string
 	tmpResourceGroupName string
 	tmpComputeName       string
@@ -73,7 +72,7 @@ type Config struct {
 func (c *Config) toTemplateParameters() *TemplateParameters {
 	return &TemplateParameters{
 		AdminUsername:      &TemplateParameter{c.UserName},
-		AdminPassword:      &TemplateParameter{c.tmpAdminPassword},
+		AdminPassword:      &TemplateParameter{c.Password},
 		DnsNameForPublicIP: &TemplateParameter{c.tmpComputeName},
 		ImageOffer:         &TemplateParameter{c.ImageOffer},
 		ImagePublisher:     &TemplateParameter{c.ImagePublisher},
@@ -108,6 +107,7 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 
 	provideDefaultValues(&c)
 	setRuntimeValues(&c)
+	setUserNamePassword(&c)
 
 	err = setSshValues(&c)
 	if err != nil {
@@ -126,15 +126,10 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 }
 
 func setSshValues(c *Config) error {
-	c.Comm.SSHUsername = c.UserName
-
 	if c.Comm.SSHTimeout == 0 {
 		c.Comm.SSHTimeout = 20 * time.Minute
 	}
 
-	if c.Comm.SSHPassword != "" {
-		c.tmpAdminPassword = c.Comm.SSHPassword
-	}
 	if c.Comm.SSHPrivateKey != "" {
 		privateKeyBytes, err := ioutil.ReadFile(c.Comm.SSHPrivateKey)
 		if err != nil {
@@ -153,7 +148,6 @@ func setSshValues(c *Config) error {
 		c.sshPrivateKey = string(privateKeyBytes)
 
 	} else {
-
 		sshKeyPair, err := NewOpenSshKeyPair()
 		if err != nil {
 			return err
@@ -176,11 +170,21 @@ func setRuntimeValues(c *Config) {
 	c.tmpOSDiskName = tempName.OSDiskName
 }
 
-func provideDefaultValues(c *Config) {
-	if c.UserName == "" {
-		c.UserName = DefaultUserName
+func setUserNamePassword(c *Config) {
+	if c.Comm.SSHUsername == "" {
+		c.Comm.SSHUsername = DefaultUserName
 	}
 
+	c.UserName = c.Comm.SSHUsername
+
+	if c.Comm.SSHPassword != "" {
+		c.Password = c.Comm.SSHPassword
+	} else {
+		c.Password = c.tmpAdminPassword
+	}
+}
+
+func provideDefaultValues(c *Config) {
 	if c.VMSize == "" {
 		c.VMSize = DefaultVMSize
 	}
