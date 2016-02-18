@@ -6,7 +6,10 @@
         "sid": "your_subscription_id",
 
         "rgn": "your_resource_group",
-        "sa": "your_storage_account"
+        "sa": "your_storage_account",
+
+        "ssh_user": "centos",
+        "ssh_pass": null
     },
     "builders": [
         {
@@ -23,6 +26,9 @@
             "capture_container_name": "images",
             "capture_name_prefix": "packer",
 
+            "ssh_username": "{{user `ssh_user`}}",
+            "ssh_password": "{{user `ssh_pass`}}",
+
             "image_publisher": "OpenLogic",
             "image_offer": "CentOS",
             "image_sku": "7.1",
@@ -34,12 +40,14 @@
     ],
     "provisioners": [
         {
-            "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
             "inline": [
-                "echo '!! Hello CentOS !!'"
+                "yum update -y",
+                "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
             ],
             "inline_shebang": "/bin/sh -x",
-            "type": "shell"
+            "type": "shell",
+            "skip_clean": true
         }
     ]
 }

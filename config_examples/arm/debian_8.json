@@ -6,7 +6,10 @@
         "sid": "your_subscription_id",
 
         "rgn": "your_resource_group",
-        "sa": "your_storage_account"
+        "sa": "your_storage_account",
+
+        "ssh_user": "packer",
+        "ssh_pass": null
     },
     "builders": [
         {
@@ -23,6 +26,9 @@
             "capture_container_name": "images",
             "capture_name_prefix": "packer",
 
+            "ssh_username": "{{user `ssh_user`}}",
+            "ssh_password": "{{user `ssh_pass`}}",
+
             "image_publisher": "credativ",
             "image_offer": "Debian",
             "image_sku": "8",
@@ -35,9 +41,12 @@
     ],
     "provisioners": [
         {
-            "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
             "inline": [
-                "echo '!! Hello Debian !!'"
+                "apt-get update",
+                "apt-get upgrade -y",
+
+                "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
             ],
             "inline_shebang": "/bin/sh -x",
             "type": "shell"

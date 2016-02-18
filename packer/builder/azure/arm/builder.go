@@ -74,9 +74,6 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			SSHConfig: lin.SSHConfig(b.config.UserName),
 		},
 		&common.StepProvision{},
-		&lin.StepGeneralizeOS{
-			Command: "sudo /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync",
-		},
 		NewStepGetOSDisk(azureClient, ui),
 		NewStepPowerOffCompute(azureClient, ui),
 		NewStepCaptureImage(azureClient, ui),
@@ -86,7 +83,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	if b.config.PackerDebug {
 		ui.Message(fmt.Sprintf("temp admin user: '%s'", b.config.UserName))
-		ui.Message(fmt.Sprintf("temp admin password: '%s'", b.config.tmpAdminPassword))
+		ui.Message(fmt.Sprintf("temp admin password: '%s'", b.config.Password))
 	}
 
 	b.runner = b.createRunner(&steps, ui)
