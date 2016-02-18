@@ -490,3 +490,7 @@ func (c *comm) uploadFolder(dscPath string, srcPath string) error {
 
 	return err
 }
+
+func (*comm) DownloadDir(string, string, []string) error {
+	return fmt.Errorf("Not implemented")
+}
