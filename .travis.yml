@@ -3,8 +3,8 @@ sudo: false
 language: go
 
 go:
-  - 1.4
   - 1.5
+  - 1.6
 
 before_install:
   - go get github.com/axw/gocov/gocov
@@ -31,5 +31,10 @@ before_deploy:
 deploy:
   provider: releases
   api_key: ${GITHUB_TOKEN}
+  file:    
+    - packer-azure-windows-amd64-${TRAVIS_TAG}.zip    
+    - packer-azure-linux-amd64-${TRAVIS_TAG}.tar.gz    
+    - packer-azure-darwin-amd64-${TRAVIS_TAG}.tar.gz  
   on:
     tags: true
+    go: 1.6
