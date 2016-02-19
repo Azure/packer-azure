@@ -3,7 +3,10 @@
 
 package azure
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 // This is the common builder ID to all of these artifacts.
 const BuilderId = "Azure.ServiceManagement.VMImage"
@@ -13,6 +16,9 @@ type artifact struct {
 	imageLabel    string
 	imageName     string
 	mediaLocation string
+
+	publishSettingsPath string
+	subscriptionID      string
 }
 
 func (*artifact) BuilderId() string {
@@ -28,7 +34,16 @@ func (a *artifact) Id() string {
 }
 
 func (a *artifact) State(name string) interface{} {
-	return "Not implemented"
+	log.Printf("Artifact.State(%s) called", name)
+
+	switch name {
+	case "publishSettingsPath":
+		return a.publishSettingsPath
+	case "subscriptionID":
+		return a.subscriptionID
+	default:
+		return nil
+	}
 }
 
 func (a *artifact) String() string {

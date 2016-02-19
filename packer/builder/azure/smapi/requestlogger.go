@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See the LICENSE file in the project root for license information.
+
 package azure
 
 import (
@@ -14,15 +17,15 @@ const logLengthKey = "PACKER_LOG_AZURE_MAXLEN"
 
 const logPrefix = "[AZURE]"
 
-func getLoggedClient(client management.Client) management.Client {
+func GetLoggedClient(client management.Client) management.Client {
 	logLengthStr := os.Getenv(logLengthKey)
 	if logLengthStr == "" {
-		log.Printf("%s %s not set, not logging", logLengthKey, logPrefix)
+		log.Printf("%s %s not set, not logging", logPrefix, logLengthKey)
 		return client
 	}
 	maxlen, err := strconv.ParseInt(logLengthStr, 10, 64)
 	if err != nil {
-		log.Printf("WARNING: Found %s in environment, but %s is not an integer?", logLengthKey, logLengthStr)
+		log.Printf("%s WARNING: Found %s in environment, but %s is not an integer?", logPrefix, logLengthKey, logLengthStr)
 		return client
 	}
 
