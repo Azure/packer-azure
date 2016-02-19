@@ -6,6 +6,11 @@ go:
   - 1.5
   - 1.6
 
+matrix:
+  fast_finish: true        
+  allow_failures:
+    - go: 1.6
+
 before_install:
   - go get github.com/axw/gocov/gocov
   - go get github.com/matm/gocov-html
@@ -15,10 +20,10 @@ script:
   - go build -v ./... 
   - test -z "$(go vet ./... | tee /dev/stderr)"
   - gocov test ./... > coverage.json
-  - [ "x$COVERAGE_HTML_URL" != "x" ] && gocov-html coverage.json > coverage.html
-  - [ "x$COVERAGE_HTML_URL" != "x" ] && ruby ./coverage.rb
-  - [ "x$COVERAGE_HTML_URL" != "x" ] && curl $COVERAGE_HTML_URL --upload-file coverage.html -H "x-ms-blob-type:BlockBlob" -H "Content-Type:text/html"
-  - [ "x$COVERAGE_SVG_URL"  != "x" ] && curl $COVERAGE_SVG_URL  --upload-file coverage.svg  -H "x-ms-blob-type:BlockBlob" -H "Content-Type:image/svg+xml"
+  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then gocov-html coverage.json > coverage.html; fi
+  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then ruby ./coverage.rb; fi
+  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then curl $COVERAGE_HTML_URL --upload-file coverage.html -H "x-ms-blob-type:BlockBlob" -H "Content-Type:text/html"; fi
+  - if [[ "x$COVERAGE_SVG_URL"  != "x" ]]; then curl $COVERAGE_SVG_URL  --upload-file coverage.svg  -H "x-ms-blob-type:BlockBlob" -H "Content-Type:image/svg+xml"; fi
 
 before_deploy:
   - go get github.com/mitchellh/gox
@@ -37,4 +42,4 @@ deploy:
     - packer-azure-darwin-amd64-${TRAVIS_TAG}.tar.gz  
   on:
     tags: true
-    go: 1.6
+    go: 1.5
