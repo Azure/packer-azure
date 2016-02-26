@@ -143,11 +143,16 @@ func (b *Builder) configureStateBag(stateBag multistep.StateBag) error {
 }
 
 func (b *Builder) createServicePrincipalToken() (*azure.ServicePrincipalToken, error) {
+	oauthConfig, err := azure.PublicCloud.OAuthConfigForTenant(b.config.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
 	spt, err := azure.NewServicePrincipalToken(
+		*oauthConfig,
 		b.config.ClientID,
 		b.config.ClientSecret,
-		b.config.TenantID,
-		azure.AzureResourceManagerScope)
+		azure.PublicCloud.ResourceManagerEndpoint)
 
 	return spt, err
 }
