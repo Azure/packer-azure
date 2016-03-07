@@ -31,19 +31,16 @@ func NewStepCaptureImage(client *AzureClient, ui packer.Ui) *StepCaptureImage {
 }
 
 func (s *StepCaptureImage) captureImage(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters) error {
-	generalizeResponse, err := s.client.Generalize(resourceGroupName, computeName)
+	_, err := s.client.Generalize(resourceGroupName, computeName)
 	if err != nil {
 		return err
 	}
 
-	s.client.VirtualMachinesClient.PollAsNeeded(generalizeResponse.Response)
-
-	captureResponse, err := s.client.Capture(resourceGroupName, computeName, *parameters)
+	_, err = s.client.Capture(resourceGroupName, computeName, *parameters)
 	if err != nil {
 		return err
 	}
 
-	s.client.VirtualMachinesClient.PollAsNeeded(captureResponse.Response.Response)
 	return nil
 }
 
