@@ -30,12 +30,11 @@ func NewStepPowerOffCompute(client *AzureClient, ui packer.Ui) *StepPowerOffComp
 }
 
 func (s *StepPowerOffCompute) powerOffCompute(resourceGroupName string, computeName string) error {
-	res, err := s.client.PowerOff(resourceGroupName, computeName)
+	_, err := s.client.PowerOff(resourceGroupName, computeName)
 	if err != nil {
 		return err
 	}
 
-	s.client.VirtualMachinesClient.PollAsNeeded(res.Response)
 	return nil
 }
 

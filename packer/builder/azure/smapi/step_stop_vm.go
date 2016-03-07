@@ -30,7 +30,7 @@ func (s *StepStopVm) Run(state multistep.StateBag) multistep.StepAction {
 	ui.Say("Stopping Temporary Azure VM...")
 
 	if err := retry.ExecuteAsyncOperation(client, func() (management.OperationID, error) {
-		return vm.NewClient(client).ShutdownRole(s.TmpServiceName, s.TmpVmName, s.TmpVmName)
+		return vm.NewClient(client).ShutdownRole(s.TmpServiceName, s.TmpVmName, s.TmpVmName, vm.PostShutdownActionStopped)
 	}); err != nil {
 		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)

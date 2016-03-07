@@ -36,12 +36,11 @@ func (s *StepDeployTemplate) deployTemplate(resourceGroupName string, deployment
 		return err
 	}
 
-	res, err := s.client.DeploymentsClient.CreateOrUpdate(resourceGroupName, deploymentName, *deployment)
+	_, err = s.client.DeploymentsClient.CreateOrUpdate(resourceGroupName, deploymentName, *deployment)
 	if err != nil {
 		return err
 	}
 
-	s.client.DeploymentsClient.PollAsNeeded(res.Response.Response)
 	poller := NewDeploymentPoller(func() (string, error) {
 		r, e := s.client.DeploymentsClient.Get(resourceGroupName, deploymentName)
 		if r.Properties != nil && r.Properties.ProvisioningState != nil {
