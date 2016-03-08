@@ -3,9 +3,36 @@ package pkcs12
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
 	"encoding/asn1"
+	"fmt"
 	"testing"
 )
+
+func decodePkcs8ShroudedKeyBag(asn1Data, password []byte) (privateKey interface{}, err error) {
+	pkinfo := new(encryptedPrivateKeyInfo)
+	if _, err = asn1.Unmarshal(asn1Data, pkinfo); err != nil {
+		err = fmt.Errorf("error decoding PKCS8 shrouded key bag: %v", err)
+		return nil, err
+	}
+
+	pkData, err := pbDecrypt(pkinfo, password)
+	if err != nil {
+		err = fmt.Errorf("error decrypting PKCS8 shrouded key bag: %v", err)
+		return
+	}
+
+	rv := new(asn1.RawValue)
+	if _, err = asn1.Unmarshal(pkData, rv); err != nil {
+		err = fmt.Errorf("could not decode decrypted private key data")
+	}
+
+	if privateKey, err = x509.ParsePKCS8PrivateKey(pkData); err != nil {
+		err = fmt.Errorf("error parsing PKCS8 private key: %v", err)
+		return nil, err
+	}
+	return
+}
 
 // Assert the default algorithm parameters are in the correct order,
 // and default to the correct value.  Defaults are based on OpenSSL.

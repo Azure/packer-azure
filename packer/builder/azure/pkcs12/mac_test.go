@@ -1,9 +1,23 @@
 package pkcs12
 
 import (
+	"crypto/hmac"
 	"encoding/asn1"
 	"testing"
 )
+
+func verifyMac(macData *macData, message, password []byte) error {
+	if !macData.Mac.Algorithm.Algorithm.Equal(oidSha1Algorithm) {
+		return NotImplementedError("unknown digest algorithm: " + macData.Mac.Algorithm.Algorithm.String())
+	}
+
+	expectedMAC := computeMac(message, macData.Iterations, macData.MacSalt, password)
+
+	if !hmac.Equal(macData.Mac.Digest, expectedMAC) {
+		return ErrIncorrectPassword
+	}
+	return nil
+}
 
 func TestVerifyMac(t *testing.T) {
 	td := macData{
