@@ -47,56 +47,6 @@ type pbeParams struct {
 	Iterations int
 }
 
-func pbDecrypterFor(algorithm pkix.AlgorithmIdentifier, password []byte) (cipher.BlockMode, error) {
-	algorithmName, supported := algByOID[algorithm.Algorithm.String()]
-	if !supported {
-		return nil, NotImplementedError("algorithm " + algorithm.Algorithm.String() + " is not supported")
-	}
-
-	var params pbeParams
-	if _, err := asn1.Unmarshal(algorithm.Parameters.FullBytes, &params); err != nil {
-		return nil, err
-	}
-
-	k := deriveKeyByAlg[algorithmName](params.Salt, password, params.Iterations)
-	iv := deriveIVByAlg[algorithmName](params.Salt, password, params.Iterations)
-	password = nil
-
-	code, err := blockcodeByAlg[algorithmName](k)
-	if err != nil {
-		return nil, err
-	}
-
-	cbc := cipher.NewCBCDecrypter(code, iv)
-	return cbc, nil
-}
-
-func pbDecrypt(info decryptable, password []byte) (decrypted []byte, err error) {
-	cbc, err := pbDecrypterFor(info.GetAlgorithm(), password)
-	password = nil
-	if err != nil {
-		return nil, err
-	}
-
-	encrypted := info.GetData()
-
-	decrypted = make([]byte, len(encrypted))
-	cbc.CryptBlocks(decrypted, encrypted)
-
-	if psLen := int(decrypted[len(decrypted)-1]); psLen > 0 && psLen <= cbc.BlockSize() {
-		m := decrypted[:len(decrypted)-psLen]
-		ps := decrypted[len(decrypted)-psLen:]
-		if bytes.Compare(ps, bytes.Repeat([]byte{byte(psLen)}, psLen)) != 0 {
-			return nil, ErrDecryption
-		}
-		decrypted = m
-	} else {
-		return nil, ErrDecryption
-	}
-
-	return
-}
-
 func pad(src []byte, blockSize int) []byte {
 	paddingLength := blockSize - len(src)%blockSize
 	paddingText := bytes.Repeat([]byte{byte(paddingLength)}, paddingLength)

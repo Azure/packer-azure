@@ -22,11 +22,6 @@ var (
 			return pbkdf(sha1Sum, 20, 64, salt, password, iterations, 2, 8)
 		},
 	}
-	deriveMacKeyByAlg = map[string]func(salt, password []byte, iterations int) []byte{
-		sha1Algorithm: func(salt, password []byte, iterations int) []byte {
-			return pbkdf(sha1Sum, 20, 64, salt, password, iterations, 3, 20)
-		},
-	}
 )
 
 func sha1Sum(in []byte) []byte {

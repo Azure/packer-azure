@@ -132,7 +132,7 @@ func checkNullParameter(t *testing.T, privateKey interface{}) {
 
 	// ensure a NULL parameter is inserted
 	if pkcs.Algo.Parameters.Tag != 5 {
-		t.Errorf("expected parameters to be NULL, but actual tag=%d, class=%d, isCompound=%d, bytes=%x",
+		t.Errorf("expected parameters to be NULL, but actual tag=%d, class=%d, isCompound=%t, bytes=%x",
 			pkcs.Algo.Parameters.Tag,
 			pkcs.Algo.Parameters.Class,
 			pkcs.Algo.Parameters.IsCompound,

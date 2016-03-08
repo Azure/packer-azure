@@ -7,6 +7,10 @@ import (
 	"encoding/asn1"
 )
 
+var (
+	oidSha1Algorithm = asn1.ObjectIdentifier{1, 3, 14, 3, 2, 26}
+)
+
 type macData struct {
 	Mac        digestInfo
 	MacSalt    []byte
@@ -17,27 +21,6 @@ type macData struct {
 type digestInfo struct {
 	Algorithm pkix.AlgorithmIdentifier
 	Digest    []byte
-}
-
-const (
-	sha1Algorithm = "SHA-1"
-)
-
-var (
-	oidSha1Algorithm = asn1.ObjectIdentifier{1, 3, 14, 3, 2, 26}
-)
-
-func verifyMac(macData *macData, message, password []byte) error {
-	if !macData.Mac.Algorithm.Algorithm.Equal(oidSha1Algorithm) {
-		return NotImplementedError("unknown digest algorithm: " + macData.Mac.Algorithm.Algorithm.String())
-	}
-
-	expectedMAC := computeMac(message, macData.Iterations, macData.MacSalt, password)
-
-	if !hmac.Equal(macData.Mac.Digest, expectedMAC) {
-		return ErrIncorrectPassword
-	}
-	return nil
 }
 
 func computeMac(message []byte, iterations int, salt, password []byte) []byte {

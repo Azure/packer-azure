@@ -24,22 +24,3 @@ func bmpString(s string) ([]byte, error) {
 	rv = append(rv, 0, 0)
 	return rv, nil
 }
-
-func decodeBMPString(bmpString []byte) (string, error) {
-	if len(bmpString)%2 != 0 {
-		return "", errors.New("expected BMP byte string to be an even length")
-	}
-
-	// strip terminator if present
-	if terminator := bmpString[len(bmpString)-2:]; terminator[0] == terminator[1] && terminator[1] == 0 {
-		bmpString = bmpString[:len(bmpString)-2]
-	}
-
-	s := make([]uint16, 0, len(bmpString)/2)
-	for len(bmpString) > 0 {
-		s = append(s, uint16(bmpString[0])*265+uint16(bmpString[1]))
-		bmpString = bmpString[2:]
-	}
-
-	return string(utf16.Decode(s)), nil
-}
