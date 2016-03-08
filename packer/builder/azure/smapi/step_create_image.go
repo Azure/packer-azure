@@ -88,7 +88,8 @@ func (s *StepCreateImage) Cleanup(state multistep.StateBag) {
 				return vmdisk.NewClient(client).DeleteDisk(diskName, true)
 			}, retry.ConstantBackoffRule("busy", func(err management.AzureError) bool {
 				return strings.Contains(err.Message, "is currently performing an operation on deployment") ||
-					strings.Contains(err.Message, "is currently in use by virtual machine")
+					strings.Contains(err.Message, "is currently in use by virtual machine") ||
+					strings.Contains(err.Message, "connection reset by peer")
 			}, 30*time.Second, 10)); err != nil {
 				err := fmt.Errorf(errorMsg, err)
 				ui.Error(err.Error())
