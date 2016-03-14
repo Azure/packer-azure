@@ -2,6 +2,7 @@
     "variables": {
         "cid": "your_client_id",
         "cst": "your_client_secret",
+        "oid": "your_object_id",
         "tid": "your_client_tenant",
         "sid": "your_subscription_id",
 
@@ -14,6 +15,7 @@
 
             "client_id": "{{user `cid`}}",
             "client_secret": "{{user `cst`}}",
+            "object_id": "{{user `oid`}}",
             "subscription_id": "{{user `sid`}}",
             "tenant_id": "{{user `tid`}}",
 
@@ -23,27 +25,27 @@
             "capture_container_name": "images",
             "capture_name_prefix": "packer",
 
-            "os_type": "Linux",
-            "image_publisher": "Canonical",
-            "image_offer": "UbuntuServer",
-            "image_sku": "14.04.3-LTS",
+            "os_type": "Windows",
+            "image_publisher": "MicrosoftWindowsServer",
+            "image_offer": "WindowsServer",
+            "image_sku": "2012-R2-Datacenter",
+
+            "communicator": "winrm",
+            "winrm_use_ssl": "true",
+            "winrm_insecure": "true",
+            "winrm_timeout": "3m",
+            "winrm_username": "packer",
 
             "location": "South Central US",
-
             "vm_size": "Standard_A2"
         }
     ],
     "provisioners": [
         {
-            "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "type": "powershell",
             "inline": [
-                "apt-get update",
-                "apt-get upgrade -y",
-
-                "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
-            ],
-            "inline_shebang": "/bin/sh -x",
-            "type": "shell"
+                "dir c:\\"
+            ]
         }
     ]
 }

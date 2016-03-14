@@ -9,19 +9,23 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	armStorage "github.com/Azure/azure-sdk-for-go/arm/storage"
 	"github.com/Azure/azure-sdk-for-go/storage"
-
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/packer-azure/packer/builder/azure/common"
 )
 
 type AzureClient struct {
-	compute.VirtualMachinesClient
-	network.PublicIPAddressesClient
-	resources.GroupsClient
-	resources.DeploymentsClient
 	storage.BlobStorageClient
+	resources.DeploymentsClient
+	resources.GroupsClient
+	network.PublicIPAddressesClient
+	compute.VirtualMachinesClient
+	common.VaultClient
 }
 
-func NewAzureClient(subscriptionID string, resourceGroupName string, storageAccountName string, servicePrincipalToken *azure.ServicePrincipalToken) (*AzureClient, error) {
+func NewAzureClient(subscriptionID, resourceGroupName, storageAccountName string,
+	servicePrincipalToken, servicePrincipalTokenVault *azure.ServicePrincipalToken) (*AzureClient, error) {
+
 	var azureClient = &AzureClient{}
 
 	azureClient.DeploymentsClient = resources.NewDeploymentsClient(subscriptionID)
@@ -38,6 +42,9 @@ func NewAzureClient(subscriptionID string, resourceGroupName string, storageAcco
 
 	storageAccountsClient := armStorage.NewAccountsClient(subscriptionID)
 	storageAccountsClient.Authorizer = servicePrincipalToken
+
+	azureClient.VaultClient = common.VaultClient{autorest.Client{}}
+	azureClient.VaultClient.Authorizer = servicePrincipalTokenVault
 
 	accountKeys, err := storageAccountsClient.ListKeys(resourceGroupName, storageAccountName)
 	if err != nil {

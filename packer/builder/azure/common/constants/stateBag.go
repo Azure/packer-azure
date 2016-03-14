@@ -30,7 +30,9 @@ const (
 )
 const (
 	ArmComputeName                     string = "arm.ComputeName"
+	ArmCertificateUrl                  string = "arm.CertificateUrl"
 	ArmDeploymentName                  string = "arm.DeploymentName"
+	ArmKeyVaultName                    string = "arm.KeyVaultName"
 	ArmLocation                        string = "arm.Location"
 	ArmOSDiskVhd                       string = "arm.OSDiskVhd"
 	ArmPublicIPAddressName             string = "arm.PublicIPAddressName"

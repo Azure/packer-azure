@@ -13,16 +13,18 @@ import (
 
 type StepValidateTemplate struct {
 	client   *AzureClient
+	template string
 	validate func(resourceGroupName string, deploymentName string, templateParameters *TemplateParameters) error
 	say      func(message string)
 	error    func(e error)
 }
 
-func NewStepValidateTemplate(client *AzureClient, ui packer.Ui) *StepValidateTemplate {
+func NewStepValidateTemplate(client *AzureClient, ui packer.Ui, template string) *StepValidateTemplate {
 	var step = &StepValidateTemplate{
-		client: client,
-		say:    func(message string) { ui.Say(message) },
-		error:  func(e error) { ui.Error(e.Error()) },
+		client:   client,
+		template: template,
+		say:      func(message string) { ui.Say(message) },
+		error:    func(e error) { ui.Error(e.Error()) },
 	}
 
 	step.validate = step.validateTemplate
@@ -30,7 +32,7 @@ func NewStepValidateTemplate(client *AzureClient, ui packer.Ui) *StepValidateTem
 }
 
 func (s *StepValidateTemplate) validateTemplate(resourceGroupName string, deploymentName string, templateParameters *TemplateParameters) error {
-	factory := newDeploymentFactory(Linux)
+	factory := newDeploymentFactory(s.template)
 	deployment, err := factory.create(*templateParameters)
 
 	if err != nil {
