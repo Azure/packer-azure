@@ -55,12 +55,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	b.stateBag.Put("hook", hook)
 	b.stateBag.Put(constants.Ui, ui)
 
-	servicePrincipalToken, err := b.createServicePrincipalToken()
-	if err != nil {
-		return nil, err
-	}
-
-	servicePrincipalTokenVault, err := b.createServicePrincipalTokenVault()
+	spnCloud, spnKeyVault, err := b.getServicePrincipalTokens(ui.Say)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +65,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		b.config.SubscriptionID,
 		b.config.ResourceGroupName,
 		b.config.StorageAccount,
-		servicePrincipalToken,
-		servicePrincipalTokenVault)
+		spnCloud,
+		spnKeyVault)
 
 	if err != nil {
 		return nil, err
@@ -191,32 +186,30 @@ func (b *Builder) configureStateBag(stateBag multistep.StateBag) error {
 	return nil
 }
 
-func (b *Builder) createServicePrincipalToken() (*azure.ServicePrincipalToken, error) {
-	oauthConfig, err := azure.PublicCloud.OAuthConfigForTenant(b.config.TenantID)
-	if err != nil {
-		return nil, err
+func (b *Builder) getServicePrincipalTokens(say func(string)) (*azure.ServicePrincipalToken, *azure.ServicePrincipalToken, error) {
+	var servicePrincipalToken *azure.ServicePrincipalToken
+	var servicePrincipalTokenVault *azure.ServicePrincipalToken
+
+	var err error
+
+	if b.config.useDeviceLogin {
+		servicePrincipalToken, err = packerAzureCommon.Authenticate(azure.PublicCloud, b.config.SubscriptionID, say)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		auth := NewAuthenticate(azure.PublicCloud, b.config.ClientID, b.config.ClientSecret, b.config.TenantID)
+
+		servicePrincipalToken, err = auth.getServicePrincipalToken()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		servicePrincipalTokenVault, err = auth.getServicePrincipalTokenWithResource(packerAzureCommon.AzureVaultScope)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
-	spt, err := azure.NewServicePrincipalToken(
-		*oauthConfig,
-		b.config.ClientID,
-		b.config.ClientSecret,
-		azure.PublicCloud.ResourceManagerEndpoint)
-
-	return spt, err
-}
-
-func (b *Builder) createServicePrincipalTokenVault() (*azure.ServicePrincipalToken, error) {
-	oauthConfig, err := azure.PublicCloud.OAuthConfigForTenant(b.config.TenantID)
-	if err != nil {
-		return nil, err
-	}
-
-	spt, err := azure.NewServicePrincipalToken(
-		*oauthConfig,
-		b.config.ClientID,
-		b.config.ClientSecret,
-		packerAzureCommon.AzureVaultScope)
-
-	return spt, err
+	return servicePrincipalToken, servicePrincipalTokenVault, nil
 }
