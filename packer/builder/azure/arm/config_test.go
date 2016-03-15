@@ -4,13 +4,14 @@
 package arm
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
+	"github.com/mitchellh/packer/packer"
 )
 
 // List of configuration parameters that are required by the ARM builder.
@@ -51,19 +52,12 @@ func TestConfigShouldProvideReasonableDefaultValues(t *testing.T) {
 }
 
 func TestConfigShouldBeAbleToOverrideDefaultedValues(t *testing.T) {
-	builderValues := make(map[string]string)
-
-	// Populate the dictionary with all of the required values.
-	for _, v := range requiredConfigValues {
-		builderValues[v] = "--some-value--"
-	}
-
+	builderValues := getArmBuilderConfiguration()
 	builderValues["ssh_password"] = "override_password"
 	builderValues["ssh_username"] = "override_username"
 	builderValues["vm_size"] = "override_vm_size"
-	builderValues["os_type"] = constants.Target_Linux
 
-	c, _, err := newConfig(getArmBuilderConfigurationFromMap(builderValues), getPackerConfiguration())
+	c, _, err := newConfig(builderValues, getPackerConfiguration())
 
 	if err != nil {
 		t.Fatalf("newConfig failed: %s", err)
@@ -99,17 +93,10 @@ func TestConfigShouldDefaultVMSizeToStandardA1(t *testing.T) {
 }
 
 func TestUserShouldProvideRequiredValues(t *testing.T) {
-	builderValues := make(map[string]string)
-
-	// Populate the dictionary with all of the required values.
-	for _, v := range requiredConfigValues {
-		builderValues[v] = "--some-value--"
-	}
-
-	builderValues["os_type"] = constants.Target_Linux
+	builderValues := getArmBuilderConfiguration()
 
 	// Ensure we can successfully create a config.
-	_, _, err := newConfig(getArmBuilderConfigurationFromMap(builderValues), getPackerConfiguration())
+	_, _, err := newConfig(builderValues, getPackerConfiguration())
 	if err != nil {
 		t.Errorf("Expected configuration creation to succeed, but it failed!\n")
 		t.Fatalf(" -> %+v\n", builderValues)
@@ -120,7 +107,7 @@ func TestUserShouldProvideRequiredValues(t *testing.T) {
 		originalValue := builderValues[v]
 		delete(builderValues, v)
 
-		_, _, err := newConfig(getArmBuilderConfigurationFromMap(builderValues), getPackerConfiguration())
+		_, _, err := newConfig(builderValues, getPackerConfiguration())
 		if err == nil {
 			t.Errorf("Expected configuration creation to fail, but it succeeded!\n")
 			t.Fatalf(" -> %+v\n", builderValues)
@@ -275,31 +262,67 @@ func TestConfigShouldSupportPackersConfigElements(t *testing.T) {
 	}
 }
 
-func getArmBuilderConfiguration() interface{} {
+func TestUserDeviceLoginIsEnabledForLinux(t *testing.T) {
+	config := map[string]string{
+		"capture_name_prefix":    "ignore",
+		"capture_container_name": "ignore",
+		"image_offer":            "ignore",
+		"image_publisher":        "ignore",
+		"image_sku":              "ignore",
+		"location":               "ignore",
+		"storage_account":        "ignore",
+		"subscription_id":        "ignore",
+		"os_type":                constants.Target_Linux,
+	}
+
+	_, _, err := newConfig(config, getPackerConfiguration())
+	if err != nil {
+		t.Fatalf("failed to use device login for Linux: %s", err)
+	}
+}
+
+func TestUseDeviceLoginIsDisabledForWindows(t *testing.T) {
+	config := map[string]string{
+		"capture_name_prefix":    "ignore",
+		"capture_container_name": "ignore",
+		"image_offer":            "ignore",
+		"image_publisher":        "ignore",
+		"image_sku":              "ignore",
+		"location":               "ignore",
+		"storage_account":        "ignore",
+		"subscription_id":        "ignore",
+		"os_type":                constants.Target_Windows,
+	}
+
+	_, _, err := newConfig(config, getPackerConfiguration())
+	if err == nil {
+		t.Fatalf("Expected test to fail, but it succeeded")
+	}
+
+	multiError, _ := err.(*packer.MultiError)
+	if len(multiError.Errors) != 3 {
+		t.Errorf("Expected to find 3 errors, but found %d errors", len(multiError.Errors))
+	}
+
+	if !strings.Contains(err.Error(), "client_id must be specified") {
+		t.Errorf("Expected to find error for 'client_id must be specified")
+	}
+	if !strings.Contains(err.Error(), "client_secret must be specified") {
+		t.Errorf("Expected to find error for 'client_secret must be specified")
+	}
+	if !strings.Contains(err.Error(), "tenant_id must be specified") {
+		t.Errorf("Expected to find error for 'tenant_id must be specified")
+	}
+}
+
+func getArmBuilderConfiguration() map[string]string {
 	m := make(map[string]string)
 	for _, v := range requiredConfigValues {
 		m[v] = fmt.Sprintf("%s00", v)
 	}
 
 	m["os_type"] = constants.Target_Linux
-	return getArmBuilderConfigurationFromMap(m)
-}
-
-func getArmBuilderConfigurationFromMap(kvp map[string]string) interface{} {
-	bs := bytes.NewBufferString("{")
-
-	for k, v := range kvp {
-		bs.WriteString(fmt.Sprintf("\"%s\": \"%s\",\n", k, v))
-	}
-
-	// remove the trailing ",\n" because JSON
-	bs.Truncate(bs.Len() - 2)
-	bs.WriteString("}")
-
-	var config interface{}
-	json.Unmarshal([]byte(bs.String()), &config)
-
-	return config
+	return m
 }
 
 func getPackerConfiguration() interface{} {
@@ -320,14 +343,11 @@ func getPackerConfiguration() interface{} {
 	return config
 }
 
-func getPackerCommunicatorConfiguration() interface{} {
-	var doc = `{
-		"ssh_timeout": "1h",
-		"winrm_timeout": "2h"
-	}`
-
-	var config interface{}
-	json.Unmarshal([]byte(doc), &config)
+func getPackerCommunicatorConfiguration() map[string]string {
+	config := map[string]string{
+		"ssh_timeout":   "1h",
+		"winrm_timeout": "2h",
+	}
 
 	return config
 }

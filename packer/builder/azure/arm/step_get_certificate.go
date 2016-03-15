@@ -48,7 +48,7 @@ func (s *StepGetCertificate) Run(state multistep.StateBag) multistep.StepAction 
 	var keyVaultName = state.Get(constants.ArmKeyVaultName).(string)
 
 	s.say(fmt.Sprintf(" -> Key Vault Name        : '%s'", keyVaultName))
-	s.say(fmt.Sprintf(" -> Key Vault Secret Name : '%s'", keyVaultName))
+	s.say(fmt.Sprintf(" -> Key Vault Secret Name : '%s'", DefaultSecretName))
 
 	var err error
 	var url string

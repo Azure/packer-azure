@@ -16,20 +16,19 @@ import (
 	"net/http"
 	"time"
 
-	"golang.org/x/crypto/ssh"
-
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/go-autorest/autorest/to"
-
+	"github.com/Azure/go-ntlmssp"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 	"github.com/Azure/packer-azure/packer/builder/azure/pkcs12"
 
-	"github.com/Azure/go-ntlmssp"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/helper/communicator"
 	"github.com/mitchellh/packer/helper/config"
 	"github.com/mitchellh/packer/packer"
 	"github.com/mitchellh/packer/template/interpolate"
+
+	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -76,6 +75,8 @@ type Config struct {
 	tmpKeyVaultName        string
 	tmpOSDiskName          string
 	tmpWinRMCertificateUrl string
+
+	useDeviceLogin bool
 
 	// Authentication with the VM via SSH
 	sshAuthorizedKey string
@@ -263,7 +264,7 @@ func setSshValues(c *Config) error {
 	}
 
 	c.Comm.WinRMTransportDecorator = func(t *http.Transport) http.RoundTripper {
-		return &ntlmssp.Negotiator{t}
+		return &ntlmssp.Negotiator{RoundTripper: t}
 	}
 
 	return nil
@@ -312,20 +313,43 @@ func assertRequiredParametersSet(c *Config, errs *packer.MultiError) {
 	/////////////////////////////////////////////
 	// Authentication via OAUTH
 
-	if c.ClientID == "" {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("A client_id must be specified"))
+	// Check if device login is being asked for, and is allowed.
+	//
+	// Device login is enabled if the user only defines SubscriptionID and not
+	// ClientID, ClientSecret, and TenantID.
+	//
+	// Device login is not enabled for Windows because the WinRM certificate is
+	// readable by the ObjectID of the App.  There may be another way to handle
+	// this case, but I am not currently aware of it - send feedback.
+	isUseDeviceLogin := func(c *Config) bool {
+		if c.OSType == constants.Target_Windows {
+			return false
+		}
+
+		return c.SubscriptionID != "" &&
+			c.ClientID == "" &&
+			c.ClientSecret == "" &&
+			c.TenantID == ""
 	}
 
-	if c.ClientSecret == "" {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("A client_secret must be specified"))
-	}
+	if isUseDeviceLogin(c) {
+		c.useDeviceLogin = true
+	} else {
+		if c.ClientID == "" {
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("A client_id must be specified"))
+		}
 
-	if c.TenantID == "" {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("A tenant_id must be specified"))
-	}
+		if c.ClientSecret == "" {
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("A client_secret must be specified"))
+		}
 
-	if c.SubscriptionID == "" {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("A subscription_id must be specified"))
+		if c.TenantID == "" {
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("A tenant_id must be specified"))
+		}
+
+		if c.SubscriptionID == "" {
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("A subscription_id must be specified"))
+		}
 	}
 
 	/////////////////////////////////////////////
