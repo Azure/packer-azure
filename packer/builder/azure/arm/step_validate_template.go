@@ -54,14 +54,7 @@ func (s *StepValidateTemplate) Run(state multistep.StateBag) multistep.StepActio
 	s.say(fmt.Sprintf(" -> DeploymentName    : '%s'", deploymentName))
 
 	err := s.validate(resourceGroupName, deploymentName, templateParameters)
-	if err != nil {
-		state.Put(constants.Error, err)
-		s.error(err)
-
-		return multistep.ActionHalt
-	}
-
-	return multistep.ActionContinue
+	return processStepResult(err, s.error, state)
 }
 
 func (*StepValidateTemplate) Cleanup(multistep.StateBag) {
