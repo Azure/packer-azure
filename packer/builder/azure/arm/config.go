@@ -28,13 +28,16 @@ import (
 	"github.com/mitchellh/packer/packer"
 	"github.com/mitchellh/packer/template/interpolate"
 
+	"github.com/Azure/go-autorest/autorest/azure"
 	"golang.org/x/crypto/ssh"
+	"strings"
 )
 
 const (
-	DefaultImageVersion = "latest"
-	DefaultUserName     = "packer"
-	DefaultVMSize       = "Standard_A1"
+	DefaultCloudEnvironmentName = "Public"
+	DefaultImageVersion         = "latest"
+	DefaultUserName             = "packer"
+	DefaultVMSize               = "Standard_A1"
 )
 
 type Config struct {
@@ -60,8 +63,11 @@ type Config struct {
 	VMSize         string `mapstructure:"vm_size"`
 
 	// Deployment
-	ResourceGroupName string `mapstructure:"resource_group_name"`
-	StorageAccount    string `mapstructure:"storage_account"`
+	ResourceGroupName          string `mapstructure:"resource_group_name"`
+	StorageAccount             string `mapstructure:"storage_account"`
+	storageAccountBlobEndpoint string
+	CloudEnvironmentName       string `mapstructure:"cloud_environment_name"`
+	cloudEnvironment           *azure.Environment
 
 	// OS
 	OSType string `mapstructure:"os_type"`
@@ -101,17 +107,17 @@ type keyVaultCertificate struct {
 // method to its own factory class.
 func (c *Config) toTemplateParameters() *TemplateParameters {
 	templateParameters := &TemplateParameters{
-		AdminUsername:      &TemplateParameter{c.UserName},
-		AdminPassword:      &TemplateParameter{c.Password},
-		DnsNameForPublicIP: &TemplateParameter{c.tmpComputeName},
-		ImageOffer:         &TemplateParameter{c.ImageOffer},
-		ImagePublisher:     &TemplateParameter{c.ImagePublisher},
-		ImageSku:           &TemplateParameter{c.ImageSku},
-		ImageVersion:       &TemplateParameter{c.ImageVersion},
-		OSDiskName:         &TemplateParameter{c.tmpOSDiskName},
-		StorageAccountName: &TemplateParameter{c.StorageAccount},
-		VMSize:             &TemplateParameter{c.VMSize},
-		VMName:             &TemplateParameter{c.tmpComputeName},
+		AdminUsername:              &TemplateParameter{c.UserName},
+		AdminPassword:              &TemplateParameter{c.Password},
+		DnsNameForPublicIP:         &TemplateParameter{c.tmpComputeName},
+		ImageOffer:                 &TemplateParameter{c.ImageOffer},
+		ImagePublisher:             &TemplateParameter{c.ImagePublisher},
+		ImageSku:                   &TemplateParameter{c.ImageSku},
+		ImageVersion:               &TemplateParameter{c.ImageVersion},
+		OSDiskName:                 &TemplateParameter{c.tmpOSDiskName},
+		StorageAccountBlobEndpoint: &TemplateParameter{c.storageAccountBlobEndpoint},
+		VMSize: &TemplateParameter{c.VMSize},
+		VMName: &TemplateParameter{c.tmpComputeName},
 	}
 
 	switch c.OSType {
@@ -212,6 +218,10 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 	provideDefaultValues(&c)
 	setRuntimeValues(&c)
 	setUserNamePassword(&c)
+	err = setCloudEnvironment(&c)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	err = setSshValues(&c)
 	if err != nil {
@@ -306,6 +316,22 @@ func setUserNamePassword(c *Config) {
 	}
 }
 
+func setCloudEnvironment(c *Config) error {
+	name := strings.ToUpper(c.CloudEnvironmentName)
+	switch name {
+	case "CHINA", "CHINACLOUD", "AZURECHINACLOUD":
+		c.cloudEnvironment = &azure.ChinaCloud
+	case "PUBLIC", "PUBLICCLOUD", "AZUREPUBLICCLOUD":
+		c.cloudEnvironment = &azure.PublicCloud
+	case "USGOVERNMENT", "USGOVERNMENTCLOUD", "AZUREUSGOVERNMENTCLOUD":
+		c.cloudEnvironment = &azure.USGovernmentCloud
+	default:
+		return fmt.Errorf("There is no cloud envionment matching the name '%s'!", c.CloudEnvironmentName)
+	}
+
+	return nil
+}
+
 func provideDefaultValues(c *Config) {
 	if c.VMSize == "" {
 		c.VMSize = DefaultVMSize
@@ -313,6 +339,10 @@ func provideDefaultValues(c *Config) {
 
 	if c.ImageVersion == "" {
 		c.ImageVersion = DefaultImageVersion
+	}
+
+	if c.CloudEnvironmentName == "" {
+		c.CloudEnvironmentName = DefaultCloudEnvironmentName
 	}
 }
 

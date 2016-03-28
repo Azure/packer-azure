@@ -20,6 +20,7 @@ type AzureClient struct {
 	network.PublicIPAddressesClient
 	compute.VirtualMachinesClient
 	common.VaultClient
+	armStorage.AccountsClient
 }
 
 func NewAzureClient(subscriptionID, resourceGroupName, storageAccountName string,
@@ -39,13 +40,13 @@ func NewAzureClient(subscriptionID, resourceGroupName, storageAccountName string
 	azureClient.VirtualMachinesClient = compute.NewVirtualMachinesClient(subscriptionID)
 	azureClient.VirtualMachinesClient.Authorizer = servicePrincipalToken
 
-	storageAccountsClient := armStorage.NewAccountsClient(subscriptionID)
-	storageAccountsClient.Authorizer = servicePrincipalToken
+	azureClient.AccountsClient = armStorage.NewAccountsClient(subscriptionID)
+	azureClient.AccountsClient.Authorizer = servicePrincipalToken
 
 	azureClient.VaultClient = common.VaultClient{}
 	azureClient.VaultClient.Authorizer = servicePrincipalTokenVault
 
-	accountKeys, err := storageAccountsClient.ListKeys(resourceGroupName, storageAccountName)
+	accountKeys, err := azureClient.AccountsClient.ListKeys(resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, err
 	}

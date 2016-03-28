@@ -36,7 +36,7 @@ const Linux = `{
     "sshAuthorizedKey": {
       "type": "string"
     },
-    "storageAccountName": {
+    "storageAccountBlobEndpoint": {
       "type": "string"
     },
     "vmSize": {
@@ -159,7 +159,7 @@ const Linux = `{
           "osDisk": {
             "name": "osdisk",
             "vhd": {
-              "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/', parameters('osDiskName'),'.vhd')]"
+              "uri": "[concat(parameters('storageAccountBlobEndpoint'),variables('vmStorageAccountContainerName'),'/', parameters('osDiskName'),'.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
@@ -224,7 +224,7 @@ const KeyVault = `{
     "osDiskName": {
       "type": "string"
     },
-    "storageAccountName": {
+    "storageAccountBlobEndpoint": {
       "type": "string"
     },
     "tenantId": {
@@ -324,7 +324,7 @@ const Windows = `{
     "osDiskName": {
       "type": "string"
     },
-    "storageAccountName": {
+    "storageAccountBlobEndpoint": {
       "type": "string"
     },
     "tenantId": {
@@ -465,7 +465,7 @@ const Windows = `{
           "osDisk": {
             "name": "osdisk",
             "vhd": {
-              "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/', parameters('osDiskName'),'.vhd')]"
+              "uri": "[concat(parameters('storageAccountBlobEndpoint'),variables('vmStorageAccountContainerName'),'/', parameters('osDiskName'),'.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"

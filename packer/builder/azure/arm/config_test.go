@@ -100,6 +100,64 @@ func TestConfigShouldDefaultImageVersionToLatest(t *testing.T) {
 	}
 }
 
+func TestConfigShouldDefaultToPublicCloud(t *testing.T) {
+	c, _, _ := newConfig(getArmBuilderConfiguration(), getPackerConfiguration())
+
+	if c.CloudEnvironmentName != "Public" {
+		t.Errorf("Expected 'CloudEnvironmentName' to default to 'Public', but got '%s'.", c.CloudEnvironmentName)
+	}
+
+	if c.cloudEnvironment == nil || c.cloudEnvironment.Name != "AzurePublicCloud" {
+		t.Errorf("Expected 'cloudEnvironment' to be set to 'AzurePublicCloud', but got '%s'.", c.cloudEnvironment)
+	}
+}
+
+func TestConfigInstantiatesCorrectAzureEnvironment(t *testing.T) {
+	config := map[string]string{
+		"capture_name_prefix":    "ignore",
+		"capture_container_name": "ignore",
+		"image_offer":            "ignore",
+		"image_publisher":        "ignore",
+		"image_sku":              "ignore",
+		"location":               "ignore",
+		"storage_account":        "ignore",
+		"subscription_id":        "ignore",
+		"os_type":                constants.Target_Linux,
+	}
+
+	// user input is fun :)
+	var table = []struct {
+		name            string
+		environmentName string
+	}{
+		{"China", "AzureChinaCloud"},
+		{"ChinaCloud", "AzureChinaCloud"},
+		{"AzureChinaCloud", "AzureChinaCloud"},
+		{"aZuReChInAcLoUd", "AzureChinaCloud"},
+
+		{"USGovernment", "AzureUSGovernmentCloud"},
+		{"USGovernmentCloud", "AzureUSGovernmentCloud"},
+		{"AzureUSGovernmentCloud", "AzureUSGovernmentCloud"},
+		{"aZuReUsGoVeRnMeNtClOuD", "AzureUSGovernmentCloud"},
+
+		{"Public", "AzurePublicCloud"},
+		{"PublicCloud", "AzurePublicCloud"},
+		{"AzurePublicCloud", "AzurePublicCloud"},
+		{"aZuRePuBlIcClOuD", "AzurePublicCloud"},
+	}
+
+	packerConfiguration := getPackerConfiguration()
+
+	for _, x := range table {
+		config["cloud_environment_name"] = x.name
+		c, _, _ := newConfig(config, packerConfiguration)
+
+		if c.cloudEnvironment == nil || c.cloudEnvironment.Name != x.environmentName {
+			t.Errorf("Expected 'cloudEnvironment' to be set to '%s', but got '%s'.", x.environmentName, c.cloudEnvironment)
+		}
+	}
+}
+
 func TestUserShouldProvideRequiredValues(t *testing.T) {
 	builderValues := getArmBuilderConfiguration()
 
@@ -177,8 +235,8 @@ func TestConfigShouldTransformToTemplateParameters(t *testing.T) {
 		t.Errorf("Expected OSDiskName to be equal to config's OSDiskName, but they were '%s' and '%s' respectively.", templateParameters.OSDiskName.Value, c.tmpOSDiskName)
 	}
 
-	if templateParameters.StorageAccountName.Value != c.StorageAccount {
-		t.Errorf("Expected StorageAccountName to be equal to config's StorageAccountName, but they were '%s' and '%s' respectively.", templateParameters.StorageAccountName.Value, c.StorageAccount)
+	if templateParameters.StorageAccountBlobEndpoint.Value != c.storageAccountBlobEndpoint {
+		t.Errorf("Expected StorageAccountBlobEndpoint to be equal to config's storageAccountBlobEndpoint, but they were '%s' and '%s' respectively.", templateParameters.StorageAccountBlobEndpoint.Value, c.storageAccountBlobEndpoint)
 	}
 
 	if templateParameters.VMName.Value != c.tmpComputeName {
