@@ -30,6 +30,7 @@ const (
 )
 const (
 	ArmBlobEndpoint                    string = "arm.BlobEndpoint"
+	ArmCaptureTemplate                 string = "arm.CaptureTemplate"
 	ArmComputeName                     string = "arm.ComputeName"
 	ArmCertificateUrl                  string = "arm.CertificateUrl"
 	ArmDeploymentName                  string = "arm.DeploymentName"

@@ -31,7 +31,6 @@ func StartInterruptibleTask(isCancelled func() bool, task func(cancelCh <-chan s
 
 func (s *InterruptibleTask) Run() InterruptibleTaskResult {
 	completeCh := make(chan error)
-	defer close(completeCh)
 
 	cancelCh := make(chan struct{})
 	defer close(cancelCh)
@@ -39,10 +38,10 @@ func (s *InterruptibleTask) Run() InterruptibleTaskResult {
 	go func() {
 		err := s.Task(cancelCh)
 		completeCh <- err
-	}()
 
-	resultCh := make(chan InterruptibleTaskResult)
-	defer close(resultCh)
+		// senders close, receivers check for close
+		close(completeCh)
+	}()
 
 	for {
 		if s.IsCancelled() {

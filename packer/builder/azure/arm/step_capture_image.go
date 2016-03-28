@@ -16,6 +16,7 @@ import (
 type StepCaptureImage struct {
 	client  *AzureClient
 	capture func(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters, cancelCh <-chan struct{}) error
+	get     func(client *AzureClient) *CaptureTemplate
 	say     func(message string)
 	error   func(e error)
 }
@@ -23,6 +24,7 @@ type StepCaptureImage struct {
 func NewStepCaptureImage(client *AzureClient, ui packer.Ui) *StepCaptureImage {
 	var step = &StepCaptureImage{
 		client: client,
+		get:    func(client *AzureClient) *CaptureTemplate { return client.Template },
 		say:    func(message string) { ui.Say(message) },
 		error:  func(e error) { ui.Error(e.Error()) },
 	}
@@ -60,6 +62,17 @@ func (s *StepCaptureImage) Run(state multistep.StateBag) multistep.StepAction {
 		func(cancelCh <-chan struct{}) error {
 			return s.capture(resourceGroupName, computeName, parameters, cancelCh)
 		})
+
+	// HACK(chrboum): I do not like this.  The capture method should be returning this value
+	// instead having to pass in another lambda.  I'm in this pickle because I am using
+	// common.StartInterruptibleTask which is not parametric, and only returns a type of error.
+	// I could change it to interface{}, but I do not like that solution either.
+	//
+	// Having to resort to capturing the template via an inspector is hack, and once I can
+	// resolve that I can cleanup this code too.  See the comments in azure_client.go for more
+	// details.
+	template := s.get(s.client)
+	state.Put(constants.ArmCaptureTemplate, template)
 
 	return processInterruptibleResult(result, s.error, state)
 }

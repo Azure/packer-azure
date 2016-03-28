@@ -17,6 +17,9 @@ func TestStepCaptureImageShouldFailIfCaptureFails(t *testing.T) {
 		capture: func(string, string, *compute.VirtualMachineCaptureParameters, <-chan struct{}) error {
 			return fmt.Errorf("!! Unit Test FAIL !!")
 		},
+		get: func(client *AzureClient) *CaptureTemplate {
+			return nil
+		},
 		say:   func(message string) {},
 		error: func(e error) {},
 	}
@@ -36,8 +39,11 @@ func TestStepCaptureImageShouldFailIfCaptureFails(t *testing.T) {
 func TestStepCaptureImageShouldPassIfCapturePasses(t *testing.T) {
 	var testSubject = &StepCaptureImage{
 		capture: func(string, string, *compute.VirtualMachineCaptureParameters, <-chan struct{}) error { return nil },
-		say:     func(message string) {},
-		error:   func(e error) {},
+		get: func(client *AzureClient) *CaptureTemplate {
+			return nil
+		},
+		say:   func(message string) {},
+		error: func(e error) {},
 	}
 
 	stateBag := createTestStateBagStepCaptureImage()
@@ -59,6 +65,9 @@ func TestStepCaptureImageShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 	var actualResourceGroupName string
 	var actualComputeName string
 	var actualVirtualMachineCaptureParameters *compute.VirtualMachineCaptureParameters
+	actualCaptureTemplate := &CaptureTemplate{
+		Schema: "!! Unit Test !!",
+	}
 
 	var testSubject = &StepCaptureImage{
 		capture: func(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters, cancelCh <-chan struct{}) error {
@@ -67,6 +76,9 @@ func TestStepCaptureImageShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 			actualVirtualMachineCaptureParameters = parameters
 
 			return nil
+		},
+		get: func(client *AzureClient) *CaptureTemplate {
+			return actualCaptureTemplate
 		},
 		say:   func(message string) {},
 		error: func(e error) {},
@@ -82,6 +94,7 @@ func TestStepCaptureImageShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 	var expectedComputeName = stateBag.Get(constants.ArmComputeName).(string)
 	var expectedResourceGroupName = stateBag.Get(constants.ArmResourceGroupName).(string)
 	var expectedVirtualMachineCaptureParameters = stateBag.Get(constants.ArmVirtualMachineCaptureParameters).(*compute.VirtualMachineCaptureParameters)
+	var expectedCaptureTemplate = stateBag.Get(constants.ArmCaptureTemplate).(*CaptureTemplate)
 
 	if actualComputeName != expectedComputeName {
 		t.Fatalf("Expected StepCaptureImage to source 'constants.ArmComputeName' from the state bag, but it did not.")
@@ -93,6 +106,10 @@ func TestStepCaptureImageShouldTakeStepArgumentsFromStateBag(t *testing.T) {
 
 	if actualVirtualMachineCaptureParameters != expectedVirtualMachineCaptureParameters {
 		t.Fatalf("Expected StepCaptureImage to source 'constants.ArmVirtualMachineCaptureParameters' from the state bag, but it did not.")
+	}
+
+	if actualCaptureTemplate != expectedCaptureTemplate {
+		t.Fatalf("Expected StepCaptureImage to source 'constants.ArmCaptureTemplate' from the state bag, but it did not.")
 	}
 }
 
