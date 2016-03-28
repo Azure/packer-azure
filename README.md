@@ -18,10 +18,8 @@ You can download binaries from the [releases](https://github.com/Azure/packer-az
 ## Building from source
 * [Install Go](https://golang.org/doc/install) 1.5.3 or newer. Go and packer-azure dependencies require [git](http://git-scm.com/) to be installed as well.
 * [Install packer](https://packer.io/docs/installation.html)
-* Set the environment variable GO15VENDOREXPERIMENT to 0.
+* Set the environment variable GO15VENDOREXPERIMENT to 1 when using Go 1.5.
 * To build the plugins set the GOBIN environment variable to your packer install directory and run `go get github.com/Azure/packer-azure/packer/plugin/...`
-
-> NOTE: When building packer set GO15VENDOREXPERIMENT to 1, but when building packer-azure set it to 0.
 
 ### Dependencies (as of 2016-03-15)
 

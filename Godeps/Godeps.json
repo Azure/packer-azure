@@ -1,0 +1,315 @@
+{
+	"ImportPath": "github.com/Azure/packer-azure",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v60",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/arm/compute",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/arm/network",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/arm/resources/resources",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/arm/storage",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/core/http",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/core/tls",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/management",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/management/hostedservice",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/management/location",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/management/osimage",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/management/storageservice",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/management/virtualmachine",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/management/virtualmachinedisk",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/management/virtualmachineimage",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/management/vmutils",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/storage",
+			"Comment": "v1.2-336-gb0d8efa",
+			"Rev": "b0d8efa96c2e0f3708619ca9e6cd822eb8ada157"
+		},
+		{
+			"ImportPath": "github.com/Azure/go-autorest/autorest",
+			"Comment": "v3.0.0-32-gbebca45",
+			"Rev": "bebca455f60b24bf6a2459e9e862ff42da86f5e0"
+		},
+		{
+			"ImportPath": "github.com/Azure/go-autorest/autorest/azure",
+			"Comment": "v3.0.0-32-gbebca45",
+			"Rev": "bebca455f60b24bf6a2459e9e862ff42da86f5e0"
+		},
+		{
+			"ImportPath": "github.com/Azure/go-autorest/autorest/date",
+			"Comment": "v3.0.0-32-gbebca45",
+			"Rev": "bebca455f60b24bf6a2459e9e862ff42da86f5e0"
+		},
+		{
+			"ImportPath": "github.com/Azure/go-autorest/autorest/to",
+			"Comment": "v3.0.0-32-gbebca45",
+			"Rev": "bebca455f60b24bf6a2459e9e862ff42da86f5e0"
+		},
+		{
+			"ImportPath": "github.com/Azure/go-ntlmssp",
+			"Rev": "eca2fbb4d90928f4f4ca1b5d6347de2fb395c2bf"
+		},
+		{
+			"ImportPath": "github.com/dgrijalva/jwt-go",
+			"Comment": "v2.4.0-11-gf219341",
+			"Rev": "f2193411bd642f7db03249fd79d5292c9b34916a"
+		},
+		{
+			"ImportPath": "github.com/dylanmei/iso8601",
+			"Comment": "v0.1.0",
+			"Rev": "2075bf119b58e5576c6ed9f867b8f3d17f2e54d4"
+		},
+		{
+			"ImportPath": "github.com/dylanmei/winrmtest",
+			"Rev": "025617847eb2cf9bd1d851bc3b22ed28e6245ce5"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/errwrap",
+			"Rev": "7554cd9344cec97297fa6649b055a8c98c2a1e55"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/go-multierror",
+			"Rev": "d30f09973e19c1dfcd120b2d9c4f168e68d6b5d5"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/go-version",
+			"Rev": "2e7f5ea8e27bb3fdf9baa0881d16757ac4637332"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/yamux",
+			"Rev": "df949784da9ed028ee76df44652e42d37a09d7e4"
+		},
+		{
+			"ImportPath": "github.com/kr/fs",
+			"Rev": "2788f0dbd16903de03cb8186e5c7d97b69ad387b"
+		},
+		{
+			"ImportPath": "github.com/masterzen/simplexml/dom",
+			"Rev": "95ba30457eb1121fa27753627c774c7cd4e90083"
+		},
+		{
+			"ImportPath": "github.com/masterzen/winrm/soap",
+			"Rev": "71c963ed3718881facabea7cf61bc7b13911902e"
+		},
+		{
+			"ImportPath": "github.com/masterzen/winrm/winrm",
+			"Rev": "71c963ed3718881facabea7cf61bc7b13911902e"
+		},
+		{
+			"ImportPath": "github.com/masterzen/xmlpath",
+			"Rev": "13f4951698adc0fa9c1dda3e275d489a24201161"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/go-fs",
+			"Rev": "a34c1b9334e86165685a9449b782f20465eb8c69"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/go-fs/fat",
+			"Rev": "a34c1b9334e86165685a9449b782f20465eb8c69"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/go-homedir",
+			"Rev": "981ab348d865cf048eb7d17e78ac7192632d8415"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/iochan",
+			"Rev": "87b45ffd0e9581375c491fef3d32130bb15c5bd7"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "d2dd0262208475919e1a362f675cfc0e7c10e905"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/multistep",
+			"Rev": "162146fc57112954184d90266f4733e900ed05a5"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/common",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/common/ssh",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/common/uuid",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/communicator/none",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/communicator/ssh",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/communicator/winrm",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/helper/communicator",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/helper/config",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/packer",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/packer/plugin",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/packer/rpc",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/template",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/packer/template/interpolate",
+			"Comment": "v0.10.0-19-g8040317",
+			"Rev": "8040317f7747eaee5b4ec7cad783700a58266fdb"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/reflectwalk",
+			"Rev": "eecf4c70c626c7cfbb95c90195bc34d386c74ac6"
+		},
+		{
+			"ImportPath": "github.com/nu7hatch/gouuid",
+			"Rev": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
+		},
+		{
+			"ImportPath": "github.com/packer-community/winrmcp/winrmcp",
+			"Rev": "f1bcf36a69fa2945e65dd099eee11b560fbd3346"
+		},
+		{
+			"ImportPath": "github.com/pborman/uuid",
+			"Comment": "v1.0-11-gc55201b",
+			"Rev": "c55201b036063326c5b1b89ccfe45a184973d073"
+		},
+		{
+			"ImportPath": "github.com/pkg/sftp",
+			"Rev": "e84cc8c755ca39b7b64f510fe1fffc1b51f210a5"
+		},
+		{
+			"ImportPath": "github.com/satori/go.uuid",
+			"Rev": "e673fdd4dea8a7334adbbe7f57b7e4b00bdc5502"
+		},
+		{
+			"ImportPath": "github.com/ugorji/go/codec",
+			"Rev": "c062049c1793b01a3cc3fe786108edabbaf7756b"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/curve25519",
+			"Rev": "c197bcf24cde29d3f73c7b4ac6fd41f4384e8af6"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/md4",
+			"Rev": "c197bcf24cde29d3f73c7b4ac6fd41f4384e8af6"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/pkcs12",
+			"Rev": "c197bcf24cde29d3f73c7b4ac6fd41f4384e8af6"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/pkcs12/internal/rc2",
+			"Rev": "c197bcf24cde29d3f73c7b4ac6fd41f4384e8af6"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh",
+			"Rev": "c197bcf24cde29d3f73c7b4ac6fd41f4384e8af6"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh/agent",
+			"Rev": "c197bcf24cde29d3f73c7b4ac6fd41f4384e8af6"
+		},
+		{
+			"ImportPath": "gopkg.in/check.v1",
+			"Rev": "4f90aeace3a26ad7021961c297b22c42160c7b25"
+		}
+	]
+}
