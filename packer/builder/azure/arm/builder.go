@@ -10,10 +10,10 @@ import (
 
 	packerAzureCommon "github.com/Azure/packer-azure/packer/builder/azure/common"
 
+	"github.com/Azure/go-autorest/autorest/azure"
+
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/lin"
-
-	"github.com/Azure/go-autorest/autorest/azure"
 
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
