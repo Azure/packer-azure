@@ -27,6 +27,7 @@ type TemplateParameters struct {
 	ImageOffer          *TemplateParameter `json:"imageOffer,omitempty"`
 	ImagePublisher      *TemplateParameter `json:"imagePublisher,omitempty"`
 	ImageSku            *TemplateParameter `json:"imageSku,omitempty"`
+	ImageVersion        *TemplateParameter `json:"imageVersion,omitempty"`
 	KeyVaultName        *TemplateParameter `json:"keyVaultName,omitempty"`
 	KeyVaultSecretValue *TemplateParameter `json:"keyVaultSecretValue,omitempty"`
 	ObjectId            *TemplateParameter `json:"objectId,omitempty"`

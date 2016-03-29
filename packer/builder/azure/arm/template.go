@@ -19,13 +19,16 @@ const Linux = `{
       "type": "string"
     },
     "imagePublisher": {
-   	  "type": "string"
+      "type": "string"
     },
     "imageOffer": {
-   	  "type": "string"
+      "type": "string"
     },
     "imageSku": {
-   	  "type": "string"
+      "type": "string"
+    },
+    "imageVersion": {
+      "type": "string"
     },
     "osDiskName": {
       "type": "string"
@@ -151,7 +154,7 @@ const Linux = `{
             "publisher": "[parameters('imagePublisher')]",
             "offer": "[parameters('imageOffer')]",
             "sku": "[parameters('imageSku')]",
-            "version": "latest"
+            "version": "[parameters('imageVersion')]"
           },
           "osDisk": {
             "name": "osdisk",
@@ -204,6 +207,9 @@ const KeyVault = `{
       "type": "string"
     },
     "imageSku": {
+      "type": "string"
+    },
+    "imageVersion": {
       "type": "string"
     },
     "keyVaultName": {
@@ -301,6 +307,9 @@ const Windows = `{
       "type": "string"
     },
     "imageSku": {
+      "type": "string"
+    },
+    "imageVersion": {
       "type": "string"
     },
     "keyVaultName": {
@@ -451,7 +460,7 @@ const Windows = `{
             "publisher": "[parameters('imagePublisher')]",
             "offer": "[parameters('imageOffer')]",
             "sku": "[parameters('imageSku')]",
-            "version": "latest"
+	    "version": "[parameters('imageVersion')]"
           },
           "osDisk": {
             "name": "osdisk",

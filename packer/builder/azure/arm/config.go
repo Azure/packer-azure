@@ -32,8 +32,9 @@ import (
 )
 
 const (
-	DefaultUserName = "packer"
-	DefaultVMSize   = "Standard_A1"
+	DefaultImageVersion = "latest"
+	DefaultUserName     = "packer"
+	DefaultVMSize       = "Standard_A1"
 )
 
 type Config struct {
@@ -54,6 +55,7 @@ type Config struct {
 	ImagePublisher string `mapstructure:"image_publisher"`
 	ImageOffer     string `mapstructure:"image_offer"`
 	ImageSku       string `mapstructure:"image_sku"`
+	ImageVersion   string `mapstructure:"image_version"`
 	Location       string `mapstructure:"location"`
 	VMSize         string `mapstructure:"vm_size"`
 
@@ -105,6 +107,7 @@ func (c *Config) toTemplateParameters() *TemplateParameters {
 		ImageOffer:         &TemplateParameter{c.ImageOffer},
 		ImagePublisher:     &TemplateParameter{c.ImagePublisher},
 		ImageSku:           &TemplateParameter{c.ImageSku},
+		ImageVersion:       &TemplateParameter{c.ImageVersion},
 		OSDiskName:         &TemplateParameter{c.tmpOSDiskName},
 		StorageAccountName: &TemplateParameter{c.StorageAccount},
 		VMSize:             &TemplateParameter{c.VMSize},
@@ -306,6 +309,10 @@ func setUserNamePassword(c *Config) {
 func provideDefaultValues(c *Config) {
 	if c.VMSize == "" {
 		c.VMSize = DefaultVMSize
+	}
+
+	if c.ImageVersion == "" {
+		c.ImageVersion = DefaultImageVersion
 	}
 }
 
