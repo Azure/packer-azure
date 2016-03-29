@@ -48,14 +48,7 @@ func (s *StepCreateResourceGroup) Run(state multistep.StateBag) multistep.StepAc
 	s.say(fmt.Sprintf(" -> Location          : '%s'", location))
 
 	err := s.create(resourceGroupName, location)
-	if err != nil {
-		state.Put(constants.Error, err)
-		s.error(err)
-
-		return multistep.ActionHalt
-	}
-
-	return multistep.ActionContinue
+	return processStepResult(err, s.error, state)
 }
 
 func (*StepCreateResourceGroup) Cleanup(multistep.StateBag) {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/packer-azure/packer/builder/azure/common"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
@@ -71,18 +72,13 @@ func (s *StepDeleteResourceGroup) Run(state multistep.StateBag) multistep.StepAc
 	s.say("Deleting resource group ...")
 
 	var resourceGroupName = state.Get(constants.ArmResourceGroupName).(string)
-
 	s.say(fmt.Sprintf(" -> ResourceGroupName : '%s'", resourceGroupName))
 
-	err := s.delete(resourceGroupName)
-	if err != nil {
-		state.Put(constants.Error, err)
-		s.error(err)
+	result := common.StartInterruptibleTask(
+		func() bool { return common.IsStateCancelled(state) },
+		func() error { return s.delete(resourceGroupName) })
 
-		return multistep.ActionHalt
-	}
-
-	return multistep.ActionContinue
+	return processInterruptibleResult(result, s.error, state)
 }
 
 func (*StepDeleteResourceGroup) Cleanup(multistep.StateBag) {

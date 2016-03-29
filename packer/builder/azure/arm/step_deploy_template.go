@@ -6,6 +6,7 @@ package arm
 import (
 	"fmt"
 
+	"github.com/Azure/packer-azure/packer/builder/azure/common"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
@@ -74,15 +75,12 @@ func (s *StepDeployTemplate) Run(state multistep.StateBag) multistep.StepAction 
 	s.say(fmt.Sprintf(" -> ResourceGroupName : '%s'", resourceGroupName))
 	s.say(fmt.Sprintf(" -> DeploymentName    : '%s'", deploymentName))
 
-	err := s.deploy(resourceGroupName, deploymentName, templateParameters)
-	if err != nil {
-		state.Put(constants.Error, err)
-		s.error(err)
+	result := common.StartInterruptibleTask(
+		func() bool { return common.IsStateCancelled(state) },
+		func() error { return s.deploy(resourceGroupName, deploymentName, templateParameters) },
+	)
 
-		return multistep.ActionHalt
-	}
-
-	return multistep.ActionContinue
+	return processInterruptibleResult(result, s.error, state)
 }
 
 func (*StepDeployTemplate) Cleanup(multistep.StateBag) {

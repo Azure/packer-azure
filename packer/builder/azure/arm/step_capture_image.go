@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/packer-azure/packer/builder/azure/common"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
@@ -54,15 +55,11 @@ func (s *StepCaptureImage) Run(state multistep.StateBag) multistep.StepAction {
 	s.say(fmt.Sprintf(" -> ResourceGroupName : '%s'", resourceGroupName))
 	s.say(fmt.Sprintf(" -> ComputeName       : '%s'", computeName))
 
-	err := s.capture(resourceGroupName, computeName, parameters)
-	if err != nil {
-		state.Put(constants.Error, err)
-		s.error(err)
+	result := common.StartInterruptibleTask(
+		func() bool { return common.IsStateCancelled(state) },
+		func() error { return s.capture(resourceGroupName, computeName, parameters) })
 
-		return multistep.ActionHalt
-	}
-
-	return multistep.ActionContinue
+	return processInterruptibleResult(result, s.error, state)
 }
 
 func (*StepCaptureImage) Cleanup(multistep.StateBag) {
