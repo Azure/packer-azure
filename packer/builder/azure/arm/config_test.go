@@ -92,6 +92,14 @@ func TestConfigShouldDefaultVMSizeToStandardA1(t *testing.T) {
 	}
 }
 
+func TestConfigShouldDefaultImageVersionToLatest(t *testing.T) {
+	c, _, _ := newConfig(getArmBuilderConfiguration(), getPackerConfiguration())
+
+	if c.ImageVersion != "latest" {
+		t.Errorf("Expected 'ImageVersion' to default to 'latest', but got '%s'.", c.ImageVersion)
+	}
+}
+
 func TestUserShouldProvideRequiredValues(t *testing.T) {
 	builderValues := getArmBuilderConfiguration()
 
