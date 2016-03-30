@@ -23,6 +23,7 @@ func TestStateBagShouldBePopulatedExpectedValues(t *testing.T) {
 		constants.ArmDeploymentName,
 		constants.ArmLocation,
 		constants.ArmResourceGroupName,
+		constants.ArmStorageAccountName,
 		constants.ArmTemplateParameters,
 		constants.ArmVirtualMachineCaptureParameters,
 		constants.ArmPublicIPAddressName,

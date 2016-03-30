@@ -41,10 +41,8 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	b.config = c
 
 	b.stateBag = new(multistep.BasicStateBag)
-	err := b.configureStateBag(b.stateBag)
-	if err != nil {
-		return nil, err
-	}
+	b.configureStateBag(b.stateBag)
+	b.setTemplateParameters(b.stateBag)
 
 	return warnings, errs
 }
@@ -71,6 +69,13 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	if err != nil {
 		return nil, err
 	}
+
+	b.config.storageAccountBlobEndpoint, err = b.getBlobEndpoint(azureClient, b.config.ResourceGroupName, b.config.StorageAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	b.setTemplateParameters(b.stateBag)
 
 	var steps []multistep.Step
 
@@ -169,21 +174,31 @@ func (b *Builder) createRunner(steps *[]multistep.Step, ui packer.Ui) multistep.
 	}
 }
 
-func (b *Builder) configureStateBag(stateBag multistep.StateBag) error {
+func (b *Builder) getBlobEndpoint(client *AzureClient, resourceGroupName string, storageAccountName string) (string, error) {
+	account, err := client.AccountsClient.GetProperties(resourceGroupName, storageAccountName)
+	if err != nil {
+		return "", err
+	}
+
+	return *account.Properties.PrimaryEndpoints.Blob, nil
+}
+
+func (b *Builder) configureStateBag(stateBag multistep.StateBag) {
 	stateBag.Put(constants.AuthorizedKey, b.config.sshAuthorizedKey)
 	stateBag.Put(constants.PrivateKey, b.config.sshPrivateKey)
 
 	stateBag.Put(constants.ArmComputeName, b.config.tmpComputeName)
 	stateBag.Put(constants.ArmDeploymentName, b.config.tmpDeploymentName)
-	stateBag.Put(constants.ArmLocation, b.config.Location)
-	stateBag.Put(constants.ArmResourceGroupName, b.config.tmpResourceGroupName)
 	stateBag.Put(constants.ArmKeyVaultName, b.config.tmpKeyVaultName)
+	stateBag.Put(constants.ArmLocation, b.config.Location)
+	stateBag.Put(constants.ArmPublicIPAddressName, DefaultPublicIPAddressName)
+	stateBag.Put(constants.ArmResourceGroupName, b.config.tmpResourceGroupName)
+	stateBag.Put(constants.ArmStorageAccountName, b.config.StorageAccount)
+}
+
+func (b *Builder) setTemplateParameters(stateBag multistep.StateBag) {
 	stateBag.Put(constants.ArmTemplateParameters, b.config.toTemplateParameters())
 	stateBag.Put(constants.ArmVirtualMachineCaptureParameters, b.config.toVirtualMachineCaptureParameters())
-
-	stateBag.Put(constants.ArmPublicIPAddressName, DefaultPublicIPAddressName)
-
-	return nil
 }
 
 func (b *Builder) getServicePrincipalTokens(say func(string)) (*azure.ServicePrincipalToken, *azure.ServicePrincipalToken, error) {
@@ -193,12 +208,12 @@ func (b *Builder) getServicePrincipalTokens(say func(string)) (*azure.ServicePri
 	var err error
 
 	if b.config.useDeviceLogin {
-		servicePrincipalToken, err = packerAzureCommon.Authenticate(azure.PublicCloud, b.config.SubscriptionID, say)
+		servicePrincipalToken, err = packerAzureCommon.Authenticate(*b.config.cloudEnvironment, b.config.SubscriptionID, say)
 		if err != nil {
 			return nil, nil, err
 		}
 	} else {
-		auth := NewAuthenticate(azure.PublicCloud, b.config.ClientID, b.config.ClientSecret, b.config.TenantID)
+		auth := NewAuthenticate(*b.config.cloudEnvironment, b.config.ClientID, b.config.ClientSecret, b.config.TenantID)
 
 		servicePrincipalToken, err = auth.getServicePrincipalToken()
 		if err != nil {
