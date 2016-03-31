@@ -21,6 +21,8 @@ func chop(data []byte, maxlen int64) string {
 }
 
 func handleBody(body io.ReadCloser, maxlen int64) (io.ReadCloser, string) {
+	defer body.Close()
+
 	if body == nil {
 		return nil, ""
 	}
