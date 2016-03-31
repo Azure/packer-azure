@@ -8,6 +8,10 @@ import (
 	"testing"
 )
 
+func TestFart(t *testing.T) {
+
+}
+
 func TestAuthorizedKeyShouldParse(t *testing.T) {
 	testSubject, err := NewOpenSshKeyPairWithSize(512)
 	if err != nil {
