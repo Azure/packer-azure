@@ -12,7 +12,7 @@ import (
 func TestInterruptibleTaskShouldImmediatelyEndOnCancel(t *testing.T) {
 	testSubject := NewInterruptibleTask(
 		func() bool { return true },
-		func() error {
+		func(<-chan struct{}) error {
 			for {
 				time.Sleep(time.Second * 30)
 			}
@@ -31,7 +31,7 @@ func TestInterruptibleTaskShouldRunTaskUntilCompletion(t *testing.T) {
 		IsCancelled: func() bool {
 			return false
 		},
-		Task: func() error {
+		Task: func(<-chan struct{}) error {
 			for i := 0; i < 10; i++ {
 				count += 1
 			}
@@ -59,7 +59,7 @@ func TestInterruptibleTaskShouldImmediatelyStopOnTaskError(t *testing.T) {
 		IsCancelled: func() bool {
 			return false
 		},
-		Task: func() error {
+		Task: func(cancelCh <-chan struct{}) error {
 			return fmt.Errorf("boom")
 		},
 	}
@@ -72,4 +72,34 @@ func TestInterruptibleTaskShouldImmediatelyStopOnTaskError(t *testing.T) {
 	if result.Err == nil {
 		t.Errorf("Expected the task to return an error, but it did not.")
 	}
+}
+
+func TestInterruptibleTaskShouldProvideLiveChannel(t *testing.T) {
+	testSubject := &InterruptibleTask{
+		IsCancelled: func() bool {
+			return false
+		},
+		Task: func(cancelCh <-chan struct{}) error {
+			isOpen := false
+
+			select {
+			case _, ok := <-cancelCh:
+				isOpen = !ok
+				if !isOpen {
+					t.Errorf("Expected the channel to open, but it was closed.")
+				}
+			default:
+				isOpen = true
+				break
+			}
+
+			if !isOpen {
+				t.Errorf("Check for openness failed.")
+			}
+
+			return nil
+		},
+	}
+
+	testSubject.Run()
 }

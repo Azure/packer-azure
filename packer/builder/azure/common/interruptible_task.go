@@ -14,17 +14,17 @@ type InterruptibleTaskResult struct {
 
 type InterruptibleTask struct {
 	IsCancelled func() bool
-	Task        func() error
+	Task        func(cancelCh <-chan struct{}) error
 }
 
-func NewInterruptibleTask(isCancelled func() bool, task func() error) *InterruptibleTask {
+func NewInterruptibleTask(isCancelled func() bool, task func(cancelCh <-chan struct{}) error) *InterruptibleTask {
 	return &InterruptibleTask{
 		IsCancelled: isCancelled,
 		Task:        task,
 	}
 }
 
-func StartInterruptibleTask(isCancelled func() bool, task func() error) InterruptibleTaskResult {
+func StartInterruptibleTask(isCancelled func() bool, task func(cancelCh <-chan struct{}) error) InterruptibleTaskResult {
 	t := NewInterruptibleTask(isCancelled, task)
 	return t.Run()
 }
@@ -33,8 +33,11 @@ func (s *InterruptibleTask) Run() InterruptibleTaskResult {
 	completeCh := make(chan error)
 	defer close(completeCh)
 
+	cancelCh := make(chan struct{})
+	defer close(cancelCh)
+
 	go func() {
-		err := s.Task()
+		err := s.Task(cancelCh)
 		completeCh <- err
 	}()
 

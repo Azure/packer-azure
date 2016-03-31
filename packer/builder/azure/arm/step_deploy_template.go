@@ -15,7 +15,7 @@ import (
 type StepDeployTemplate struct {
 	client   *AzureClient
 	template string
-	deploy   func(resourceGroupName string, deploymentName string, templateParameters *TemplateParameters) error
+	deploy   func(resourceGroupName string, deploymentName string, templateParameters *TemplateParameters, cancelCh <-chan struct{}) error
 	say      func(message string)
 	error    func(e error)
 }
@@ -32,14 +32,14 @@ func NewStepDeployTemplate(client *AzureClient, ui packer.Ui, template string) *
 	return step
 }
 
-func (s *StepDeployTemplate) deployTemplate(resourceGroupName string, deploymentName string, templateParameters *TemplateParameters) error {
+func (s *StepDeployTemplate) deployTemplate(resourceGroupName string, deploymentName string, templateParameters *TemplateParameters, cancelCh <-chan struct{}) error {
 	factory := newDeploymentFactory(s.template)
 	deployment, err := factory.create(*templateParameters)
 	if err != nil {
 		return err
 	}
 
-	_, err = s.client.DeploymentsClient.CreateOrUpdate(resourceGroupName, deploymentName, *deployment)
+	_, err = s.client.DeploymentsClient.CreateOrUpdate(resourceGroupName, deploymentName, *deployment, cancelCh)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,9 @@ func (s *StepDeployTemplate) Run(state multistep.StateBag) multistep.StepAction 
 
 	result := common.StartInterruptibleTask(
 		func() bool { return common.IsStateCancelled(state) },
-		func() error { return s.deploy(resourceGroupName, deploymentName, templateParameters) },
+		func(cancelCh <-chan struct{}) error {
+			return s.deploy(resourceGroupName, deploymentName, templateParameters, cancelCh)
+		},
 	)
 
 	return processInterruptibleResult(result, s.error, state)
