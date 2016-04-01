@@ -14,7 +14,7 @@ import (
 
 type StepPowerOffCompute struct {
 	client   *AzureClient
-	powerOff func(resourceGroupName string, computeName string) error
+	powerOff func(resourceGroupName string, computeName string, cancelCh <-chan struct{}) error
 	say      func(message string)
 	error    func(e error)
 }
@@ -30,8 +30,8 @@ func NewStepPowerOffCompute(client *AzureClient, ui packer.Ui) *StepPowerOffComp
 	return step
 }
 
-func (s *StepPowerOffCompute) powerOffCompute(resourceGroupName string, computeName string) error {
-	_, err := s.client.PowerOff(resourceGroupName, computeName)
+func (s *StepPowerOffCompute) powerOffCompute(resourceGroupName string, computeName string, cancelCh <-chan struct{}) error {
+	_, err := s.client.PowerOff(resourceGroupName, computeName, cancelCh)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (s *StepPowerOffCompute) Run(state multistep.StateBag) multistep.StepAction
 
 	result := common.StartInterruptibleTask(
 		func() bool { return common.IsStateCancelled(state) },
-		func() error { return s.powerOff(resourceGroupName, computeName) })
+		func(cancelCh <-chan struct{}) error { return s.powerOff(resourceGroupName, computeName, cancelCh) })
 
 	return processInterruptibleResult(result, s.error, state)
 }

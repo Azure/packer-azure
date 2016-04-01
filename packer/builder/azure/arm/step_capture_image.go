@@ -15,7 +15,7 @@ import (
 
 type StepCaptureImage struct {
 	client  *AzureClient
-	capture func(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters) error
+	capture func(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters, cancelCh <-chan struct{}) error
 	say     func(message string)
 	error   func(e error)
 }
@@ -31,13 +31,13 @@ func NewStepCaptureImage(client *AzureClient, ui packer.Ui) *StepCaptureImage {
 	return step
 }
 
-func (s *StepCaptureImage) captureImage(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters) error {
+func (s *StepCaptureImage) captureImage(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters, cancelCh <-chan struct{}) error {
 	_, err := s.client.Generalize(resourceGroupName, computeName)
 	if err != nil {
 		return err
 	}
 
-	_, err = s.client.Capture(resourceGroupName, computeName, *parameters)
+	_, err = s.client.Capture(resourceGroupName, computeName, *parameters, cancelCh)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,9 @@ func (s *StepCaptureImage) Run(state multistep.StateBag) multistep.StepAction {
 
 	result := common.StartInterruptibleTask(
 		func() bool { return common.IsStateCancelled(state) },
-		func() error { return s.capture(resourceGroupName, computeName, parameters) })
+		func(cancelCh <-chan struct{}) error {
+			return s.capture(resourceGroupName, computeName, parameters, cancelCh)
+		})
 
 	return processInterruptibleResult(result, s.error, state)
 }
