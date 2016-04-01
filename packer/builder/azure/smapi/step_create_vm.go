@@ -23,9 +23,9 @@ func (*StepCreateVm) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	config := state.Get(constants.Config).(*Config)
 
-	errorMsg := "Error Creating Temporary Azure VM: %s"
+	errorMsg := "Error Creating temporary Azure VM: %s"
 
-	ui.Say("Creating Temporary Azure VM...")
+	ui.Say("Creating temporary Azure VM...")
 
 	role := state.Get("role").(*vm.Role)
 

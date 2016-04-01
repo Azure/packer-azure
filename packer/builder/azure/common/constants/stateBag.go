@@ -29,12 +29,16 @@ const (
 	Ui                    string = "ui"
 )
 const (
+	ArmBlobEndpoint                    string = "arm.BlobEndpoint"
 	ArmComputeName                     string = "arm.ComputeName"
+	ArmCertificateUrl                  string = "arm.CertificateUrl"
 	ArmDeploymentName                  string = "arm.DeploymentName"
+	ArmKeyVaultName                    string = "arm.KeyVaultName"
 	ArmLocation                        string = "arm.Location"
 	ArmOSDiskVhd                       string = "arm.OSDiskVhd"
 	ArmPublicIPAddressName             string = "arm.PublicIPAddressName"
 	ArmResourceGroupName               string = "arm.ResourceGroupName"
+	ArmStorageAccountName              string = "arm.StorageAccountName"
 	ArmTemplateParameters              string = "arm.TemplateParameters"
 	ArmVirtualMachineCaptureParameters string = "arm.VirtualMachineCaptureParameters"
 )

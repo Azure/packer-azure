@@ -13,9 +13,8 @@ import (
 )
 
 func TestStepCaptureImageShouldFailIfCaptureFails(t *testing.T) {
-
 	var testSubject = &StepCaptureImage{
-		capture: func(string, string, *compute.VirtualMachineCaptureParameters) error {
+		capture: func(string, string, *compute.VirtualMachineCaptureParameters, <-chan struct{}) error {
 			return fmt.Errorf("!! Unit Test FAIL !!")
 		},
 		say:   func(message string) {},
@@ -36,7 +35,7 @@ func TestStepCaptureImageShouldFailIfCaptureFails(t *testing.T) {
 
 func TestStepCaptureImageShouldPassIfCapturePasses(t *testing.T) {
 	var testSubject = &StepCaptureImage{
-		capture: func(string, string, *compute.VirtualMachineCaptureParameters) error { return nil },
+		capture: func(string, string, *compute.VirtualMachineCaptureParameters, <-chan struct{}) error { return nil },
 		say:     func(message string) {},
 		error:   func(e error) {},
 	}
@@ -54,12 +53,15 @@ func TestStepCaptureImageShouldPassIfCapturePasses(t *testing.T) {
 }
 
 func TestStepCaptureImageShouldTakeStepArgumentsFromStateBag(t *testing.T) {
+	cancelCh := make(chan<- struct{})
+	defer close(cancelCh)
+
 	var actualResourceGroupName string
 	var actualComputeName string
 	var actualVirtualMachineCaptureParameters *compute.VirtualMachineCaptureParameters
 
 	var testSubject = &StepCaptureImage{
-		capture: func(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters) error {
+		capture: func(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters, cancelCh <-chan struct{}) error {
 			actualResourceGroupName = resourceGroupName
 			actualComputeName = computeName
 			actualVirtualMachineCaptureParameters = parameters

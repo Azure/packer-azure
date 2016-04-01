@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/packer-azure/packer/builder/azure/common"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
@@ -14,7 +15,7 @@ import (
 
 type StepCaptureImage struct {
 	client  *AzureClient
-	capture func(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters) error
+	capture func(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters, cancelCh <-chan struct{}) error
 	say     func(message string)
 	error   func(e error)
 }
@@ -30,13 +31,13 @@ func NewStepCaptureImage(client *AzureClient, ui packer.Ui) *StepCaptureImage {
 	return step
 }
 
-func (s *StepCaptureImage) captureImage(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters) error {
+func (s *StepCaptureImage) captureImage(resourceGroupName string, computeName string, parameters *compute.VirtualMachineCaptureParameters, cancelCh <-chan struct{}) error {
 	_, err := s.client.Generalize(resourceGroupName, computeName)
 	if err != nil {
 		return err
 	}
 
-	_, err = s.client.Capture(resourceGroupName, computeName, *parameters)
+	_, err = s.client.Capture(resourceGroupName, computeName, *parameters, cancelCh)
 	if err != nil {
 		return err
 	}
@@ -54,15 +55,13 @@ func (s *StepCaptureImage) Run(state multistep.StateBag) multistep.StepAction {
 	s.say(fmt.Sprintf(" -> ResourceGroupName : '%s'", resourceGroupName))
 	s.say(fmt.Sprintf(" -> ComputeName       : '%s'", computeName))
 
-	err := s.capture(resourceGroupName, computeName, parameters)
-	if err != nil {
-		state.Put(constants.Error, err)
-		s.error(err)
+	result := common.StartInterruptibleTask(
+		func() bool { return common.IsStateCancelled(state) },
+		func(cancelCh <-chan struct{}) error {
+			return s.capture(resourceGroupName, computeName, parameters, cancelCh)
+		})
 
-		return multistep.ActionHalt
-	}
-
-	return multistep.ActionContinue
+	return processInterruptibleResult(result, s.error, state)
 }
 
 func (*StepCaptureImage) Cleanup(multistep.StateBag) {
