@@ -2,8 +2,7 @@
   "variables": {
     "sn": "your_subscription_name",
     "ps": "d:/Packer.io/example/ps.publishsettings",
-    "sa": "your_storage_account",
-    "example_dir": "d:/Packer.io/example/Azure"
+    "sa": "your_storage_account"
   },
   "builders": [
     {
@@ -13,7 +12,7 @@
       "storage_account": "{{user `sa`}}",
       "storage_account_container": "images",
       "os_type": "Windows",
-      "os_image_label": "Windows Server 2012 R2 Datacenter, September 2015",
+      "os_image_label": "Windows Server 2012 R2 Datacenter, February 2016",
       "location": "Central US",
       "instance_size": "Small",
       "user_image_label": "PackerMade_Windows2012R2DC"
@@ -22,14 +21,14 @@
   "provisioners": [
     {
       "type": "azure-custom-script-extension",
-      "distr_src_path": "{{user `example_dir`}}/srcFolder",
+      "distr_src_path": "./srcFolder",
       "inline": [
         "Write-Host 'Inline script!'",
         "ps",
         "gc readme.txt",
         "Write-Host 'Inline script finished!'"
       ],
-      "script_path": "{{user `example_dir`}}/hello.ps1"
+      "script_path": "./hello.ps1"
     }
   ]
 }
