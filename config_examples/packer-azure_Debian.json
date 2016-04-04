@@ -23,7 +23,7 @@
     {
       "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
       "inline": [
-        "apt-get update"
+        "apt-get update",
         "apt-get upgrade -y"
       ],
       "inline_shebang": "/bin/sh -x",
