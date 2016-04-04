@@ -2,8 +2,7 @@
   "variables": {
     "sn": "your_subscription_name",
     "ps": "d:/Packer.io/example/ps.publishsettings",
-    "sa": "your_storage_account",
-    "example_dir": "d:/Packer.io/example/Azure"
+    "sa": "your_storage_account"
   },
   "builders": [
     {
@@ -22,7 +21,7 @@
   "provisioners": [
     {
       "type": "powershell-azure",
-      "script_path": "{{user `example_dir`}}/ws2012-setup.ps1"
+      "script_path": "./ws2012-setup.ps1"
     }
   ]
 }
