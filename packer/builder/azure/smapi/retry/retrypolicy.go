@@ -68,6 +68,7 @@ func newDefaultRetryPolicy() retryPolicy {
 		newRetryRuleThrottling(),
 		newRetryRuleInternalError(),
 		newRetryRuleConflictInUse(),
+		newRetryRuleConnectionReset(),
 	}
 }
 
@@ -87,5 +88,11 @@ func newRetryRuleConflictInUse() RetryRule {
 	return ConstantBackoffRule("Conflict/InUse", func(err management.AzureError) bool {
 		return (err.Code == "BadRequest" && strings.Contains(err.Message, "is currently in use by")) ||
 			(err.Code == "ConflictError" && strings.Contains(err.Message, "that requires exclusive access"))
+	}, 10*time.Second, 100)
+}
+
+func newRetryRuleConnectionReset() RetryRule {
+	return ConstantBackoffRule("ConnectionReset", func(err management.AzureError) bool {
+		return (strings.Contains(err.Message, "connection reset by peer"))
 	}, 10*time.Second, 100)
 }
