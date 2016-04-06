@@ -14,14 +14,22 @@ env:
     - GO15VENDOREXPERIMENT=1
   
 before_install:
+  - echo ${TRAVIS_SECURE_ENV_VARS}
+  - echo "TRAVIS_SECURE_ENV_VARS == ${TRAVIS_SECURE_ENV_VARS}"
+  - echo ${COVERAGE_HTML_URL:1-10}
   - go get github.com/axw/gocov/gocov
   - go get github.com/matm/gocov-html
 
 script: 
+  - echo ${TRAVIS_SECURE_ENV_VARS}
+  - echo "TRAVIS_SECURE_ENV_VARS == ${TRAVIS_SECURE_ENV_VARS}"
+  - echo ${COVERAGE_HTML_URL:1-10}
   - test -z "$(go fmt ./packer/... | tee /dev/stderr)" 
   - go build -v ./packer/... 
   - test -z "$(go vet ./packer/... | tee /dev/stderr)"
   - gocov test ./packer/... > coverage.json
+
+after_success:
   - echo ${TRAVIS_SECURE_ENV_VARS}
   - echo "TRAVIS_SECURE_ENV_VARS == ${TRAVIS_SECURE_ENV_VARS}"
   - echo ${COVERAGE_HTML_URL:1-10}
