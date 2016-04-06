@@ -33,13 +33,14 @@ after_success:
   - echo ${TRAVIS_SECURE_ENV_VARS}
   - echo "TRAVIS_SECURE_ENV_VARS == ${TRAVIS_SECURE_ENV_VARS}"
   - echo ${COVERAGE_HTML_URL:1-10}
+  - echo ${GITHUB_TOKEN:1-4}
   - if [[ "x${COVERAGE_HTML_URL}" != "x" ]]; then echo "Code coverage is enabled ..." else; else echo "Code coverage is disabled ..."; fi
   - if [[ -n ${COVERAGE_HTML_URL} ]]; then echo "Code coverage is enabled ..." else; else echo "Code coverage is disabled ..."; fi
   - if [[ -n $COVERAGE_HTML_URL ]]; then echo "Code coverage is enabled ..." else; else echo "Code coverage is disabled ..."; fi
-  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then gocov-html coverage.json > coverage.html; fi
-  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then ruby ./coverage.rb; fi
-  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then curl $COVERAGE_HTML_URL --upload-file coverage.html -H "x-ms-blob-type:BlockBlob" -H "Content-Type:text/html"; fi
-  - if [[ "x$COVERAGE_SVG_URL"  != "x" ]]; then curl $COVERAGE_SVG_URL  --upload-file coverage.svg  -H "x-ms-blob-type:BlockBlob" -H "Content-Type:image/svg+xml"; fi
+  - if [[ "${TRAVIS_SECURE_ENV_VARS}" == "true" ]]; then gocov-html coverage.json > coverage.html; fi
+  - if [[ "${TRAVIS_SECURE_ENV_VARS}" == "true" ]]; then ruby ./coverage.rb; fi
+  - if [[ "${TRAVIS_SECURE_ENV_VARS}" == "true" ]]; then curl $COVERAGE_HTML_URL --upload-file coverage.html -H "x-ms-blob-type:BlockBlob" -H "Content-Type:text/html"; fi
+  - if [[ "${TRAVIS_SECURE_ENV_VARS}" == "true" ]]; then curl $COVERAGE_SVG_URL  --upload-file coverage.svg  -H "x-ms-blob-type:BlockBlob" -H "Content-Type:image/svg+xml"; fi
 
 before_deploy:
   - go get github.com/mitchellh/gox
