@@ -7,40 +7,21 @@ go:
   - 1.6
 
 env:
-  global:
-    # COVERAGE_HTML_URL, COVERAGE_SVG_URL
-    - secure KPufZGQD8C+EcREvB6doTGx/bMJfKQl72+guYTzTiIkxLgW+A0RMq1X49MUEU/lGplYLPcteD8m5Un+YX+3rC0vCUSMu0su2uDN09LvUgf+9ElqB2nnmvBrX6BvSGPmO7I5qahWxRFay5ZzHt6dXaD+X9Ax75KeQwLksBdjCicCnn558od0zUODTrHcVFHMbTJy7TNYU/T1h1jA9m34fHJxiUztBqH2E8IY0EAApgJK8FQHDcwcGpB5A4ewZrxMraSBFYAJAzKL/R37l8OTIABRh4/MzKH22eG19rEhQlOlNo6fAORY7rQD6zOaCvcwS8FRVllLCRURxj9U8EZdDMP6uaIYWdYfByNdOmtDgYu0gLz32GBLR1LITiXl96AEfzc2xZpALW1jbPBoasyoGvaXCdxqBgIYOVo+S3sOOYFfUMhMu2b09ELjKsymJnN3ckxzP3bkgiDHTH6Wc26Y0zrOxBBl+jf5NfkidxWlb03e0TQAE07BLa4GY+I50c6Zv7Be3cx4G3IDBkP4m3noX35UI0NB+38fqAQ76kCJy2zbuu9skOWVGpk6sEe6MatGWzki3qsehhw6WH58PD/miRxYjYNWXVDJnsphm1bqXoqVN/6/cDM2Yb82FFt/dTCEX/7sfQuQ09IuCNz1RxigT+ePtWIGcH3V3VI4oRgTFwPk=
-    - secure E5lCBCmD91XW1BEFey/cYDn+se5q6J8FwKPXcEprtf5p69tHcJNeSrzdlYBIgf5feoRGPgtRBP2uxBKZ8Y2WURO9DRVjYIr+DTVaH3A6A0BpJhgqGi3AmLnAkxastHAkEenqWKaoI1smAD5JyXGJeULmNidhJluzmXqzz2F8iWHzgAUywTzvRbr6ZpOoSoEzq6b7XVWNwk+gqW1LCKPseuGDWvdX75KdwQ1D9mZoOvBQuzGBtLhlzwGhqTUZFte9tp5ymkZN01q+9Pl7+UCH6QGbH0RrTxJmN39nksUFX+SxgV3wwISjJ5q0BAkNvpbRfByeTgx2HYlNHmxHIZRvvcpHZYsosp2+gU19JNK+SmYAWsoeDZQ87w9BhDVOOwOaRuQVF1IYHNIPV/rfdZZzblzMisEh359W/4rn3Nyho9jA4o+Qv/6mzdLYJg/RDc+kgEn4f1DrpPKo9AWgneR2nReUKrJJGQuVMGJTJ71djde6YfsCmmpaG3dTg0uT/2/fXQjm/jMA4W+29IjP4a9Y+u1WPVVt3yVCPm9a8cttUvtTF+t3xYtS5KjwYoRWovhBU8ApWC1Jv2VExdRU/0FAfeg/pBrszSTvBB5ktmQVAMoNDwQOqir4zeth8yrCWNlm2SbjxNlTgsq9EGBpdteWArfEvtnzUJrEbXjrp5EGHLo=
-    - GO15VENDOREXPERIMENT=1
-  
+  - GO15VENDOREXPERIMENT=1
+
 before_install:
-  - echo ${TRAVIS_SECURE_ENV_VARS}
-  - echo "TRAVIS_SECURE_ENV_VARS == ${TRAVIS_SECURE_ENV_VARS}"
-  - echo ${COVERAGE_HTML_URL:1-10}
   - go get github.com/axw/gocov/gocov
   - go get github.com/matm/gocov-html
 
 script: 
-  - echo ${TRAVIS_SECURE_ENV_VARS}
-  - echo "TRAVIS_SECURE_ENV_VARS == ${TRAVIS_SECURE_ENV_VARS}"
-  - echo ${COVERAGE_HTML_URL:1-10}
   - test -z "$(go fmt ./packer/... | tee /dev/stderr)" 
   - go build -v ./packer/... 
   - test -z "$(go vet ./packer/... | tee /dev/stderr)"
   - gocov test ./packer/... > coverage.json
-
-after_success:
-  - echo ${TRAVIS_SECURE_ENV_VARS}
-  - echo "TRAVIS_SECURE_ENV_VARS == ${TRAVIS_SECURE_ENV_VARS}"
-  - echo ${COVERAGE_HTML_URL:1-10}
-  - echo ${GITHUB_TOKEN:1-4}
-  - if [[ "x${COVERAGE_HTML_URL}" != "x" ]]; then echo "Code coverage is enabled ..." else; else echo "Code coverage is disabled ..."; fi
-  - if [[ -n ${COVERAGE_HTML_URL} ]]; then echo "Code coverage is enabled ..." else; else echo "Code coverage is disabled ..."; fi
-  - if [[ -n $COVERAGE_HTML_URL ]]; then echo "Code coverage is enabled ..." else; else echo "Code coverage is disabled ..."; fi
-  - if [[ "${TRAVIS_SECURE_ENV_VARS}" == "true" ]]; then gocov-html coverage.json > coverage.html; fi
-  - if [[ "${TRAVIS_SECURE_ENV_VARS}" == "true" ]]; then ruby ./coverage.rb; fi
-  - if [[ "${TRAVIS_SECURE_ENV_VARS}" == "true" ]]; then curl $COVERAGE_HTML_URL --upload-file coverage.html -H "x-ms-blob-type:BlockBlob" -H "Content-Type:text/html"; fi
-  - if [[ "${TRAVIS_SECURE_ENV_VARS}" == "true" ]]; then curl $COVERAGE_SVG_URL  --upload-file coverage.svg  -H "x-ms-blob-type:BlockBlob" -H "Content-Type:image/svg+xml"; fi
+  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then gocov-html coverage.json > coverage.html; fi
+  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then ruby ./coverage.rb; fi
+  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then curl $COVERAGE_HTML_URL --upload-file coverage.html -H "x-ms-blob-type:BlockBlob" -H "Content-Type:text/html"; fi
+  - if [[ "x$COVERAGE_SVG_URL"  != "x" ]]; then curl $COVERAGE_SVG_URL  --upload-file coverage.svg  -H "x-ms-blob-type:BlockBlob" -H "Content-Type:image/svg+xml"; fi
 
 before_deploy:
   - go get github.com/mitchellh/gox
