@@ -18,6 +18,10 @@ script:
   - go build -v ./packer/... 
   - test -z "$(go vet ./packer/... | tee /dev/stderr)"
   - gocov test ./packer/... > coverage.json
+  - echo ${TRAVIS_SECURE_ENV_VARS}
+  - echo "TRAVIS_SECURE_ENV_VARS == ${TRAVIS_SECURE_ENV_VARS}"
+  - echo ${COVERAGE_HTML_URL}
+  - echo $COVERAGE_HTML_URL
   - if [[ "x${COVERAGE_HTML_URL}" != "x" ]]; then echo "Code coverage is enabled ..." else; else echo "Code coverage is disabled ..."; fi
   - if [[ -n ${COVERAGE_HTML_URL} ]]; then echo "Code coverage is enabled ..." else; else echo "Code coverage is disabled ..."; fi
   - if [[ -n $COVERAGE_HTML_URL ]]; then echo "Code coverage is enabled ..." else; else echo "Code coverage is disabled ..."; fi
