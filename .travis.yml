@@ -18,6 +18,7 @@ script:
   - go build -v ./packer/... 
   - test -z "$(go vet ./packer/... | tee /dev/stderr)"
   - gocov test ./packer/... > coverage.json
+  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then echo "Code coverage is enabled ..." else; else echo "Code coverage is disabled ..."; fi
   - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then gocov-html coverage.json > coverage.html; fi
   - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then ruby ./coverage.rb; fi
   - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then curl $COVERAGE_HTML_URL --upload-file coverage.html -H "x-ms-blob-type:BlockBlob" -H "Content-Type:text/html"; fi
