@@ -48,9 +48,9 @@ func (a *artifact) State(name string) interface{} {
 
 func (a *artifact) String() string {
 	return fmt.Sprintf("{%s,%s,%s}",
-		fmt.Sprintf("imageLabel: '%s'", a.imageLabel),
-		fmt.Sprintf("imageName: '%s'", a.imageName),
-		fmt.Sprintf("mediaLocation: '%s'", a.mediaLocation),
+		fmt.Sprintf("\"imageLabel\": \"%s\"", a.imageLabel),
+		fmt.Sprintf("\"imageName\": \"%s\"", a.imageName),
+		fmt.Sprintf("\"mediaLocation\": \"%s\"", a.mediaLocation),
 	)
 }
 
