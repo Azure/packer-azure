@@ -160,12 +160,13 @@ func newConfig(raws ...interface{}) (*Config, []string, error) {
 	}
 
 	if c.UserImageLabel == "" {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("user_image_label must be specified"))
+		log.Println(fmt.Sprintf("Using dynamically generated user_image_label [%s]", c.tmpVmName))
+		c.UserImageLabel = c.tmpVmName
 	}
 
 	const userLabelRegex = "^[A-Za-z][A-Za-z0-9-_.]*[A-Za-z0-9]$"
 	if !regexp.MustCompile(userLabelRegex).MatchString(c.UserImageLabel) {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("user_image_label is not valid, it should follow the pattern %s", userLabelRegex))
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("user_image_label [%s] is not valid, it should follow the pattern %s", c.UserImageLabel, userLabelRegex))
 	}
 
 	c.userImageName = fmt.Sprintf("%s_%s", c.UserImageLabel, time.Now().Format("2006-01-02_15-04"))
