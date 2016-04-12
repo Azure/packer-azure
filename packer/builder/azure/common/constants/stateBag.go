@@ -39,6 +39,7 @@ const (
 	ArmOSDiskVhd                       string = "arm.OSDiskVhd"
 	ArmPublicIPAddressName             string = "arm.PublicIPAddressName"
 	ArmResourceGroupName               string = "arm.ResourceGroupName"
+	ArmIsResourceGroupCreated          string = "arm.IsResourceGroupCreated"
 	ArmStorageAccountName              string = "arm.StorageAccountName"
 	ArmTemplateParameters              string = "arm.TemplateParameters"
 	ArmVirtualMachineCaptureParameters string = "arm.VirtualMachineCaptureParameters"
