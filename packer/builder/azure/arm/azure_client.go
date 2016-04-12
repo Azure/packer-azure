@@ -4,19 +4,22 @@
 package arm
 
 import (
+	"encoding/json"
 	"fmt"
+	"math"
+	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	armStorage "github.com/Azure/azure-sdk-for-go/arm/storage"
 	"github.com/Azure/azure-sdk-for-go/storage"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/packer-azure/packer/builder/azure/common"
 	"github.com/Azure/packer-azure/version"
-	"math"
-	"os"
-	"strconv"
 )
 
 const (
@@ -37,6 +40,65 @@ type AzureClient struct {
 	armStorage.AccountsClient
 
 	InspectorMaxLength int
+	Template           *CaptureTemplate
+}
+
+func getCaptureResponse(body string) *CaptureTemplate {
+	var operation CaptureOperation
+	err := json.Unmarshal([]byte(body), &operation)
+	if err != nil {
+		return nil
+	}
+
+	if operation.Properties != nil && operation.Properties.Output != nil {
+		return operation.Properties.Output
+	}
+
+	return nil
+}
+
+// HACK(chrboum): This method is a hack.  It was written to work around this issue
+// (https://github.com/Azure/azure-sdk-for-go/issues/307) and to an extent this
+// issue (https://github.com/Azure/azure-rest-api-specs/issues/188).
+//
+// Capturing a VM is a long running operation that requires polling.  There are
+// couple different forms of polling, and the end result of a poll operation is
+// discarded by the SDK.  It is expected that any discarded data can be re-fetched,
+// so discarding it has minimal impact.  Unfortunately, there is no way to re-fetch
+// the template returned by a capture call that I am aware of.
+//
+// If the second issue were fixed the VM ID would be included when GET'ing a VM.  The
+// VM ID could be used to locate the captured VHD, and captured template.
+// Unfortunately, the VM ID is not included so this method cannot be used either.
+//
+// This code captures the template and saves it to the client (the AzureClient type).
+// It expects that the capture API is called only once, or rather you only care that the
+// last call's value is important because subsequent requests are not persisted.  There
+// is no care given to multiple threads writing this value because for our use case
+// it does not matter.
+func templateCapture(client *AzureClient) autorest.RespondDecorator {
+	return func(r autorest.Responder) autorest.Responder {
+		return autorest.ResponderFunc(func(resp *http.Response) error {
+			body, bodyString := handleBody(resp.Body, math.MaxInt64)
+			resp.Body = body
+
+			captureTemplate := getCaptureResponse(bodyString)
+			if captureTemplate != nil {
+				client.Template = captureTemplate
+			}
+
+			return r.Respond(resp)
+		})
+	}
+}
+
+// WAITING(chrboum): I have logged https://github.com/Azure/azure-sdk-for-go/issues/311 to get this
+// method included in the SDK.  It has been accepted, and I'll cut over to the official way
+// once it ships.
+func byConcatDecorators(decorators ...autorest.RespondDecorator) autorest.RespondDecorator {
+	return func(r autorest.Responder) autorest.Responder {
+		return autorest.DecorateResponder(r, decorators...)
+	}
 }
 
 func NewAzureClient(subscriptionID, resourceGroupName, storageAccountName string,
@@ -67,8 +129,8 @@ func NewAzureClient(subscriptionID, resourceGroupName, storageAccountName string
 	azureClient.VirtualMachinesClient = compute.NewVirtualMachinesClient(subscriptionID)
 	azureClient.VirtualMachinesClient.Authorizer = servicePrincipalToken
 	azureClient.VirtualMachinesClient.RequestInspector = withInspection(maxlen)
-	azureClient.VirtualMachinesClient.ResponseInspector = byInspecting(maxlen)
-	azureClient.PublicIPAddressesClient.UserAgent += packerUserAgent
+	azureClient.VirtualMachinesClient.ResponseInspector = byConcatDecorators(byInspecting(maxlen), templateCapture(azureClient))
+	azureClient.VirtualMachinesClient.UserAgent += packerUserAgent
 
 	azureClient.AccountsClient = armStorage.NewAccountsClient(subscriptionID)
 	azureClient.AccountsClient.Authorizer = servicePrincipalToken

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	packerAzureCommon "github.com/Azure/packer-azure/packer/builder/azure/common"
 
@@ -29,6 +30,8 @@ type Builder struct {
 
 const (
 	DefaultPublicIPAddressName = "packerPublicIP"
+	DefaultSasBlobContainer    = "system/Microsoft.Compute"
+	DefaultSasBlobPermission   = "r"
 	DefaultSecretName          = "packerKeyVaultSecret"
 )
 
@@ -122,6 +125,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&common.StepProvision{},
 			NewStepGetOSDisk(azureClient, ui),
 			NewStepPowerOffCompute(azureClient, ui),
+			NewStepCaptureImage(azureClient, ui),
 			NewStepDeleteResourceGroup(azureClient, ui),
 			NewStepDeleteOSDisk(azureClient, ui),
 		}
@@ -151,7 +155,17 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		return nil, errors.New("Build was halted.")
 	}
 
-	return &artifact{}, nil
+	if template, ok := b.stateBag.GetOk(constants.ArmCaptureTemplate); ok {
+		return NewArtifact(
+			template.(*CaptureTemplate),
+			func(name string) string {
+				month := time.Now().AddDate(0, 1, 0).UTC()
+				sasUrl, _ := azureClient.BlobStorageClient.GetBlobSASURI(DefaultSasBlobContainer, name, month, DefaultSasBlobPermission)
+				return sasUrl
+			})
+	}
+
+	return &Artifact{}, nil
 }
 
 func (b *Builder) Cancel() {
