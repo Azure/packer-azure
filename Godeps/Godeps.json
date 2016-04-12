@@ -112,7 +112,7 @@
 		},
 		{
 			"ImportPath": "github.com/Azure/go-ntlmssp",
-			"Rev": "eca2fbb4d90928f4f4ca1b5d6347de2fb395c2bf"
+			"Rev": "e0b63eb299a769ea4b04dadfe530f6074b277afb"
 		},
 		{
 			"ImportPath": "github.com/dgrijalva/jwt-go",
