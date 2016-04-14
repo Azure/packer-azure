@@ -20,7 +20,7 @@
   ],
   "provisioners": [
     {
-      "type": "powershell-azure",
+      "type": "azure-custom-script-extension",
       "script_path": "./ws2012-setup.ps1"
     }
   ]
