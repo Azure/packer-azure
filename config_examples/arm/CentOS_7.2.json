@@ -27,7 +27,7 @@
             "capture_name_prefix": "packer",
 
             "ssh_username": "{{user `ssh_user`}}",
-            "ssh_password": "{{user `ssh_pass`}}",
+            "ssh_blah": "{{user `ssh_pass`}}",
 
             "os_type": "Linux",
             "image_publisher": "OpenLogic",
