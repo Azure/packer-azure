@@ -35,3 +35,6 @@ You can download binaries from the [releases](https://github.com/Azure/packer-az
 
 Please see the [ARM README](https://github.com/Azure/packer-azure/blob/master/packer/builder/azure/arm/README.md) for
 getting started with packer-azure for [ARM](https://azure.microsoft.com/en-us/documentation/articles/resource-group-overview/).
+
+-----
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
