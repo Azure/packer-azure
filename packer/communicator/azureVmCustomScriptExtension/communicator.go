@@ -38,25 +38,17 @@ type Config struct {
 	VmName                    string
 	StorageAccountName        string
 	StorageAccountKey         string
+	BlobClient                storage.BlobStorageClient
 	ContainerName             string
 	Ui                        packer.Ui
 	ProvisionTimeoutInMinutes uint
 	ManagementClient          management.Client
-
-	blobClient storage.BlobStorageClient
 }
 
-func New(config Config) (result *comm, err error) {
-	storageClient, err := storage.NewBasicClient(config.StorageAccountName, config.StorageAccountKey)
-	if err != nil {
-		return nil, err
-	}
-	config.blobClient = storageClient.GetBlobService()
-
-	result = &comm{
+func New(config Config) (result *comm) {
+	return &comm{
 		config: config,
 	}
-	return
 }
 
 func (c *comm) Start(cmd *packer.RemoteCmd) (err error) {
@@ -431,7 +423,7 @@ func (c *comm) uploadFile(dscPath string, srcPath string) error {
 	}
 
 	ui := c.config.Ui
-	sa := c.config.blobClient
+	sa := c.config.BlobClient
 
 	containerName := c.config.ContainerName
 

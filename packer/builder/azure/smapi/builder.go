@@ -13,7 +13,6 @@ import (
 
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/lin"
-	"github.com/Azure/packer-azure/packer/builder/azure/smapi/win"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/helper/communicator"
@@ -130,7 +129,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				TmpVmName:      b.config.tmpVmName,
 				OSType:         b.config.OSType,
 			},
-			&win.StepSetProvisionInfrastructure{
+			&StepSetProvisionInfrastructure{
 				VmName:                    b.config.tmpVmName,
 				ServiceName:               b.config.tmpServiceName,
 				StorageAccountName:        b.config.StorageAccount,
