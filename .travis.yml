@@ -20,8 +20,8 @@ script:
   - gocov test ./packer/... > coverage.json
   - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then gocov-html coverage.json > coverage.html; fi
   - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then ruby ./coverage.rb; fi
-  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then curl $COVERAGE_HTML_URL --upload-file coverage.html -H "x-ms-blob-type:BlockBlob" -H "Content-Type:text/html"; fi
-  - if [[ "x$COVERAGE_SVG_URL"  != "x" ]]; then curl $COVERAGE_SVG_URL  --upload-file coverage.svg  -H "x-ms-blob-type:BlockBlob" -H "Content-Type:image/svg+xml"; fi
+  - if [[ "x$COVERAGE_HTML_URL" != "x" ]]; then curl $COVERAGE_HTML_URL --upload-file coverage.html -H "x-ms-blob-type:BlockBlob" -H "Content-Type:text/html" -H "x-ms-blob-cache-control:no-cache"; fi
+  - if [[ "x$COVERAGE_SVG_URL"  != "x" ]]; then curl $COVERAGE_SVG_URL  --upload-file coverage.svg  -H "x-ms-blob-type:BlockBlob" -H "Content-Type:image/svg+xml" -H "x-ms-blob-cache-control:no-cache"; fi
 
 before_deploy:
   - go get github.com/mitchellh/gox
