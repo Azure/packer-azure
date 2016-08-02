@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See the LICENSE file in the project root for license information.
 
-package win
+package azure
 
 import (
 	"fmt"
@@ -13,7 +13,6 @@ import (
 	"github.com/mitchellh/packer/packer"
 
 	"github.com/Azure/azure-sdk-for-go/management"
-	"github.com/Azure/azure-sdk-for-go/management/storageservice"
 	"github.com/Azure/azure-sdk-for-go/storage"
 )
 
@@ -24,42 +23,25 @@ type StepSetProvisionInfrastructure struct {
 	TempContainerName         string
 	ProvisionTimeoutInMinutes uint
 
-	storageClient            storage.Client
 	flagTempContainerCreated bool
 }
 
 func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	client := state.Get(constants.RequestManager).(management.Client)
+	config := state.Get(constants.Config).(*Config)
 
-	errorMsg := "Error StepRemoteSession: %s"
+	errorMsg := "Error StepSetProvisionInfrastructure: %s"
 	ui.Say("Preparing infrastructure for provision...")
 
 	// get key for storage account
-	ui.Message("Getting key for storage account...")
-
-	keys, err := storageservice.NewClient(client).GetStorageServiceKeys(s.StorageAccountName)
-	if err != nil {
-		err := fmt.Errorf(errorMsg, err)
-		state.Put("error", err)
-		ui.Error(err.Error())
-		return multistep.ActionHalt
-	}
-
-	//create storage driver
-	s.storageClient, err = storage.NewBasicClient(s.StorageAccountName, keys.PrimaryKey)
-	if err != nil {
-		err := fmt.Errorf(errorMsg, err)
-		state.Put("error", err)
-		ui.Error(err.Error())
-		return multistep.ActionHalt
-	}
+	ui.Message("Looking up storage account...")
 
 	//create temporary container
 	s.flagTempContainerCreated = false
 
 	ui.Message("Creating Azure temporary container...")
-	err = s.storageClient.GetBlobService().CreateContainer(s.TempContainerName, storage.ContainerAccessTypePrivate)
+	err := config.storageClient.GetBlobService().CreateContainer(s.TempContainerName, storage.ContainerAccessTypePrivate)
 	if err != nil {
 		err := fmt.Errorf(errorMsg, err)
 		state.Put("error", err)
@@ -69,24 +51,18 @@ func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep
 
 	s.flagTempContainerCreated = true
 
-	comm, err := azureVmCustomScriptExtension.New(
+	comm := azureVmCustomScriptExtension.New(
 		azureVmCustomScriptExtension.Config{
 			ServiceName:               s.ServiceName,
 			VmName:                    s.VmName,
 			StorageAccountName:        s.StorageAccountName,
-			StorageAccountKey:         keys.PrimaryKey,
+			StorageAccountKey:         config.storageAccountKey,
+			BlobClient:                config.storageClient.GetBlobService(),
 			ContainerName:             s.TempContainerName,
 			Ui:                        ui,
 			ManagementClient:          client,
 			ProvisionTimeoutInMinutes: s.ProvisionTimeoutInMinutes,
 		})
-
-	if err != nil {
-		err := fmt.Errorf(errorMsg, err)
-		state.Put("error", err)
-		ui.Error(err.Error())
-		return multistep.ActionHalt
-	}
 
 	packerCommunicator := packer.Communicator(comm)
 
@@ -97,12 +73,13 @@ func (s *StepSetProvisionInfrastructure) Run(state multistep.StateBag) multistep
 
 func (s *StepSetProvisionInfrastructure) Cleanup(state multistep.StateBag) {
 	ui := state.Get("ui").(packer.Ui)
+	config := state.Get(constants.Config).(*Config)
 	ui.Say("Cleaning Up Infrastructure for provision...")
 
 	if s.flagTempContainerCreated {
 		ui.Message("Removing Azure temporary container...")
 
-		err := s.storageClient.GetBlobService().DeleteContainer(s.TempContainerName)
+		err := config.storageClient.GetBlobService().DeleteContainer(s.TempContainerName)
 		if err != nil {
 			ui.Message("Error removing temporary container: " + err.Error())
 		}

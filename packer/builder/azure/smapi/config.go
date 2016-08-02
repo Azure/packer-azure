@@ -2,6 +2,7 @@ package azure
 
 import (
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/storage"
 	azureCommon "github.com/Azure/packer-azure/packer/builder/azure/common"
 	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
 	"github.com/mitchellh/packer/common"
@@ -22,12 +23,14 @@ type Config struct {
 	SubscriptionName    string `mapstructure:"subscription_name"`
 	PublishSettingsPath string `mapstructure:"publish_settings_path"`
 
-	StorageAccount   string        `mapstructure:"storage_account"`
-	StorageContainer string        `mapstructure:"storage_account_container"`
-	Location         string        `mapstructure:"location"`
-	InstanceSize     string        `mapstructure:"instance_size"`
-	DataDisks        []interface{} `mapstructure:"data_disks"`
-	UserImageLabel   string        `mapstructure:"user_image_label"`
+	StorageAccount    string `mapstructure:"storage_account"`
+	storageAccountKey string
+	storageClient     storage.Client
+	StorageContainer  string        `mapstructure:"storage_account_container"`
+	Location          string        `mapstructure:"location"`
+	InstanceSize      string        `mapstructure:"instance_size"`
+	DataDisks         []interface{} `mapstructure:"data_disks"`
+	UserImageLabel    string        `mapstructure:"user_image_label"`
 
 	OSType                string `mapstructure:"os_type"`
 	OSImageLabel          string `mapstructure:"os_image_label"`

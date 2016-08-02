@@ -3,6 +3,13 @@ package azure
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/Azure/packer-azure/packer/builder/azure/common"
+	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
+
 	"github.com/Azure/azure-sdk-for-go/management"
 	"github.com/Azure/azure-sdk-for-go/management/osimage"
 	"github.com/Azure/azure-sdk-for-go/management/storageservice"
@@ -10,13 +17,9 @@ import (
 	vmdisk "github.com/Azure/azure-sdk-for-go/management/virtualmachinedisk"
 	vmimage "github.com/Azure/azure-sdk-for-go/management/virtualmachineimage"
 	"github.com/Azure/azure-sdk-for-go/management/vmutils"
-	"github.com/Azure/packer-azure/packer/builder/azure/common"
-	"github.com/Azure/packer-azure/packer/builder/azure/common/constants"
+	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	"log"
-	"net/http"
-	"strings"
 )
 
 type StepValidate struct{}
@@ -215,6 +218,19 @@ func validateStorageAccount(config *Config, client management.Client) (string, e
 			sa.ServiceName, sa.StorageServiceProperties.Endpoints)
 	}
 	log.Printf("Blob endpoint: %s", blobEndpoint)
+
+	log.Print("Getting key for storage account...")
+	keys, err := ssc.GetStorageServiceKeys(config.StorageAccount)
+	if err != nil {
+		return "", fmt.Errorf("Could not retrieve key for storage account %q", config.StorageAccount)
+	}
+	config.storageAccountKey = keys.PrimaryKey
+
+	config.storageClient, err = storage.NewClient(config.StorageAccount, config.storageAccountKey,
+		strings.TrimSuffix(blobEndpoint[strings.Index(blobEndpoint, ".blob.")+6:], "/"), storage.DefaultAPIVersion, true)
+	if err != nil {
+		return "", fmt.Errorf("Could not create storage client for account %q", config.StorageAccount)
+	}
 
 	return fmt.Sprintf("%s%s/%s.vhd", blobEndpoint, config.StorageContainer, config.tmpVmName), nil
 }
