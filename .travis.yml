@@ -15,7 +15,7 @@ before_install:
 
 script: 
   - (cd packer && gas -fmt=json -out=results.json ./... > /dev/null)
-  - test $(grep -c '"severity": "HIGH"' packer/results.json) -lt 8
+  - test $(grep -c "\"severity\":\s+\"HIGH\"" packer/results.json) -lt 8
   - test -z "$(go fmt ./packer/... | tee /dev/stderr)" 
   - go build -v ./packer/... 
   - test -z "$(go vet ./packer/... | tee /dev/stderr)"
