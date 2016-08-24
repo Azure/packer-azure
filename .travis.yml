@@ -12,6 +12,7 @@ env:
 before_install:
   - go get github.com/axw/gocov/gocov
   - go get github.com/matm/gocov-html
+  - go get github.com/HewlettPackard/gas
 
 script: 
   - (cd packer && gas -fmt=json -out=results.json ./... > /dev/null)
