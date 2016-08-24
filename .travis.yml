@@ -12,8 +12,12 @@ env:
 before_install:
   - go get github.com/axw/gocov/gocov
   - go get github.com/matm/gocov-html
+  - go get github.com/HewlettPackard/gas
 
 script: 
+  - (cd packer && gas -fmt=json -out=results.json ./... > /dev/null)
+  - cat packer/results.json
+  - test $(grep -c "\"severity\":\s*\"HIGH\"" packer/results.json) -lt 8
   - test -z "$(go fmt ./packer/... | tee /dev/stderr)" 
   - go build -v ./packer/... 
   - test -z "$(go vet ./packer/... | tee /dev/stderr)"
