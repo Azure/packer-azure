@@ -238,7 +238,7 @@ func validateStorageAccount(config *Config, client management.Client) (string, e
 
 	if sa.StorageServiceProperties.Location != config.Location {
 		return "", fmt.Errorf("Storage account %q is not in location %q, but in location %q.",
-			config.StorageAccount, sa.StorageServiceProperties.Location, config.Location)
+			config.StorageAccount, config.Location, sa.StorageServiceProperties.Location)
 	}
 
 	var blobEndpoint string
