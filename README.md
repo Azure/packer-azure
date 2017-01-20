@@ -1,3 +1,8 @@
+THIS PROJECT DEPRECATED
+=============
+
+This project is no longer actively maintained, please use the [azure-arm builder](https://www.packer.io/docs/builders/azure.html).
+
 packer-azure [![Build Status](https://travis-ci.org/Azure/packer-azure.svg)](https://travis-ci.org/Azure/packer-azure) [![Code Coverage](https://githubpackerazure.blob.core.windows.net/codecoverage/coverage.svg)](https://githubpackerazure.blob.core.windows.net/codecoverage/coverage.html)
 =============
 
