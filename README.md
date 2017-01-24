@@ -1,7 +1,7 @@
 THIS PROJECT DEPRECATED
 =============
 
-This project is no longer actively maintained, please use the [azure-arm builder](https://www.packer.io/docs/builders/azure.html).
+This project is no longer actively maintained, please use the [azure-arm builder](https://www.packer.io/docs/builders/azure-arm.html) in the official [packer.io](https://www.packer.io/) package.
 
 packer-azure [![Build Status](https://travis-ci.org/Azure/packer-azure.svg)](https://travis-ci.org/Azure/packer-azure) [![Code Coverage](https://githubpackerazure.blob.core.windows.net/codecoverage/coverage.svg)](https://githubpackerazure.blob.core.windows.net/codecoverage/coverage.html)
 =============
